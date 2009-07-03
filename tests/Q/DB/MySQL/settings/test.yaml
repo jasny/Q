@@ -1,0 +1,10 @@
+key:
+  role:        index
+  description: Reference
+
+title:
+  role:        description
+  
+"test.status != 'PASSIVE'":
+  role:        active
+  description: Logical status

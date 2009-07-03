@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <table_def>
+        <description>Alias</description>
+        <filter>status = 1</filter>
+    </table_def>
+    
+    <field name="description">
+        <type>string</type>
+        <datatype>alphanumeric</datatype>
+        <description>Name</description>
+        <extra><value>yup</value></extra>
+    </field>
+    
+    <alias name="xyz">
+        <description>Description XYZ</description>
+    </alias>
+</config>

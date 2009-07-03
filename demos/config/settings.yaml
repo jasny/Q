@@ -1,0 +1,13 @@
+cache:
+  driver: apc
+
+db:
+  dsn:    "mysql:host=localhost;username=qdemo;password=qdemo"
+  config: "yaml:config/db"
+
+authenticate:
+  dsn:              "db:user"
+  passwordCrypt:    md5
+  loginRequired:    true
+  loginRequestVar:  login
+  logoutRequestVar: logout

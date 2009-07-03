@@ -1,0 +1,15 @@
+xyz:
+   xq  : 10
+   abc :
+      a  : something else
+      tu : 27
+      re : 10
+      grp1:
+         i1 : 22
+         we : 10
+
+d:
+   - abc
+   - def
+   - ghij
+   - klm

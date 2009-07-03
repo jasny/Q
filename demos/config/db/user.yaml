@@ -1,0 +1,8 @@
+'#table':
+  authenticate: "SELECT `id`, `fullname`, `user`, '%', `password`, `group`, `_revision_time_activate` IS NULL AS `active`, NULL AS `expire`, `author_id` FROM `user`"
+  onstart:      "SET @auth_uid = :id, @auth_user = :username, @auth_fullname = :fullname"
+  onlogin:      "SET @auth_uid = :id, @auth_user = :username, @auth_fullname = :fullname"
+  onlogout:     "SET @auth_uid = NULL, @auth_user = NULL, @auth_fullname = NULL"
+  
+password:
+  crypt: md5

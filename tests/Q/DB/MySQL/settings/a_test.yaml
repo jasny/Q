@@ -1,0 +1,12 @@
+'#table':
+  table:       test
+  recordtype:  test_record
+  description: Alias of PHPUnit test table
+  
+title:
+  datatype:    alphanumeric
+  description: Name
+  role:        description
+  
+'#alias:xyz':
+  description: XYZ!!!

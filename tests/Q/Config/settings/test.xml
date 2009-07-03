@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings>
+    <grp1>
+        <q>abc</q>
+        <b>27</b>
+    </grp1>
+    <grp2>
+        <a>original</a>
+    </grp2>
+</settings>

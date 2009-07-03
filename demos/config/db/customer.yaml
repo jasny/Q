@@ -1,0 +1,5 @@
+customer_type_id:
+  description: Type
+
+postalcode:
+  mask: "AAAA 00"
