@@ -1,0 +1,510 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+  <html xmlns="http://www.w3.org/1999/xhtml">
+		<head>
+			<!-- template designed by Marco Von Ballmoos -->
+			<title>Docs For Class Config_Files</title>
+			<link rel="stylesheet" href="../media/stylesheet.css" />
+			<meta http-equiv='Content-Type' content='text/html; charset=iso-8859-1'/>
+		</head>
+		<body>
+			<div class="page-body">			
+<h2 class="class-name">Class Config_Files</h2>
+
+<a name="sec-description"></a>
+<div class="info-box">
+	<div class="info-box-title">Description</div>
+	<div class="nav-bar">
+					<span class="disabled">Description</span> |
+							<a href="#sec-descendents">Descendents</a>
+			|											<a href="#sec-var-summary">Vars</a> (<a href="#sec-vars">details</a>)
+						|											<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+						
+					</div>
+	<div class="info-box-body">
+        		<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Load and parse config files from a directory.</p>
+	<ul class="tags">
+				<li><span class="field">abstract:</span> </li>
+			</ul>
+		<p class="notes">
+			Located in <a class="field" href="_Q---Config---Files.php.html">/Q/Config/Files.php</a> (line <span class="field">11</span>)
+		</p>
+		
+				
+		<pre><a href="../Config/Config.html">Config</a>
+   |
+   --Config_Files</pre>
+	
+			</div>
+</div>
+
+	<a name="sec-descendents"></a>
+	<div class="info-box">
+		<div class="info-box-title">Direct descendents</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+			<span class="disabled">Descendents</span>
+			|												<a href="#sec-var-summary">Vars</a> (<a href="#sec-vars">details</a>)
+								|															<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+							
+								</div>
+		<div class="info-box-body">
+			<table cellpadding="2" cellspacing="0" class="class-table">
+				<tr>
+					<th class="class-table-header">Class</th>
+					<th class="class-table-header">Description</th>
+				</tr>
+								<tr>
+					<td style="padding-right: 2em"><a href="../Config/Config_Ini.html">Config_Ini</a></td>
+					<td>
+											Load and parse .ini config files from a directory.
+										</td>
+				</tr>
+								<tr>
+					<td style="padding-right: 2em"><a href="../Config/Config_Yaml.html">Config_Yaml</a></td>
+					<td>
+											Load and parse YAML config files.
+										</td>
+				</tr>
+								<tr>
+					<td style="padding-right: 2em"><a href="../Config/Config_XML.html">Config_XML</a></td>
+					<td>
+											Load and parse XML config files.
+										</td>
+				</tr>
+								<tr>
+					<td style="padding-right: 2em"><a href="../Config/Config_Json.html">Config_Json</a></td>
+					<td>
+											Load and parse .json config files from a directory.
+										</td>
+				</tr>
+							</table>
+		</div>
+	</div>
+
+
+	<a name="sec-var-summary"></a>
+	<div class="info-box">
+		<div class="info-box-title">Variable Summary</span></div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+							<a href="#sec-descendents">Descendents</a> |
+						<span class="disabled">Vars</span> (<a href="#sec-vars">details</a>)
+							| 
+									<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+							
+								</div>
+		<div class="info-box-body">
+			<div class="var-summary">
+																																<div class="var-title">
+					<span class="var-type">array</span>
+					<a href="#$preparseParams" title="details" class="var-name">$preparseParams</a>
+				</div>
+																<div class="var-title">
+					<span class="var-type">string</span>
+					<a href="#$_ext" title="details" class="var-name">$_ext</a>
+				</div>
+											</div>
+		</div>
+	</div>
+
+	<a name="sec-method-summary"></a>
+	<div class="info-box">
+		<div class="info-box-title">Method Summary</span></div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+							<a href="#sec-descendents">Descendents</a> |
+																		<a href="#sec-var-summary">Vars</a> (<a href="#sec-vars">details</a>)
+				 
+				|
+						<span class="disabled">Methods</span> (<a href="#sec-methods">details</a>)
+		</div>
+		<div class="info-box-body">			
+			<div class="method-summary">
+																																												
+												<div class="method-definition">
+											<span class="method-result">Config_Files</span>
+										<a href="#__construct" title="details" class="method-name">__construct</a>
+											([<span class="var-type">array</span>&nbsp;<span class="var-name">$options</span> = <span class="var-default">array()</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result">string</span>
+										<a href="#groupName" title="details" class="method-name">groupName</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$group</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result">array</span>
+										<a href="#loadDir" title="details" class="method-name">loadDir</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$path</span>, [<span class="var-type"></span>&nbsp;<span class="var-name">&$settings</span> = <span class="var-default">null</span>], <span class="var-type">array</span>&nbsp;<span class="var-name">$settings</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result">array</span>
+										<a href="#loadFile" title="details" class="method-name">loadFile</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$path</span>, [<span class="var-type"></span>&nbsp;<span class="var-name">$group</span> = <span class="var-default">null</span>], <span class="var-type">string</span>&nbsp;<span class="var-name">$key</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result">array</span>
+										<a href="#loadToCache" title="details" class="method-name">loadToCache</a>
+											([<span class="var-type">string</span>&nbsp;<span class="var-name">$group</span> = <span class="var-default">null</span>])
+									</div>
+								</div>
+		</div>
+	</div>		
+
+	<a name="sec-vars"></a>
+	<div class="info-box">
+		<div class="info-box-title">Variables</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+							<a href="#sec-descendents">Descendents</a> |
+										<a href="#sec-var-summary">Vars</a> (<span class="disabled">details</span>)
+						
+			
+										| 
+									<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+							
+					</div>
+		<div class="info-box-body">
+			<a name="var$preparseParams" id="$preparseParams"><!-- --></A>
+<div class="oddrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			<span class="var-type">array</span>
+			<span class="var-name">$preparseParams</span>
+						(line <span class="line-number">17</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Parameters voor preparsing (might be PHP)</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+<a name="var$_ext" id="$_ext"><!-- --></A>
+<div class="evenrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			<span class="var-type">string</span>
+			<span class="var-name">$_ext</span>
+						(line <span class="line-number">25</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">File extension.</p>
+<p class="description"><p>Change this value in child classes.</p></p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	
+		
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../Config/Config_Ini.html#var$_ext">Config_Ini::$_ext</a>
+								: File extension.
+							</li>
+					<li>
+				<a href="../Config/Config_Yaml.html#var$_ext">Config_Yaml::$_ext</a>
+								: File extension.
+							</li>
+					<li>
+				<a href="../Config/Config_XML.html#var$_ext">Config_XML::$_ext</a>
+								: File extension.
+							</li>
+					<li>
+				<a href="../Config/Config_Json.html#var$_ext">Config_Json::$_ext</a>
+								: File extension.
+							</li>
+				</ul>
+		
+
+</div>
+							<h4>Inherited Variables</h4>
+				<A NAME='inherited_vars'><!-- --></A>
+									<p>Inherited from <span class="classname"><a href="../Config/Config.html">Config</a></span></p>
+					<blockquote>
+													<span class="var-title">
+								<span class="var-name"><a href="../Config/Config.html#var$defaultOptions">Config::$defaultOptions</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../Config/Config.html#var$drivers">Config::$drivers</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../Config/Config.html#var$instances">Config::$instances</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../Config/Config.html#var$_cache">Config::$_cache</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../Config/Config.html#var$_cache_check">Config::$_cache_check</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../Config/Config.html#var$_loadedAll">Config::$_loadedAll</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../Config/Config.html#var$_options">Config::$_options</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../Config/Config.html#var$_settings">Config::$_settings</a></span><br>
+							</span>
+											</blockquote> 
+										
+		</div>
+	</div>
+	
+	<a name="sec-methods"></a>
+	<div class="info-box">
+		<div class="info-box-title">Methods</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+							<a href="#sec-descendents">Descendents</a> |
+															<a href="#sec-var-summary">Vars</a> (<a href="#sec-vars">details</a>)
+																	<a href="#sec-method-summary">Methods</a> (<span class="disabled">details</span>)
+						
+		</div>
+		<div class="info-box-body">
+			<A NAME='method_detail'></A>
+
+<a name="method__construct" id="__construct"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">Constructor __construct</span> (line <span class="line-number">33</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Class constructor</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">Config_Files</span>
+		<span class="method-name">
+			__construct
+		</span>
+					([<span class="var-type">array</span>&nbsp;<span class="var-name">$options</span> = <span class="var-default">array()</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$options</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../Config/Config.html#method__construct">Config::__construct()</a></dt>
+						<dd>Class constructor</dd>
+					</dl>
+			
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../Config/Config_Yaml.html#method__construct">Config_Yaml::__construct()</a>
+								: Class constructor
+							</li>
+				</ul>
+	</div>
+<a name="methodgroupName" id="groupName"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">groupName</span> (line <span class="line-number">56</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Return a valid group name</p>
+	
+	<div class="method-signature">
+		<span class="method-result">string</span>
+		<span class="method-name">
+			groupName
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$group</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$group</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../Config/Config.html#methodgroupName">Config::groupName()</a></dt>
+						<dd>Return a valid group name</dd>
+					</dl>
+			
+	</div>
+<a name="methodloadDir" id="loadDir"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">loadDir</span> (line <span class="line-number">99</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Load all config files in a dir (no caching)</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			loadDir
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$path</span>, [<span class="var-type"></span>&nbsp;<span class="var-name">&$settings</span> = <span class="var-default">null</span>], <span class="var-type">array</span>&nbsp;<span class="var-name">$settings</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$path</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$settings</span><span class="var-description">: Settings to append to</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">&$settings</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodloadFile" id="loadFile"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">loadFile</span> (line <span class="line-number">90</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Load a config file or dir (no caching)</p>
+	<ul class="tags">
+				<li><span class="field">abstract:</span> </li>
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			loadFile
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$path</span>, [<span class="var-type"></span>&nbsp;<span class="var-name">$group</span> = <span class="var-default">null</span>], <span class="var-type">string</span>&nbsp;<span class="var-name">$key</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$path</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$key</span><span class="var-description">: May be group or filename</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$group</span>			</li>
+				</ul>
+		
+			
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../Config/Config_Ini.html#methodloadFile">Config_Ini::loadFile()</a>
+								: Load a config file or dir
+							</li>
+					<li>
+				<a href="../Config/Config_Yaml.html#methodloadFile">Config_Yaml::loadFile()</a>
+								: Load a config file or dir (no caching)
+							</li>
+					<li>
+				<a href="../Config/Config_XML.html#methodloadFile">Config_XML::loadFile()</a>
+								: Load a config file or dir (no caching).
+							</li>
+					<li>
+				<a href="../Config/Config_Json.html#methodloadFile">Config_Json::loadFile()</a>
+								: Load a config file or dir (no caching)
+							</li>
+				</ul>
+	</div>
+<a name="methodloadToCache" id="loadToCache"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">loadToCache</span> (line <span class="line-number">68</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Load a config file or dir and save it to cache</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			loadToCache
+		</span>
+					([<span class="var-type">string</span>&nbsp;<span class="var-name">$group</span> = <span class="var-default">null</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$group</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../Config/Config.html#methodloadToCache">Config::loadToCache()</a></dt>
+						<dd>Load a config file or dir and save it to cache</dd>
+					</dl>
+			
+	</div>
+							<h4>Inherited Methods</h4>
+				<a name='inherited_methods'><!-- --></a>	
+									<!-- =========== Summary =========== -->
+					<p>Inherited From <span class="classname"><a href="../Config/Config.html">Config</a></span></p>
+					<blockquote>
+													<span class="method-name"><a href="../Config/Config.html#method__construct">Config::__construct()</a></span><br>
+													<span class="method-name"><a href="../Config/Config.html#methodexists">Config::exists()</a></span><br>
+													<span class="method-name"><a href="../Config/Config.html#methodget">Config::get()</a></span><br>
+													<span class="method-name"><a href="../Config/Config.html#methodgetFromCache">Config::getFromCache()</a></span><br>
+													<span class="method-name"><a href="../Config/Config.html#methodgroupName">Config::groupName()</a></span><br>
+													<span class="method-name"><a href="../Config/Config.html#methodisCached">Config::isCached()</a></span><br>
+													<span class="method-name"><a href="../Config/Config.html#methodloadToCache">Config::loadToCache()</a></span><br>
+													<span class="method-name"><a href="../Config/Config.html#methodset">Config::set()</a></span><br>
+													<span class="method-name"><a href="../Config/Config.html#methoduseFor">Config::useFor()</a></span><br>
+													<span class="method-name"><a href="../Config/Config.html#methodwith">Config::with()</a></span><br>
+													<span class="method-name"><a href="../Config/Config.html#method__callstatic">Config::__callstatic()</a></span><br>
+													<span class="method-name"><a href="../Config/Config.html#method__destruct">Config::__destruct()</a></span><br>
+													<span class="method-name"><a href="../Config/Config.html#method__get">Config::__get()</a></span><br>
+													<span class="method-name"><a href="../Config/Config.html#method__set">Config::__set()</a></span><br>
+											</blockquote>
+										
+		</div>
+	</div>
+
+
+	<p class="notes" id="credit">
+		Documentation generated on Fri, 20 Feb 2009 11:37:07 +0100 by <a href="http://www.phpdoc.org" target="_blank">phpDocumentor 1.4.2</a>
+	</p>
+	</div></body>
+</html>

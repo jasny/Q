@@ -1,0 +1,811 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+  <html xmlns="http://www.w3.org/1999/xhtml">
+		<head>
+			<!-- template designed by Marco Von Ballmoos -->
+			<title>Docs For Class DB_MySQL_Result_NestedSet</title>
+			<link rel="stylesheet" href="../../media/stylesheet.css" />
+			<meta http-equiv='Content-Type' content='text/html; charset=iso-8859-1'/>
+		</head>
+		<body>
+			<div class="page-body">			
+<h2 class="class-name">Class DB_MySQL_Result_NestedSet</h2>
+
+<a name="sec-description"></a>
+<div class="info-box">
+	<div class="info-box-title">Description</div>
+	<div class="nav-bar">
+					<span class="disabled">Description</span> |
+													<a href="#sec-var-summary">Vars</a> (<a href="#sec-vars">details</a>)
+						|											<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+						
+											<a href="#sec-const-summary">Constants</a> (<a href="#sec-consts">details</a>)
+						
+			</div>
+	<div class="info-box-body">
+        		<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">DB abstraction layer for a mysql query result using the nested set model.</p>
+<p class="description"><p>Warning! No check will be preformed to ensure the hierarcy. Missing children and adoption (because of missing parents) is allowed and are not reported.</p></p>
+		<p class="notes">
+			Located in <a class="field" href="_Q---DB---MySQL---Result---NestedSet.php.html">/Q/DB/MySQL/Result/NestedSet.php</a> (line <span class="field">13</span>)
+		</p>
+		
+				
+		<pre><a href="../../DB/DB_Result.html">DB_Result</a>
+   |
+   --<a href="../../DB/DB_MySQL/DB_MySQL_Result.html">DB_MySQL_Result</a>
+      |
+      --<a href="../../DB/DB_MySQL/DB_MySQL_Result_Tree.html">DB_MySQL_Result_Tree</a>
+         |
+         --DB_MySQL_Result_NestedSet</pre>
+	
+			</div>
+</div>
+
+
+	<a name="sec-const-summary"></a>
+	<div class="info-box">
+		<div class="info-box-title">Class Constant Summary</span></div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+						<span class="disabled">Constants</span> (<a href="#sec-consts">details</a>)
+												<a href="#sec-var-summary">Vars</a> (<a href="#sec-vars">details</a>)
+				 
+				|
+										| 
+									<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+							
+					</div>
+		<div class="info-box-body">
+			<div class="const-summary">
+								<div class="const-title">
+					<img src="../../media/images/Constant.png" alt=" " />
+					<a href="#FETCH_CURRENT" title="details" class="const-name">FETCH_CURRENT</a> = 					<span class="var-type"> 0x100000</span>
+
+				</div>
+								<div class="const-title">
+					<img src="../../media/images/Constant.png" alt=" " />
+					<a href="#FIELDNAME_CHILDREN" title="details" class="const-name">FIELDNAME_CHILDREN</a> = 					<span class="var-type"> &quot;nested:children&quot;</span>
+
+				</div>
+								<div class="const-title">
+					<img src="../../media/images/Constant.png" alt=" " />
+					<a href="#FIELDNAME_LEFT" title="details" class="const-name">FIELDNAME_LEFT</a> = 					<span class="var-type"> &quot;nested:left&quot;</span>
+
+				</div>
+								<div class="const-title">
+					<img src="../../media/images/Constant.png" alt=" " />
+					<a href="#FIELDNAME_RIGHT" title="details" class="const-name">FIELDNAME_RIGHT</a> = 					<span class="var-type"> &quot;nested:right&quot;</span>
+
+				</div>
+							</div>
+		</div>
+	</div>
+
+	<a name="sec-var-summary"></a>
+	<div class="info-box">
+		<div class="info-box-title">Variable Summary</span></div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+						<span class="disabled">Vars</span> (<a href="#sec-vars">details</a>)
+							| 
+									<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+							
+															<a href="#sec-const-summary">Constants</a> (<a href="#sec-consts">details</a>)
+							
+					</div>
+		<div class="info-box-body">
+			<div class="var-summary">
+																																																<div class="var-title">
+					<span class="var-type">array</span>
+					<a href="#$index_left" title="details" class="var-name">$index_left</a>
+				</div>
+																<div class="var-title">
+					<span class="var-type">array</span>
+					<a href="#$index_nested" title="details" class="var-name">$index_nested</a>
+				</div>
+																<div class="var-title">
+					<span class="var-type">array</span>
+					<a href="#$index_right" title="details" class="var-name">$index_right</a>
+				</div>
+																<div class="var-title">
+					<span class="var-type">int</span>
+					<a href="#$record_ptr" title="details" class="var-name">$record_ptr</a>
+				</div>
+											</div>
+		</div>
+	</div>
+
+	<a name="sec-method-summary"></a>
+	<div class="info-box">
+		<div class="info-box-title">Method Summary</span></div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+															<a href="#sec-const-summary">Constants</a> (<a href="#sec-consts">details</a>)
+							
+															<a href="#sec-var-summary">Vars</a> (<a href="#sec-vars">details</a>)
+				 
+				|
+						<span class="disabled">Methods</span> (<a href="#sec-methods">details</a>)
+		</div>
+		<div class="info-box-body">			
+			<div class="method-summary">
+																																																																												
+												<div class="method-definition">
+											<span class="method-result">array</span>
+										<a href="#fetchAssoc" title="details" class="method-name">fetchAssoc</a>
+											([<span class="var-type">int</span>&nbsp;<span class="var-name">$opt</span> = <span class="var-default">0</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result">array</span>
+										<a href="#fetchFullArray" title="details" class="method-name">fetchFullArray</a>
+											([<span class="var-type">int</span>&nbsp;<span class="var-name">$opt</span> = <span class="var-default">0</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result">array</span>
+										<a href="#fetchOrdered" title="details" class="method-name">fetchOrdered</a>
+											([<span class="var-type">int</span>&nbsp;<span class="var-name">$opt</span> = <span class="var-default">0</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result">array</span>
+										<a href="#fetchPerTable" title="details" class="method-name">fetchPerTable</a>
+											([<span class="var-type">int</span>&nbsp;<span class="var-name">$opt</span> = <span class="var-default">0</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result">array</span>
+										<a href="#fetchRoles" title="details" class="method-name">fetchRoles</a>
+											([<span class="var-type">int</span>&nbsp;<span class="var-name">$opt</span> = <span class="var-default">0</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result">DB_MySQL_Result_NestedSet</span>
+										<a href="#__construct" title="details" class="method-name">__construct</a>
+											(<span class="var-type">Q\DB|Q\DB_Table</span>&nbsp;<span class="var-name">$source</span>, <span class="var-type"></span>&nbsp;<span class="var-name">\$native</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$statement</span>, <span class="var-type">mysqli_result</span>&nbsp;<span class="var-name">$native</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result">void</span>
+										<a href="#indexNested" title="details" class="method-name">indexNested</a>
+										()
+									</div>
+																<div class="method-definition">
+											<span class="method-result">boolean</span>
+										<a href="#prepareFetchChild" title="details" class="method-name">prepareFetchChild</a>
+										()
+									</div>
+																<div class="method-definition">
+											<span class="method-result">boolean</span>
+										<a href="#prepareFetchSibling" title="details" class="method-name">prepareFetchSibling</a>
+										()
+									</div>
+								</div>
+		</div>
+	</div>		
+
+	<a name="sec-vars"></a>
+	<div class="info-box">
+		<div class="info-box-title">Variables</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+										<a href="#sec-var-summary">Vars</a> (<span class="disabled">details</span>)
+						
+			
+												<a href="#sec-const-summary">Constants</a> (<a href="#sec-consts">details</a>)
+							
+										| 
+									<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+							
+					</div>
+		<div class="info-box-body">
+			<a name="var$index_left" id="$index_left"><!-- --></A>
+<div class="evenrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			<span class="var-type">array</span>
+			<span class="var-name">$index_left</span>
+						(line <span class="line-number">38</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Index of nested set by left key</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+<a name="var$index_nested" id="$index_nested"><!-- --></A>
+<div class="oddrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			<span class="var-type">array</span>
+			<span class="var-name">$index_nested</span>
+						(line <span class="line-number">32</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Index of nested set by record pointer</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+<a name="var$index_right" id="$index_right"><!-- --></A>
+<div class="evenrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			<span class="var-type">array</span>
+			<span class="var-name">$index_right</span>
+						(line <span class="line-number">44</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Index of nested set by right key</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+<a name="var$record_ptr" id="$record_ptr"><!-- --></A>
+<div class="oddrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			<span class="var-type">int</span>
+			<span class="var-name">$record_ptr</span>
+						(line <span class="line-number">25</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Current record</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+							<h4>Inherited Variables</h4>
+				<A NAME='inherited_vars'><!-- --></A>
+									<p>Inherited from <span class="classname"><a href="../../DB/DB_MySQL/DB_MySQL_Result_Tree.html">DB_MySQL_Result_Tree</a></span></p>
+					<blockquote>
+													<span class="var-title">
+								<span class="var-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result_Tree.html#var$children">DB_MySQL_Result_Tree::$children</a></span><br>
+							</span>
+											</blockquote> 
+									<p>Inherited from <span class="classname"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html">DB_MySQL_Result</a></span></p>
+					<blockquote>
+													<span class="var-title">
+								<span class="var-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html#var$fieldnames">DB_MySQL_Result::$fieldnames</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html#var$indexes">DB_MySQL_Result::$indexes</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html#var$key_index">DB_MySQL_Result::$key_index</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html#var$native">DB_MySQL_Result::$native</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html#var$tablecols">DB_MySQL_Result::$tablecols</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html#var$tablerefs">DB_MySQL_Result::$tablerefs</a></span><br>
+							</span>
+											</blockquote> 
+									<p>Inherited from <span class="classname"><a href="../../DB/DB_Result.html">DB_Result</a></span></p>
+					<blockquote>
+													<span class="var-title">
+								<span class="var-name"><a href="../../DB/DB_Result.html#var$basetable">DB_Result::$basetable</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../../DB/DB_Result.html#var$fieldindex">DB_Result::$fieldindex</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../../DB/DB_Result.html#var$fields">DB_Result::$fields</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../../DB/DB_Result.html#var$link">DB_Result::$link</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../../DB/DB_Result.html#var$recordtype">DB_Result::$recordtype</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../../DB/DB_Result.html#var$roles">DB_Result::$roles</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../../DB/DB_Result.html#var$statement">DB_Result::$statement</a></span><br>
+							</span>
+											</blockquote> 
+										
+		</div>
+	</div>
+	
+	<a name="sec-methods"></a>
+	<div class="info-box">
+		<div class="info-box-title">Methods</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+															<a href="#sec-var-summary">Vars</a> (<a href="#sec-vars">details</a>)
+																			<a href="#sec-const-summary">Constants</a> (<a href="#sec-consts">details</a>)
+							
+										<a href="#sec-method-summary">Methods</a> (<span class="disabled">details</span>)
+						
+		</div>
+		<div class="info-box-body">
+			<A NAME='method_detail'></A>
+
+<a name="methodfetchAssoc" id="fetchAssoc"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">fetchAssoc</span> (line <span class="line-number">165</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Fetch a result row as an associative array</p>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			fetchAssoc
+		</span>
+					([<span class="var-type">int</span>&nbsp;<span class="var-name">$opt</span> = <span class="var-default">0</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">int</span>
+				<span class="var-name">$opt</span><span class="var-description">: Additional options as binary list</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB_MySQL/DB_MySQL_Result_Tree.html#methodfetchAssoc">DB_MySQL_Result_Tree::fetchAssoc()</a></dt>
+						<dd>Fetch a result row as an associative array</dd>
+					</dl>
+			
+	</div>
+<a name="methodfetchFullArray" id="fetchFullArray"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">fetchFullArray</span> (line <span class="line-number">187</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Fetch a result row as a combination of a numbered array and an associative array</p>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			fetchFullArray
+		</span>
+					([<span class="var-type">int</span>&nbsp;<span class="var-name">$opt</span> = <span class="var-default">0</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">int</span>
+				<span class="var-name">$opt</span><span class="var-description">: Additional options as binary list</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB_MySQL/DB_MySQL_Result_Tree.html#methodfetchFullArray">DB_MySQL_Result_Tree::fetchFullArray()</a></dt>
+						<dd>Fetch a result row as a combination of a numbered array and an associative array</dd>
+					</dl>
+			
+	</div>
+<a name="methodfetchOrdered" id="fetchOrdered"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">fetchOrdered</span> (line <span class="line-number">143</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Fetch a result row as a numbered array</p>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			fetchOrdered
+		</span>
+					([<span class="var-type">int</span>&nbsp;<span class="var-name">$opt</span> = <span class="var-default">0</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">int</span>
+				<span class="var-name">$opt</span><span class="var-description">: Additional options as binary list</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB_MySQL/DB_MySQL_Result_Tree.html#methodfetchOrdered">DB_MySQL_Result_Tree::fetchOrdered()</a></dt>
+						<dd>Fetch a result row as a numbered array</dd>
+					</dl>
+			
+	</div>
+<a name="methodfetchPerTable" id="fetchPerTable"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">fetchPerTable</span> (line <span class="line-number">209</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Fetch a result row as an associative array, group per table</p>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			fetchPerTable
+		</span>
+					([<span class="var-type">int</span>&nbsp;<span class="var-name">$opt</span> = <span class="var-default">0</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">int</span>
+				<span class="var-name">$opt</span><span class="var-description">: Additional options as binary list</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB_MySQL/DB_MySQL_Result_Tree.html#methodfetchPerTable">DB_MySQL_Result_Tree::fetchPerTable()</a></dt>
+						<dd>Fetch a result row as an associative array, group per table</dd>
+					</dl>
+			
+	</div>
+<a name="methodfetchRoles" id="fetchRoles"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">fetchRoles</span> (line <span class="line-number">231</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Fetch a result row as an associative array, group per table</p>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			fetchRoles
+		</span>
+					([<span class="var-type">int</span>&nbsp;<span class="var-name">$opt</span> = <span class="var-default">0</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">int</span>
+				<span class="var-name">$opt</span><span class="var-description">: Additional options as binary list</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB_MySQL/DB_MySQL_Result_Tree.html#methodfetchRoles">DB_MySQL_Result_Tree::fetchRoles()</a></dt>
+						<dd>Fetch a result row as an associative array with the roles as keys</dd>
+					</dl>
+			
+	</div>
+<a name="method__construct" id="__construct"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">Constructor __construct</span> (line <span class="line-number">54</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Class constructor</p>
+	
+	<div class="method-signature">
+		<span class="method-result">DB_MySQL_Result_NestedSet</span>
+		<span class="method-name">
+			__construct
+		</span>
+					(<span class="var-type">Q\DB|Q\DB_Table</span>&nbsp;<span class="var-name">$source</span>, <span class="var-type"></span>&nbsp;<span class="var-name">\$native</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$statement</span>, <span class="var-type">mysqli_result</span>&nbsp;<span class="var-name">$native</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">Q\DB|Q\DB_Table</span>
+				<span class="var-name">$source</span>			</li>
+					<li>
+				<span class="var-type">mysqli_result</span>
+				<span class="var-name">$native</span><span class="var-description">: The native result object or resource</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$statement</span><span class="var-description">: The query statement which created this result</span>			</li>
+					<li>
+				<span class="var-type">mysqli_result</span>
+				<span class="var-name">\$native</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB_MySQL/DB_MySQL_Result.html#method__construct">DB_MySQL_Result::__construct()</a></dt>
+						<dd>Class constructor</dd>
+					</dl>
+			
+	</div>
+<a name="methodindexNested" id="indexNested"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">indexNested</span> (line <span class="line-number">63</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Index the nested keys</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			indexNested
+		</span>
+				()
+			</div>
+	
+		
+			
+	</div>
+<a name="methodprepareFetchChild" id="prepareFetchChild"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">prepareFetchChild</span> (line <span class="line-number">111</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Set data pointer to fetch first child.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">boolean</span>
+		<span class="method-name">
+			prepareFetchChild
+		</span>
+				()
+			</div>
+	
+		
+			
+	</div>
+<a name="methodprepareFetchSibling" id="prepareFetchSibling"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">prepareFetchSibling</span> (line <span class="line-number">80</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Set data pointer to fetch next sibling.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">boolean</span>
+		<span class="method-name">
+			prepareFetchSibling
+		</span>
+				()
+			</div>
+	
+		
+			
+	</div>
+							<h4>Inherited Methods</h4>
+				<a name='inherited_methods'><!-- --></a>	
+									<!-- =========== Summary =========== -->
+					<p>Inherited From <span class="classname"><a href="../../DB/DB_MySQL/DB_MySQL_Result_Tree.html">DB_MySQL_Result_Tree</a></span></p>
+					<blockquote>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result_Tree.html#methodaddChild">DB_MySQL_Result_Tree::addChild()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result_Tree.html#methodconvertFieldProperties">DB_MySQL_Result_Tree::convertFieldProperties()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result_Tree.html#methodfetchAssoc">DB_MySQL_Result_Tree::fetchAssoc()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result_Tree.html#methodfetchFullArray">DB_MySQL_Result_Tree::fetchFullArray()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result_Tree.html#methodfetchOrdered">DB_MySQL_Result_Tree::fetchOrdered()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result_Tree.html#methodfetchPerTable">DB_MySQL_Result_Tree::fetchPerTable()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result_Tree.html#methodfetchRoles">DB_MySQL_Result_Tree::fetchRoles()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result_Tree.html#methodfetchRow">DB_MySQL_Result_Tree::fetchRow()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result_Tree.html#methodfetchValue">DB_MySQL_Result_Tree::fetchValue()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result_Tree.html#methodgetAll">DB_MySQL_Result_Tree::getAll()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result_Tree.html#methodgetChild">DB_MySQL_Result_Tree::getChild()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result_Tree.html#methodgetColumn">DB_MySQL_Result_Tree::getColumn()</a></span><br>
+											</blockquote>
+									<!-- =========== Summary =========== -->
+					<p>Inherited From <span class="classname"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html">DB_MySQL_Result</a></span></p>
+					<blockquote>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html#method__construct">DB_MySQL_Result::__construct()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html#methodconvertFieldProperties">DB_MySQL_Result::convertFieldProperties()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html#methodcount">DB_MySQL_Result::count()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html#methodfetchAssoc">DB_MySQL_Result::fetchAssoc()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html#methodfetchFieldProperties">DB_MySQL_Result::fetchFieldProperties()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html#methodfetchFullArray">DB_MySQL_Result::fetchFullArray()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html#methodfetchObject">DB_MySQL_Result::fetchObject()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html#methodfetchOrdered">DB_MySQL_Result::fetchOrdered()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html#methodfetchPerTable">DB_MySQL_Result::fetchPerTable()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html#methodfetchRow">DB_MySQL_Result::fetchRow()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html#methodfetchValue">DB_MySQL_Result::fetchValue()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html#methodgetAll">DB_MySQL_Result::getAll()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html#methodgetColumn">DB_MySQL_Result::getColumn()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html#methodgetFieldIndex">DB_MySQL_Result::getFieldIndex()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html#methodgetFieldName">DB_MySQL_Result::getFieldName()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html#methodgetFieldNames">DB_MySQL_Result::getFieldNames()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html#methodgetNative">DB_MySQL_Result::getNative()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html#methodgetTableNames">DB_MySQL_Result::getTableNames()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html#methodgetTableRefs">DB_MySQL_Result::getTableRefs()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html#methodindexColumn">DB_MySQL_Result::indexColumn()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html#methodinitFieldinfo">DB_MySQL_Result::initFieldinfo()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html#methodnumFields">DB_MySQL_Result::numFields()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html#methodnumTables">DB_MySQL_Result::numTables()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html#methodresetPointer">DB_MySQL_Result::resetPointer()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html#methodseekRows">DB_MySQL_Result::seekRows()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html#methodseekTableName">DB_MySQL_Result::seekTableName()</a></span><br>
+											</blockquote>
+									<!-- =========== Summary =========== -->
+					<p>Inherited From <span class="classname"><a href="../../DB/DB_Result.html">DB_Result</a></span></p>
+					<blockquote>
+													<span class="method-name"><a href="../../DB/DB_Result.html#method__construct">DB_Result::__construct()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodcount">DB_Result::count()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodfetchAssoc">DB_Result::fetchAssoc()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodfetchFieldProperties">DB_Result::fetchFieldProperties()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodfetchFullArray">DB_Result::fetchFullArray()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodfetchObject">DB_Result::fetchObject()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodfetchOrdered">DB_Result::fetchOrdered()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodfetchPerTable">DB_Result::fetchPerTable()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodfetchRecord">DB_Result::fetchRecord()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodfetchRoles">DB_Result::fetchRoles()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodfetchRow">DB_Result::fetchRow()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodfetchValue">DB_Result::fetchValue()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodgetAll">DB_Result::getAll()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodgetBaseTable">DB_Result::getBaseTable()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodgetColumn">DB_Result::getColumn()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodgetField">DB_Result::getField()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodgetFieldIndex">DB_Result::getFieldIndex()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodgetFieldName">DB_Result::getFieldName()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodgetFieldNames">DB_Result::getFieldNames()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodgetFields">DB_Result::getFields()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodgetInternalInfo">DB_Result::getInternalInfo()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodgetLink">DB_Result::getLink()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodgetNative">DB_Result::getNative()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodgetRecordType">DB_Result::getRecordType()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodgetRoles">DB_Result::getRoles()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodgetStatement">DB_Result::getStatement()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodgetTableNames">DB_Result::getTableNames()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodgetTableRefs">DB_Result::getTableRefs()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodinitFields">DB_Result::initFields()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodnewRecord">DB_Result::newRecord()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodnumFields">DB_Result::numFields()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodnumRows">DB_Result::numRows()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodnumTables">DB_Result::numTables()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodrefreshFieldIndex">DB_Result::refreshFieldIndex()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodRemapField">DB_Result::RemapField()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodresetPointer">DB_Result::resetPointer()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodseekRows">DB_Result::seekRows()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodseekTableName">DB_Result::seekTableName()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB_Result.html#methodsetRecordType">DB_Result::setRecordType()</a></span><br>
+											</blockquote>
+										
+		</div>
+	</div>
+
+	<a name="sec-consts"></a>
+	<div class="info-box">
+		<div class="info-box-title">Class Constants</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+										<a href="#sec-var-summary">Constants</a> (<span class="disabled">details</span>)
+						
+			
+												<a href="#sec-var-summary">Vars</a> (<a href="#sec-vars">details</a>)
+														| 
+									<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+							
+					</div>
+		<div class="info-box-body">
+			<a name="constFETCH_CURRENT" id="FETCH_CURRENT"><!-- --></A>
+<div class="oddrow">
+
+	<div class="const-header">
+		<img src="../../media/images/Variable.png" />
+		<span class="const-title">
+			<span class="const-name">FETCH_CURRENT</span>
+			 = <span class="const-default"> 0x100000</span>
+			(line <span class="line-number">15</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	
+</div>
+<a name="constFIELDNAME_CHILDREN" id="FIELDNAME_CHILDREN"><!-- --></A>
+<div class="evenrow">
+
+	<div class="const-header">
+		<img src="../../media/images/Variable.png" />
+		<span class="const-title">
+			<span class="const-name">FIELDNAME_CHILDREN</span>
+			 = <span class="const-default"> &quot;nested:children&quot;</span>
+			(line <span class="line-number">19</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	
+</div>
+<a name="constFIELDNAME_LEFT" id="FIELDNAME_LEFT"><!-- --></A>
+<div class="oddrow">
+
+	<div class="const-header">
+		<img src="../../media/images/Variable.png" />
+		<span class="const-title">
+			<span class="const-name">FIELDNAME_LEFT</span>
+			 = <span class="const-default"> &quot;nested:left&quot;</span>
+			(line <span class="line-number">17</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	
+</div>
+<a name="constFIELDNAME_RIGHT" id="FIELDNAME_RIGHT"><!-- --></A>
+<div class="evenrow">
+
+	<div class="const-header">
+		<img src="../../media/images/Variable.png" />
+		<span class="const-title">
+			<span class="const-name">FIELDNAME_RIGHT</span>
+			 = <span class="const-default"> &quot;nested:right&quot;</span>
+			(line <span class="line-number">18</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	
+</div>
+						
+		</div>
+	</div>
+
+	<p class="notes" id="credit">
+		Documentation generated on Fri, 20 Feb 2009 11:37:11 +0100 by <a href="http://www.phpdoc.org" target="_blank">phpDocumentor 1.4.2</a>
+	</p>
+	</div></body>
+</html>

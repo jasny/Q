@@ -1,0 +1,1484 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+  <html xmlns="http://www.w3.org/1999/xhtml">
+		<head>
+			<!-- template designed by Marco Von Ballmoos -->
+			<title>Docs For Class DB_MySQL_QuerySplitter</title>
+			<link rel="stylesheet" href="../../media/stylesheet.css" />
+			<meta http-equiv='Content-Type' content='text/html; charset=iso-8859-1'/>
+		</head>
+		<body>
+			<div class="page-body">			
+<h2 class="class-name">Class DB_MySQL_QuerySplitter</h2>
+
+<a name="sec-description"></a>
+<div class="info-box">
+	<div class="info-box-title">Description</div>
+	<div class="nav-bar">
+					<span class="disabled">Description</span> |
+															<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+						
+											<a href="#sec-const-summary">Constants</a> (<a href="#sec-consts">details</a>)
+						
+			</div>
+	<div class="info-box-body">
+                <p class="implements">
+            Implements interfaces:
+            <ul>
+                <li><a href="../../DB/DB_QuerySplitter.html">DB_QuerySplitter</a></li>            </ul>
+        </p>
+        		<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Break down a mysql query statement to different parts, which can be altered and joined again.</p>
+<p class="description"><p>Supported types: SELECT, INSERT, REPLACE, UPDATE, DELETE, TRUNCATE.</p><p>SELECT ... UNION syntax is *not* supported.  DELETE ... USING syntax is *not* supported.  Invalid query statements might give unexpected results.</p><p>All methods of this class are static.</p></p>
+	<ul class="tags">
+				<li><span class="field">todo:</span> It might be possible to use recursion instead of extracting subqueries, using \((?&gt;SELECT\b)(?R)\). For query other that select, I should do (?:^\s++UPDATE ...|(?&lt;!^)\s++SELECT ...) to match SELECT and not UPDATE statement in recursion.</li>
+				<li><span class="field">todo:</span> BUG: addCriteria using column index for column with alias, puts alias in WHERE. (+ make a testcase)</li>
+			</ul>
+		<p class="notes">
+			Located in <a class="field" href="_Q---DB---MySQL---QuerySplitter.php.html">/Q/DB/MySQL/QuerySplitter.php</a> (line <span class="field">37</span>)
+		</p>
+		
+				
+		<pre></pre>
+	
+			</div>
+</div>
+
+
+	<a name="sec-const-summary"></a>
+	<div class="info-box">
+		<div class="info-box-title">Class Constant Summary</span></div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+						<span class="disabled">Constants</span> (<a href="#sec-consts">details</a>)
+										| 
+									<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+							
+					</div>
+		<div class="info-box-body">
+			<div class="const-summary">
+								<div class="const-title">
+					<img src="../../media/images/Constant.png" alt=" " />
+					<a href="#REGEX_IDENTIFIER" title="details" class="const-name">REGEX_IDENTIFIER</a> = 					<span class="var-type"> '(?:(?:\w++|`[^`]*+`)(?:\.(?:\w++|`[^`]*+`)){0,2})'</span>
+
+				</div>
+								<div class="const-title">
+					<img src="../../media/images/Constant.png" alt=" " />
+					<a href="#REGEX_VALUES" title="details" class="const-name">REGEX_VALUES</a> = 					<span class="var-type"> '(?:\w++|`[^`]*+`|&quot;(?:[^&quot;\\\\]++|\\\\.)*+&quot;|\'(?:[^\'\\\\]++|\\\\.)*+\'|\s++|[^`&quot;\'\w\s])*?'</span>
+
+				</div>
+							</div>
+		</div>
+	</div>
+
+
+	<a name="sec-method-summary"></a>
+	<div class="info-box">
+		<div class="info-box-title">Method Summary</span></div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+															<a href="#sec-const-summary">Constants</a> (<a href="#sec-consts">details</a>)
+							
+									<span class="disabled">Methods</span> (<a href="#sec-methods">details</a>)
+		</div>
+		<div class="info-box-body">			
+			<div class="method-summary">
+												<div class="method-definition">
+					static 						<span class="method-result">void</span>
+										<a href="#addCriteria" title="details" class="method-name">addCriteria</a>
+											(<span class="var-type"><a href="../../DB/DB_Statement.html">DB_Statement</a></span>&nbsp;<span class="var-name">$object</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$column</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$value</span>, [<span class="var-type">string</span>&nbsp;<span class="var-name">$compare</span> = <span class="var-default">&quot;=&quot;</span>], [<span class="var-type">int</span>&nbsp;<span class="var-name">$options</span> = <span class="var-default">0</span>], [<span class="var-type">int</span>&nbsp;<span class="var-name">$subset</span> = <span class="var-default">0</span>])
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">string</span>
+										<a href="#buildCountStatement" title="details" class="method-name">buildCountStatement</a>
+											(<span class="var-type">mixed</span>&nbsp;<span class="var-name">$statement</span>, [<span class="var-type">bool</span>&nbsp;<span class="var-name">$all</span> = <span class="var-default">false</span>])
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">string</span>
+										<a href="#buildDeleteStatement" title="details" class="method-name">buildDeleteStatement</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$criteria</span>)
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">string</span>
+										<a href="#buildSelectStatement" title="details" class="method-name">buildSelectStatement</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, [<span class="var-type">mixed</span>&nbsp;<span class="var-name">$fields</span> = <span class="var-default">null</span>], [<span class="var-type">mixed</span>&nbsp;<span class="var-name">$criteria</span> = <span class="var-default">null</span>], [<span class="var-type">string</span>&nbsp;<span class="var-name">$add_where</span> = <span class="var-default">null</span>])
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">string</span>
+										<a href="#buildStoreStatement" title="details" class="method-name">buildStoreStatement</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$primairy_keys</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$fieldnames</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$rows</span>)
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">string</span>
+										<a href="#buildTruncateStatement" title="details" class="method-name">buildTruncateStatement</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>)
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">string</span>
+										<a href="#buildUpdateStatement" title="details" class="method-name">buildUpdateStatement</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$criteria</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$values</span>)
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">string</span>
+										<a href="#convertStatement" title="details" class="method-name">convertStatement</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$type</span>)
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">int</span>
+										<a href="#countPlaceholders" title="details" class="method-name">countPlaceholders</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$statement</span>)
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">array</span>
+										<a href="#extractSplit" title="details" class="method-name">extractSplit</a>
+											(<span class="var-type"></span>&nbsp;<span class="var-name">$sql</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$statement</span>)
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">array</span>
+										<a href="#extractSubsets" title="details" class="method-name">extractSubsets</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>, [<span class="var-type">array</span>&nbsp;<span class="var-name">$sets</span> = <span class="var-default">array()</span>])
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">array</span>
+										<a href="#extractTree" title="details" class="method-name">extractTree</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>)
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">string</span>
+										<a href="#getQueryType" title="details" class="method-name">getQueryType</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>)
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">string</span>
+										<a href="#injectSubsets" title="details" class="method-name">injectSubsets</a>
+											(<span class="var-type">array</span>&nbsp;<span class="var-name">$sets</span>)
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">string</span>
+										<a href="#join" title="details" class="method-name">join</a>
+											(<span class="var-type">array</span>&nbsp;<span class="var-name">$parts</span>)
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">array</span>
+										<a href="#joinInject" title="details" class="method-name">joinInject</a>
+											(<span class="var-type"></span>&nbsp;<span class="var-name">$parts</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$sets</span>)
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">boolean</span>
+										<a href="#makeIdentifier" title="details" class="method-name">makeIdentifier</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$group</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$name</span>, [<span class="var-type">string</span>&nbsp;<span class="var-name">$alias</span> = <span class="var-default">null</span>])
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">mixed</span>
+										<a href="#parse" title="details" class="method-name">parse</a>
+											(<span class="var-type">mixed</span>&nbsp;<span class="var-name">$statement</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$args</span>)
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">string</span>
+										<a href="#quote" title="details" class="method-name">quote</a>
+											(<span class="var-type">mixed</span>&nbsp;<span class="var-name">$value</span>, [<span class="var-type">string</span>&nbsp;<span class="var-name">$empty</span> = <span class="var-default">'NULL'</span>])
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">string</span>
+										<a href="#quoteIdentifier" title="details" class="method-name">quoteIdentifier</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$identifier</span>)
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">array</span>
+										<a href="#split" title="details" class="method-name">split</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>)
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">array</span>
+										<a href="#splitColumns" title="details" class="method-name">splitColumns</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>, [<span class="var-type">boolean</span>&nbsp;<span class="var-name">$splitFieldname</span> = <span class="var-default">false</span>], [<span class="var-type">boolean</span>&nbsp;<span class="var-name">$assoc</span> = <span class="var-default">false</span>])
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">array</span>
+										<a href="#splitDeleteQuery" title="details" class="method-name">splitDeleteQuery</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>)
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">array</span>
+										<a href="#splitIdentifier" title="details" class="method-name">splitIdentifier</a>
+											(<span class="var-type"></span>&nbsp;<span class="var-name">$name</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$fieldname</span>)
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">array</span>
+										<a href="#splitInsertQuery" title="details" class="method-name">splitInsertQuery</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>)
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">array</span>
+										<a href="#splitJoin" title="details" class="method-name">splitJoin</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>)
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">array</span>
+										<a href="#splitLimit" title="details" class="method-name">splitLimit</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>)
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">array</span>
+										<a href="#splitSelectQuery" title="details" class="method-name">splitSelectQuery</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>)
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">array</span>
+										<a href="#splitTables" title="details" class="method-name">splitTables</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>, [<span class="var-type">boolean</span>&nbsp;<span class="var-name">$splitTablename</span> = <span class="var-default">false</span>], [<span class="var-type">boolean</span>&nbsp;<span class="var-name">$assoc</span> = <span class="var-default">false</span>])
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">array</span>
+										<a href="#splitTruncateQuery" title="details" class="method-name">splitTruncateQuery</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>)
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">array</span>
+										<a href="#splitUpdateQuery" title="details" class="method-name">splitUpdateQuery</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>)
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">boolean</span>
+										<a href="#validIdentifier" title="details" class="method-name">validIdentifier</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$name</span>, [<span class="var-type"></span>&nbsp;<span class="var-name">$withgroup</span> = <span class="var-default">null</span>], [<span class="var-type">boolean</span>&nbsp;<span class="var-name">$withalias</span> = <span class="var-default">false</span>], <span class="var-type">boolean</span>&nbsp;<span class="var-name">$withtable</span>)
+									</div>
+								
+																																																																																																																																																																																																																																																																				</div>
+		</div>
+	</div>		
+
+	
+	<a name="sec-methods"></a>
+	<div class="info-box">
+		<div class="info-box-title">Methods</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+																		<a href="#sec-const-summary">Constants</a> (<a href="#sec-consts">details</a>)
+							
+										<a href="#sec-method-summary">Methods</a> (<span class="disabled">details</span>)
+						
+		</div>
+		<div class="info-box-body">
+			<A NAME='method_detail'></A>
+<a name="methodaddCriteria" id="addCriteria"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method addCriteria</span> (line <span class="line-number">782</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Add criteria as where or having statement as $column=$value.</p>
+<p class="description"><p>If $value == null and $compare == '=', $compare becomes 'IS NULL'.</p><p>NOTE: This function does not escape $column</p></p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">void</span>
+		<span class="method-name">
+			addCriteria
+		</span>
+					(<span class="var-type"><a href="../../DB/DB_Statement.html">DB_Statement</a></span>&nbsp;<span class="var-name">$object</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$column</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$value</span>, [<span class="var-type">string</span>&nbsp;<span class="var-name">$compare</span> = <span class="var-default">&quot;=&quot;</span>], [<span class="var-type">int</span>&nbsp;<span class="var-name">$options</span> = <span class="var-default">0</span>], [<span class="var-type">int</span>&nbsp;<span class="var-name">$subset</span> = <span class="var-default">0</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">Q\DB_SQLStatement</span>
+				<span class="var-name">$object</span><span class="var-description">: The statement object to add the criteria to</span>			</li>
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$column</span><span class="var-description">: Column name, column number or array of column names ($column[0]=$value OR $column[1]=$value)</span>			</li>
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$value</span><span class="var-description">: Value or array of values ($column=$value[0] OR $column=$value[1])</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$compare</span><span class="var-description">: Comparision operator oa. =, !=, &gt;, &lt;, &gt;=, &lt;=, LIKE, LIKE%, %LIKE%, REVERSE LIKE (value LIKE column), IN and BETWEEN</span>			</li>
+					<li>
+				<span class="var-type">int</span>
+				<span class="var-name">$options</span><span class="var-description">: DB_Statement options (language specific) as binairy set</span>			</li>
+					<li>
+				<span class="var-type">int</span>
+				<span class="var-name">$subset</span><span class="var-description">: Specify to wich subset the change applies (0=main query)</span>			</li>
+				</ul>
+		
+				<hr class="separator" />
+		<div class="notes">Implementation of:</div>
+			<dl>
+			<dt><a href="../../DB/DB_QuerySplitter.html#methodaddCriteria">DB_QuerySplitter::addCriteria()</a></dt>
+						<dd>Add criteria as where or having statement as $column=$value.</dd>
+					</dl>
+			
+	</div>
+<a name="methodbuildCountStatement" id="buildCountStatement"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method buildCountStatement</span> (line <span class="line-number">934</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Build query to count the number of rows</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">string</span>
+		<span class="method-name">
+			buildCountStatement
+		</span>
+					(<span class="var-type">mixed</span>&nbsp;<span class="var-name">$statement</span>, [<span class="var-type">bool</span>&nbsp;<span class="var-name">$all</span> = <span class="var-default">false</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$statement</span>			</li>
+					<li>
+				<span class="var-type">bool</span>
+				<span class="var-name">$all</span><span class="var-description">: Don't use limit</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodbuildDeleteStatement" id="buildDeleteStatement"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method buildDeleteStatement</span> (line <span class="line-number">1019</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Create query to delete rows from a table.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">string</span>
+		<span class="method-name">
+			buildDeleteStatement
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$criteria</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span><span class="var-description">: Tablename</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$criteria</span><span class="var-description">: As array(field=&gt;value, ...)</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodbuildSelectStatement" id="buildSelectStatement"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method buildSelectStatement</span> (line <span class="line-number">891</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Create a select statement for a table</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">string</span>
+		<span class="method-name">
+			buildSelectStatement
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, [<span class="var-type">mixed</span>&nbsp;<span class="var-name">$fields</span> = <span class="var-default">null</span>], [<span class="var-type">mixed</span>&nbsp;<span class="var-name">$criteria</span> = <span class="var-default">null</span>], [<span class="var-type">string</span>&nbsp;<span class="var-name">$add_where</span> = <span class="var-default">null</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span><span class="var-description">: Tablename</span>			</li>
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$fields</span><span class="var-description">: Array with fieldnames, fieldlist (string) or SELECT statement (string). NULL means all fields.</span>			</li>
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$criteria</span><span class="var-description">: The value for the primairy key (int/string or array(value, ...)) or array(field=&gt;value, ...)</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$add_where</span><span class="var-description">: Additional criteria as string</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodbuildStoreStatement" id="buildStoreStatement"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method buildStoreStatement</span> (line <span class="line-number">967</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Create a statement to insert/update rows.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">string</span>
+		<span class="method-name">
+			buildStoreStatement
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$primairy_keys</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$fieldnames</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$rows</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$primairy_keys</span><span class="var-description">: Array with unique fields</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$fieldnames</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$rows</span><span class="var-description">: As array(array(value, value, ...), array(value, value, ...), ...)</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodbuildTruncateStatement" id="buildTruncateStatement"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method buildTruncateStatement</span> (line <span class="line-number">1033</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Create query to delete all rows from a table.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">string</span>
+		<span class="method-name">
+			buildTruncateStatement
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span><span class="var-description">: Tablename</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodbuildUpdateStatement" id="buildUpdateStatement"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method buildUpdateStatement</span> (line <span class="line-number">998</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Create query to update rows of a table.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">string</span>
+		<span class="method-name">
+			buildUpdateStatement
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$criteria</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$values</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$criteria</span><span class="var-description">: As array(field=&gt;value, ...)</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$values</span><span class="var-description">: Assasioted array as (fielname=&gt;value, ...)</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodconvertStatement" id="convertStatement"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method convertStatement</span> (line <span class="line-number">185</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Convert a query statement to another type.</p>
+	<ul class="tags">
+				<li><span class="field">todo:</span> Currently only works for SELECT to DELETE and vise versa</li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">string</span>
+		<span class="method-name">
+			convertStatement
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$type</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$sql</span><span class="var-description">: SQL query statement (or an array with parts)</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$type</span><span class="var-description">: New query type</span>			</li>
+				</ul>
+		
+				<hr class="separator" />
+		<div class="notes">Implementation of:</div>
+			<dl>
+			<dt><a href="../../DB/DB_QuerySplitter.html#methodconvertStatement">DB_QuerySplitter::convertStatement()</a></dt>
+						<dd>Convert a query statement to another type</dd>
+					</dl>
+			
+	</div>
+<a name="methodcountPlaceholders" id="countPlaceholders"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method countPlaceholders</span> (line <span class="line-number">151</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Count the number of (unnamed) placeholders in a statement.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">int</span>
+		<span class="method-name">
+			countPlaceholders
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$statement</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$statement</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodextractSplit" id="extractSplit"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method extractSplit</span> (line <span class="line-number">383</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Extract subqueries from sql query and split each subquery in different parts.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">array</span>
+		<span class="method-name">
+			extractSplit
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$sql</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$statement</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$statement</span><span class="var-description">: Query statement</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$sql</span>			</li>
+				</ul>
+		
+				<hr class="separator" />
+		<div class="notes">Implementation of:</div>
+			<dl>
+			<dt><a href="../../DB/DB_QuerySplitter.html#methodextractSplit">DB_QuerySplitter::extractSplit()</a></dt>
+						<dd>Extract subqueries from sql query and split each subquery in different parts.</dd>
+					</dl>
+			
+	</div>
+<a name="methodextractSubsets" id="extractSubsets"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method extractSubsets</span> (line <span class="line-number">264</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Extract subqueries from sql query (on for SELECT queries) and replace them with #subX in the main query.</p>
+<p class="description"><p>Returns array(main query, subquery1, [subquery2, ...])</p></p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">array</span>
+		<span class="method-name">
+			extractSubsets
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>, [<span class="var-type">array</span>&nbsp;<span class="var-name">$sets</span> = <span class="var-default">array()</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$sql</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$sets</span><span class="var-description">: Do not use!</span>			</li>
+				</ul>
+		
+				<hr class="separator" />
+		<div class="notes">Implementation of:</div>
+			<dl>
+			<dt><a href="../../DB/DB_QuerySplitter.html#methodextractSubsets">DB_QuerySplitter::extractSubsets()</a></dt>
+						<dd>Extract subsets (subqueries) from main query and replace them with #subX.</dd>
+					</dl>
+			
+	</div>
+<a name="methodextractTree" id="extractTree"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method extractTree</span> (line <span class="line-number">336</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Extract childqueries for tree data from sql query (only for SELECT queries) and replace them with NULL in the main query.</p>
+<p class="description"><p>Returns array(main query, array(subquery1, parent field, child field), [array(subquery2, parent field, child field), ...])</p></p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">array</span>
+		<span class="method-name">
+			extractTree
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$sql</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodgetQueryType" id="getQueryType"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method getQueryType</span> (line <span class="line-number">169</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Return the type of the query.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">string</span>
+		<span class="method-name">
+			getQueryType
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$sql</span><span class="var-description">: SQL query statement (or an array with parts)</span>			</li>
+				</ul>
+		
+				<hr class="separator" />
+		<div class="notes">Implementation of:</div>
+			<dl>
+			<dt><a href="../../DB/DB_QuerySplitter.html#methodgetQueryType">DB_QuerySplitter::getQueryType()</a></dt>
+						<dd>Get type of query</dd>
+					</dl>
+			
+	</div>
+<a name="methodinjectSubsets" id="injectSubsets"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method injectSubsets</span> (line <span class="line-number">317</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Inject extracted subsets back into main sql query.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">string</span>
+		<span class="method-name">
+			injectSubsets
+		</span>
+					(<span class="var-type">array</span>&nbsp;<span class="var-name">$sets</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$sets</span><span class="var-description">: array(main query, subquery1, [subquery2, ...])</span>			</li>
+				</ul>
+		
+				<hr class="separator" />
+		<div class="notes">Implementation of:</div>
+			<dl>
+			<dt><a href="../../DB/DB_QuerySplitter.html#methodinjectSubsets">DB_QuerySplitter::injectSubsets()</a></dt>
+						<dd>Inject extracted subsets back into main query.</dd>
+					</dl>
+			
+	</div>
+<a name="methodjoin" id="join"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method join</span> (line <span class="line-number">237</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Join parts to create a query.</p>
+<p class="description"><p>The parts are joined in the order in which they appear in the array.</p><p>CAUTION: The parts are joined blindly (no validation), so shit in shit out</p></p>
+	<ul class="tags">
+				<li><span class="field">todo:</span> Make blind join optional and let $parts also be an object</li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">string</span>
+		<span class="method-name">
+			join
+		</span>
+					(<span class="var-type">array</span>&nbsp;<span class="var-name">$parts</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$parts</span>			</li>
+				</ul>
+		
+				<hr class="separator" />
+		<div class="notes">Implementation of:</div>
+			<dl>
+			<dt><a href="../../DB/DB_QuerySplitter.html#methodjoin">DB_QuerySplitter::join()</a></dt>
+						<dd>Join parts and to create a query.</dd>
+					</dl>
+			
+	</div>
+<a name="methodjoinInject" id="joinInject"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method joinInject</span> (line <span class="line-number">397</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Join parts and inject extracted subsets back into main sql query.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">array</span>
+		<span class="method-name">
+			joinInject
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$parts</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$sets</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$sets</span><span class="var-description">: array(main parts, parts subquery1 [, parts subquery2, ...])</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$parts</span>			</li>
+				</ul>
+		
+				<hr class="separator" />
+		<div class="notes">Implementation of:</div>
+			<dl>
+			<dt><a href="../../DB/DB_QuerySplitter.html#methodjoinInject">DB_QuerySplitter::joinInject()</a></dt>
+						<dd>Join parts and inject extracted subsets back into main sql query.</dd>
+					</dl>
+			
+	</div>
+<a name="methodmakeIdentifier" id="makeIdentifier"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method makeIdentifier</span> (line <span class="line-number">113</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Create a full field name OR create a full table name.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">boolean</span>
+		<span class="method-name">
+			makeIdentifier
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$group</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$name</span>, [<span class="var-type">string</span>&nbsp;<span class="var-name">$alias</span> = <span class="var-default">null</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$group</span><span class="var-description">: Table name / DB name</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$name</span><span class="var-description">: Field name / Table name</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$alias</span>			</li>
+				</ul>
+		
+				<hr class="separator" />
+		<div class="notes">Implementation of:</div>
+			<dl>
+			<dt><a href="../../DB/DB_QuerySplitter.html#methodmakeIdentifier">DB_QuerySplitter::makeIdentifier()</a></dt>
+						<dd>Create a full fieldname OR create a full tablename</dd>
+					</dl>
+			
+	</div>
+<a name="methodparse" id="parse"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method parse</span> (line <span class="line-number">125</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Parse arguments into a statement.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">mixed</span>
+		<span class="method-name">
+			parse
+		</span>
+					(<span class="var-type">mixed</span>&nbsp;<span class="var-name">$statement</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$args</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$statement</span><span class="var-description">: Query string or DB::Statement object</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$args</span><span class="var-description">: Arguments to parse into statement on ?</span>			</li>
+				</ul>
+		
+				<hr class="separator" />
+		<div class="notes">Implementation of:</div>
+			<dl>
+			<dt><a href="../../DB/DB_QuerySplitter.html#methodparse">DB_QuerySplitter::parse()</a></dt>
+						<dd>Parse arguments into a statement</dd>
+					</dl>
+			
+	</div>
+<a name="methodquote" id="quote"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method quote</span> (line <span class="line-number">51</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Quote a value so it can be savely used in a query.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">string</span>
+		<span class="method-name">
+			quote
+		</span>
+					(<span class="var-type">mixed</span>&nbsp;<span class="var-name">$value</span>, [<span class="var-type">string</span>&nbsp;<span class="var-name">$empty</span> = <span class="var-default">'NULL'</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$value</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$empty</span><span class="var-description">: Return $empty if $value is null</span>			</li>
+				</ul>
+		
+				<hr class="separator" />
+		<div class="notes">Implementation of:</div>
+			<dl>
+			<dt><a href="../../DB/DB_QuerySplitter.html#methodquote">DB_QuerySplitter::quote()</a></dt>
+						<dd>Quote a value so it can be savely used in a query.</dd>
+					</dl>
+			
+	</div>
+<a name="methodquoteIdentifier" id="quoteIdentifier"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method quoteIdentifier</span> (line <span class="line-number">69</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Quotes a string so it can be safely used as a table or column name.</p>
+<p class="description"><p>Dots are seen as seperator and are kept out of quotes.</p><p>Return NULL is $identifier is not valid.</p></p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">string</span>
+		<span class="method-name">
+			quoteIdentifier
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$identifier</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$identifier</span>			</li>
+				</ul>
+		
+				<hr class="separator" />
+		<div class="notes">Implementation of:</div>
+			<dl>
+			<dt><a href="../../DB/DB_QuerySplitter.html#methodquoteIdentifier">DB_QuerySplitter::quoteIdentifier()</a></dt>
+						<dd>Quotes a string so it can be safely used as a table or column name.</dd>
+					</dl>
+			
+	</div>
+<a name="methodsplit" id="split"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method split</span> (line <span class="line-number">211</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Split a query in different parts.</p>
+<p class="description"><p>If a part is not set whitin the SQL query, the part is an empty string.</p></p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">array</span>
+		<span class="method-name">
+			split
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$sql</span><span class="var-description">: SQL query statement</span>			</li>
+				</ul>
+		
+				<hr class="separator" />
+		<div class="notes">Implementation of:</div>
+			<dl>
+			<dt><a href="../../DB/DB_QuerySplitter.html#methodsplit">DB_QuerySplitter::split()</a></dt>
+						<dd>Split a query in different parts.</dd>
+					</dl>
+			
+	</div>
+<a name="methodsplitColumns" id="splitColumns"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method splitColumns</span> (line <span class="line-number">603</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Return the columns of a (partual) query.</p>
+	<ul class="tags">
+				<li><span class="field">todo:</span> Sets might be parsed in to early. Test this and solve if needed.</li>
+				<li><span class="field">todo:</span> Implemented splitColumns() for INSERT, REPLACE and UPDATE</li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">array</span>
+		<span class="method-name">
+			splitColumns
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>, [<span class="var-type">boolean</span>&nbsp;<span class="var-name">$splitFieldname</span> = <span class="var-default">false</span>], [<span class="var-type">boolean</span>&nbsp;<span class="var-name">$assoc</span> = <span class="var-default">false</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$sql</span><span class="var-description">: SQL query or 'column, column, ...'</span>			</li>
+					<li>
+				<span class="var-type">boolean</span>
+				<span class="var-name">$splitFieldname</span><span class="var-description">: Split fieldname in array(table, field, alias)</span>			</li>
+					<li>
+				<span class="var-type">boolean</span>
+				<span class="var-name">$assoc</span><span class="var-description">: Remove '[AS] alias' (for SELECT) or 'to=' (for INSERT/UPDATE) and return as associated array</span>			</li>
+				</ul>
+		
+				<hr class="separator" />
+		<div class="notes">Implementation of:</div>
+			<dl>
+			<dt><a href="../../DB/DB_QuerySplitter.html#methodsplitColumns">DB_QuerySplitter::splitColumns()</a></dt>
+						<dd>Return the columns of a (partual) query.</dd>
+					</dl>
+			
+	</div>
+<a name="methodsplitDeleteQuery" id="splitDeleteQuery"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method splitDeleteQuery</span> (line <span class="line-number">530</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Split delete query in different parts</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">array</span>
+		<span class="method-name">
+			splitDeleteQuery
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$sql</span><span class="var-description">: SQL DELETE query statement</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodsplitIdentifier" id="splitIdentifier"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method splitIdentifier</span> (line <span class="line-number">98</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Split a column name in table, column and alias OR table name in db, table and alias.</p>
+<p class="description"><p>Returns array(table, fieldname, alias) / array(db, table, alias)</p></p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">array</span>
+		<span class="method-name">
+			splitIdentifier
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$name</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$fieldname</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$fieldname</span><span class="var-description">: Full fieldname</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$name</span>			</li>
+				</ul>
+		
+				<hr class="separator" />
+		<div class="notes">Implementation of:</div>
+			<dl>
+			<dt><a href="../../DB/DB_QuerySplitter.html#methodsplitIdentifier">DB_QuerySplitter::splitIdentifier()</a></dt>
+						<dd>Split a column name in table, column and alias OR table name in db, table and alias</dd>
+					</dl>
+			
+	</div>
+<a name="methodsplitInsertQuery" id="splitInsertQuery"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method splitInsertQuery</span> (line <span class="line-number">452</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Split insert/replace query in different parts.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">array</span>
+		<span class="method-name">
+			splitInsertQuery
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$sql</span><span class="var-description">: SQL INSERT query statement</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodsplitJoin" id="splitJoin"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method splitJoin</span> (line <span class="line-number">725</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Split a single part from a join expression</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">array</span>
+		<span class="method-name">
+			splitJoin
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$sql</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodsplitLimit" id="splitLimit"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method splitLimit</span> (line <span class="line-number">749</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Split limit in array(limit, offset)</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">array</span>
+		<span class="method-name">
+			splitLimit
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$sql</span><span class="var-description">: SQL query or limit part</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodsplitSelectQuery" id="splitSelectQuery"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method splitSelectQuery</span> (line <span class="line-number">413</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Split select query in different parts.</p>
+<p class="description"><p>NOTE: Splitting a query with a subquery is considerably slower.</p></p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">array</span>
+		<span class="method-name">
+			splitSelectQuery
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$sql</span><span class="var-description">: SQL SELECT query statement</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodsplitTables" id="splitTables"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method splitTables</span> (line <span class="line-number">674</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Return tables from a query or join expression.</p>
+	<ul class="tags">
+				<li><span class="field">todo:</span> Make splitTables work for subqueries</li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">array</span>
+		<span class="method-name">
+			splitTables
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>, [<span class="var-type">boolean</span>&nbsp;<span class="var-name">$splitTablename</span> = <span class="var-default">false</span>], [<span class="var-type">boolean</span>&nbsp;<span class="var-name">$assoc</span> = <span class="var-default">false</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$sql</span><span class="var-description">: SQL query or FROM part</span>			</li>
+					<li>
+				<span class="var-type">boolean</span>
+				<span class="var-name">$splitTablename</span><span class="var-description">: Split tablename in array(db, table, alias)</span>			</li>
+					<li>
+				<span class="var-type">boolean</span>
+				<span class="var-name">$assoc</span><span class="var-description">: Remove 'AS ...' and return as associated array</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodsplitTruncateQuery" id="splitTruncateQuery"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method splitTruncateQuery</span> (line <span class="line-number">563</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Split delete query in different parts</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">array</span>
+		<span class="method-name">
+			splitTruncateQuery
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$sql</span><span class="var-description">: SQL DELETE query statement</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodsplitUpdateQuery" id="splitUpdateQuery"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method splitUpdateQuery</span> (line <span class="line-number">499</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Split update query in different parts</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">array</span>
+		<span class="method-name">
+			splitUpdateQuery
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$sql</span><span class="var-description">: SQL UPDATE query statement</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodvalidIdentifier" id="validIdentifier"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method validIdentifier</span> (line <span class="line-number">86</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Check if a identifier is valid as field name or table name</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">boolean</span>
+		<span class="method-name">
+			validIdentifier
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$name</span>, [<span class="var-type"></span>&nbsp;<span class="var-name">$withgroup</span> = <span class="var-default">null</span>], [<span class="var-type">boolean</span>&nbsp;<span class="var-name">$withalias</span> = <span class="var-default">false</span>], <span class="var-type">boolean</span>&nbsp;<span class="var-name">$withtable</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$name</span>			</li>
+					<li>
+				<span class="var-type">boolean</span>
+				<span class="var-name">$withtable</span><span class="var-description">: TRUE: group.name, FALSE: name, NULL: both</span>			</li>
+					<li>
+				<span class="var-type">boolean</span>
+				<span class="var-name">$withalias</span><span class="var-description">: Allow an alias (AS alias)</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$withgroup</span>			</li>
+				</ul>
+		
+				<hr class="separator" />
+		<div class="notes">Implementation of:</div>
+			<dl>
+			<dt><a href="../../DB/DB_QuerySplitter.html#methodvalidIdentifier">DB_QuerySplitter::validIdentifier()</a></dt>
+						<dd>Check if a identifier is valid as field name or table name</dd>
+					</dl>
+			
+	</div>
+
+						
+		</div>
+	</div>
+
+	<a name="sec-consts"></a>
+	<div class="info-box">
+		<div class="info-box-title">Class Constants</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+										<a href="#sec-var-summary">Constants</a> (<span class="disabled">details</span>)
+						
+			
+										| 
+									<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+							
+					</div>
+		<div class="info-box-body">
+			<a name="constREGEX_IDENTIFIER" id="REGEX_IDENTIFIER"><!-- --></A>
+<div class="oddrow">
+
+	<div class="const-header">
+		<img src="../../media/images/Variable.png" />
+		<span class="const-title">
+			<span class="const-name">REGEX_IDENTIFIER</span>
+			 = <span class="const-default"> '(?:(?:\w++|`[^`]*+`)(?:\.(?:\w++|`[^`]*+`)){0,2})'</span>
+			(line <span class="line-number">40</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	
+</div>
+<a name="constREGEX_VALUES" id="REGEX_VALUES"><!-- --></A>
+<div class="evenrow">
+
+	<div class="const-header">
+		<img src="../../media/images/Variable.png" />
+		<span class="const-title">
+			<span class="const-name">REGEX_VALUES</span>
+			 = <span class="const-default"> '(?:\w++|`[^`]*+`|&quot;(?:[^&quot;\\\\]++|\\\\.)*+&quot;|\'(?:[^\'\\\\]++|\\\\.)*+\'|\s++|[^`&quot;\'\w\s])*?'</span>
+			(line <span class="line-number">39</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	
+</div>
+						
+		</div>
+	</div>
+
+	<p class="notes" id="credit">
+		Documentation generated on Fri, 20 Feb 2009 11:37:13 +0100 by <a href="http://www.phpdoc.org" target="_blank">phpDocumentor 1.4.2</a>
+	</p>
+	</div></body>
+</html>

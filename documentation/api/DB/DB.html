@@ -1,0 +1,2860 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+  <html xmlns="http://www.w3.org/1999/xhtml">
+		<head>
+			<!-- template designed by Marco Von Ballmoos -->
+			<title>Docs For Class DB</title>
+			<link rel="stylesheet" href="../media/stylesheet.css" />
+			<meta http-equiv='Content-Type' content='text/html; charset=iso-8859-1'/>
+		</head>
+		<body>
+			<div class="page-body">			
+<h2 class="class-name">Class DB</h2>
+
+<a name="sec-description"></a>
+<div class="info-box">
+	<div class="info-box-title">Description</div>
+	<div class="nav-bar">
+					<span class="disabled">Description</span> |
+							<a href="#sec-descendents">Descendents</a>
+			|											<a href="#sec-var-summary">Vars</a> (<a href="#sec-vars">details</a>)
+						|											<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+						
+											<a href="#sec-const-summary">Constants</a> (<a href="#sec-consts">details</a>)
+						
+			</div>
+	<div class="info-box-body">
+        		<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">A database abstraction layer, adding functionality as well as abstraction.</p>
+<p class="description"><p>To create a connection use Q\DB::connect(SETTINGS)-&gt;makeInstance() or set 'db' configuration settings.</p></p>
+	<ul class="tags">
+				<li><span class="field">version:</span> devel</li>
+				<li><span class="field">todo:</span> For DB_QueryException: Don't stick query in message, but save in seperate property.</li>
+				<li><span class="field">todo:</span> Do the auto:role thing automaticly for all mapping properties.</li>
+				<li><span class="field">todo:</span> Using vars in array for default values should work.</li>
+				<li><span class="field">abstract:</span> </li>
+				<li><span class="field">example:</span> example not found</li>
+				<li><span class="field">example:</span> example not found</li>
+				<li><span class="field">example:</span> example not found</li>
+				<li><span class="field">example:</span> example not found</li>
+			</ul>
+		<p class="notes">
+			Located in <a class="field" href="_Q---DB.php.html">/Q/DB.php</a> (line <span class="field">35</span>)
+		</p>
+		
+				
+		<pre></pre>
+	
+			</div>
+</div>
+
+	<a name="sec-descendents"></a>
+	<div class="info-box">
+		<div class="info-box-title">Direct descendents</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+			<span class="disabled">Descendents</span>
+			|												<a href="#sec-var-summary">Vars</a> (<a href="#sec-vars">details</a>)
+								|															<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+							
+															<a href="#sec-const-summary">Constants</a> (<a href="#sec-consts">details</a>)
+							
+					</div>
+		<div class="info-box-body">
+			<table cellpadding="2" cellspacing="0" class="class-table">
+				<tr>
+					<th class="class-table-header">Class</th>
+					<th class="class-table-header">Description</th>
+				</tr>
+								<tr>
+					<td style="padding-right: 2em"><a href="../DB/DB_MySQL/DB_MySQL.html">DB_MySQL</a></td>
+					<td>
+											DB abstraction layer for MySQL.
+										</td>
+				</tr>
+							</table>
+		</div>
+	</div>
+
+	<a name="sec-const-summary"></a>
+	<div class="info-box">
+		<div class="info-box-title">Class Constant Summary</span></div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+							<a href="#sec-descendents">Descendants</a> |
+						<span class="disabled">Constants</span> (<a href="#sec-consts">details</a>)
+												<a href="#sec-var-summary">Vars</a> (<a href="#sec-vars">details</a>)
+				 
+				|
+										| 
+									<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+							
+					</div>
+		<div class="info-box-body">
+			<div class="const-summary">
+								<div class="const-title">
+					<img src="../media/images/Constant.png" alt=" " />
+					<a href="#ADD_APPEND" title="details" class="const-name">ADD_APPEND</a> = 					<span class="var-type"> 0x4</span>
+
+				</div>
+								<div class="const-title">
+					<img src="../media/images/Constant.png" alt=" " />
+					<a href="#ADD_HAVING" title="details" class="const-name">ADD_HAVING</a> = 					<span class="var-type"> 0x100</span>
+
+				</div>
+								<div class="const-title">
+					<img src="../media/images/Constant.png" alt=" " />
+					<a href="#ADD_PREPEND" title="details" class="const-name">ADD_PREPEND</a> = 					<span class="var-type"> 0x2</span>
+
+				</div>
+								<div class="const-title">
+					<img src="../media/images/Constant.png" alt=" " />
+					<a href="#ADD_REPLACE" title="details" class="const-name">ADD_REPLACE</a> = 					<span class="var-type"> 0x1</span>
+
+				</div>
+								<div class="const-title">
+					<img src="../media/images/Constant.png" alt=" " />
+					<a href="#ALL_ROWS" title="details" class="const-name">ALL_ROWS</a> = 					<span class="var-type"> 3</span>
+
+				</div>
+								<div class="const-title">
+					<img src="../media/images/Constant.png" alt=" " />
+					<a href="#COMMAND_PART" title="details" class="const-name">COMMAND_PART</a> = 					<span class="var-type"> 0</span>
+
+				</div>
+								<div class="const-title">
+					<img src="../media/images/Constant.png" alt=" " />
+					<a href="#FETCH_ASSOC" title="details" class="const-name">FETCH_ASSOC</a> = 					<span class="var-type"> 2</span>
+
+				</div>
+								<div class="const-title">
+					<img src="../media/images/Constant.png" alt=" " />
+					<a href="#FETCH_FULLARRAY" title="details" class="const-name">FETCH_FULLARRAY</a> = 					<span class="var-type"> 3</span>
+
+				</div>
+								<div class="const-title">
+					<img src="../media/images/Constant.png" alt=" " />
+					<a href="#FETCH_NON_RECURSIVE" title="details" class="const-name">FETCH_NON_RECURSIVE</a> = 					<span class="var-type"> 0x100</span>
+
+				</div>
+								<div class="const-title">
+					<img src="../media/images/Constant.png" alt=" " />
+					<a href="#FETCH_OBJECT" title="details" class="const-name">FETCH_OBJECT</a> = 					<span class="var-type"> 8</span>
+
+				</div>
+								<div class="const-title">
+					<img src="../media/images/Constant.png" alt=" " />
+					<a href="#FETCH_ORDERED" title="details" class="const-name">FETCH_ORDERED</a> = 					<span class="var-type"> 1</span>
+
+				</div>
+								<div class="const-title">
+					<img src="../media/images/Constant.png" alt=" " />
+					<a href="#FETCH_PERTABLE" title="details" class="const-name">FETCH_PERTABLE</a> = 					<span class="var-type"> 4</span>
+
+				</div>
+								<div class="const-title">
+					<img src="../media/images/Constant.png" alt=" " />
+					<a href="#FETCH_RECORD" title="details" class="const-name">FETCH_RECORD</a> = 					<span class="var-type"> 6</span>
+
+				</div>
+								<div class="const-title">
+					<img src="../media/images/Constant.png" alt=" " />
+					<a href="#FETCH_ROLES" title="details" class="const-name">FETCH_ROLES</a> = 					<span class="var-type"> 7</span>
+
+				</div>
+								<div class="const-title">
+					<img src="../media/images/Constant.png" alt=" " />
+					<a href="#FETCH_VALUE" title="details" class="const-name">FETCH_VALUE</a> = 					<span class="var-type"> 5</span>
+
+				</div>
+								<div class="const-title">
+					<img src="../media/images/Constant.png" alt=" " />
+					<a href="#FIELDNAME_COL" title="details" class="const-name">FIELDNAME_COL</a> = 					<span class="var-type"> 0</span>
+
+				</div>
+								<div class="const-title">
+					<img src="../media/images/Constant.png" alt=" " />
+					<a href="#FIELDNAME_DB" title="details" class="const-name">FIELDNAME_DB</a> = 					<span class="var-type"> 2</span>
+
+				</div>
+								<div class="const-title">
+					<img src="../media/images/Constant.png" alt=" " />
+					<a href="#FIELDNAME_DBFULL" title="details" class="const-name">FIELDNAME_DBFULL</a> = 					<span class="var-type"> 3</span>
+
+				</div>
+								<div class="const-title">
+					<img src="../media/images/Constant.png" alt=" " />
+					<a href="#FIELDNAME_FULL" title="details" class="const-name">FIELDNAME_FULL</a> = 					<span class="var-type"> 1</span>
+
+				</div>
+								<div class="const-title">
+					<img src="../media/images/Constant.png" alt=" " />
+					<a href="#MULTIPLE_ROWS" title="details" class="const-name">MULTIPLE_ROWS</a> = 					<span class="var-type"> 2</span>
+
+				</div>
+								<div class="const-title">
+					<img src="../media/images/Constant.png" alt=" " />
+					<a href="#SINGLE_ROW" title="details" class="const-name">SINGLE_ROW</a> = 					<span class="var-type"> 1</span>
+
+				</div>
+							</div>
+		</div>
+	</div>
+
+	<a name="sec-var-summary"></a>
+	<div class="info-box">
+		<div class="info-box-title">Variable Summary</span></div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+							<a href="#sec-descendents">Descendents</a> |
+						<span class="disabled">Vars</span> (<a href="#sec-vars">details</a>)
+							| 
+									<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+							
+															<a href="#sec-const-summary">Constants</a> (<a href="#sec-consts">details</a>)
+							
+					</div>
+		<div class="info-box-body">
+			<div class="var-summary">
+												<div class="var-title">
+					static <span class="var-type">array</span>
+					<a href="#$defaultFieldProperties" title="details" class="var-name">$defaultFieldProperties</a>
+				</div>
+																<div class="var-title">
+					static <span class="var-type">array</span>
+					<a href="#$defaultOptions" title="details" class="var-name">$defaultOptions</a>
+				</div>
+																<div class="var-title">
+					static <span class="var-type">array</span>
+					<a href="#$defaultTableProperties" title="details" class="var-name">$defaultTableProperties</a>
+				</div>
+																<div class="var-title">
+					static <span class="var-type">array</span>
+					<a href="#$drivers" title="details" class="var-name">$drivers</a>
+				</div>
+																<div class="var-title">
+					static <span class="var-type">array</span>
+					<a href="#$fieldtypes" title="details" class="var-name">$fieldtypes</a>
+				</div>
+																<div class="var-title">
+					static <span class="var-type">array</span>
+					<a href="#$forceTypeFieldProperties" title="details" class="var-name">$forceTypeFieldProperties</a>
+				</div>
+																<div class="var-title">
+					static <span class="var-type">array</span>
+					<a href="#$forceTypeTableProperties" title="details" class="var-name">$forceTypeTableProperties</a>
+				</div>
+																<div class="var-title">
+					static <span class="var-type">Q\DB[]</span>
+					<a href="#$instances" title="details" class="var-name">$instances</a>
+				</div>
+																																<div class="var-title">
+					static <span class="var-type">array</span>
+					<a href="#$mappingProperties" title="details" class="var-name">$mappingProperties</a>
+				</div>
+																																<div class="var-title">
+					static <span class="var-type">array</span>
+					<a href="#$recordtypes" title="details" class="var-name">$recordtypes</a>
+				</div>
+																																																																																																				<div class="var-title">
+					<span class="var-type">Q\Log_Handler</span>
+					<a href="#$log" title="details" class="var-name">$log</a>
+				</div>
+																<div class="var-title">
+					<span class="var-type">array</span>
+					<a href="#$logColumns" title="details" class="var-name">$logColumns</a>
+				</div>
+																								<div class="var-title">
+					<span class="var-type">Q\Config</span>
+					<a href="#$metaData" title="details" class="var-name">$metaData</a>
+				</div>
+																<div class="var-title">
+					<span class="var-type">object|resource</span>
+					<a href="#$native" title="details" class="var-name">$native</a>
+				</div>
+																								<div class="var-title">
+					<span class="var-type">array</span>
+					<a href="#$settings" title="details" class="var-name">$settings</a>
+				</div>
+																<div class="var-title">
+					<span class="var-type">array</span>
+					<a href="#$tables" title="details" class="var-name">$tables</a>
+				</div>
+											</div>
+		</div>
+	</div>
+
+	<a name="sec-method-summary"></a>
+	<div class="info-box">
+		<div class="info-box-title">Method Summary</span></div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+							<a href="#sec-descendents">Descendents</a> |
+															<a href="#sec-const-summary">Constants</a> (<a href="#sec-consts">details</a>)
+							
+															<a href="#sec-var-summary">Vars</a> (<a href="#sec-vars">details</a>)
+				 
+				|
+						<span class="disabled">Methods</span> (<a href="#sec-methods">details</a>)
+		</div>
+		<div class="info-box-body">			
+			<div class="method-summary">
+																												<div class="method-definition">
+					static 						<span class="method-result">void</span>
+										<a href="#applyFieldDefaults" title="details" class="method-name">applyFieldDefaults</a>
+											(<span class="var-type"></span>&nbsp;<span class="var-name">&$properties</span>, [<span class="var-type">string</span>&nbsp;<span class="var-name">$index</span> = <span class="var-default">null</span>], <span class="var-type">array</span>&nbsp;<span class="var-name">$properties</span>)
+									</div>
+																								<div class="method-definition">
+					static 						<span class="method-result">void</span>
+										<a href="#applyTableDefaults" title="details" class="method-name">applyTableDefaults</a>
+											(<span class="var-type"></span>&nbsp;<span class="var-name">&$properties</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$properties</span>)
+									</div>
+																																																																<div class="method-definition">
+					static 						<span class="method-result">void</span>
+										<a href="#generateCode_ApplyDefaultProperties" title="details" class="method-name">generateCode_ApplyDefaultProperties</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$type</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$type_key</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$key</span>)
+									</div>
+																																																																																																																																																																																																																																																								<div class="method-definition">
+					static 						<span class="method-result"><a href="../DB/DB.html">DB</a></span>
+										<a href="#__callstatic" title="details" class="method-name">__callstatic</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$name</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$args</span>)
+									</div>
+								
+												<div class="method-definition">
+											<span class="method-result">DB</span>
+										<a href="#__construct" title="details" class="method-name">__construct</a>
+											(<span class="var-type">object|resource</span>&nbsp;<span class="var-name">$native</span>, [<span class="var-type">array</span>&nbsp;<span class="var-name">$settings</span> = <span class="var-default">array()</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result">int</span>
+										<a href="#affectedRows" title="details" class="method-name">affectedRows</a>
+										()
+									</div>
+																								<div class="method-definition">
+											<span class="method-result">void</span>
+										<a href="#applyMapping" title="details" class="method-name">applyMapping</a>
+											(<span class="var-type"></span>&nbsp;<span class="var-name">&$properties</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$index</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$properties</span>)
+									</div>
+																								<div class="method-definition">
+											<span class="method-result">object</span>
+										<a href="#arg" title="details" class="method-name">arg</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$name</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$value</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result"><a href="../DB/DB.html">DB</a></span>
+										<a href="#connect" title="details" class="method-name">connect</a>
+											([<span class="var-type">string|array</span>&nbsp;<span class="var-name">$dsn</span> = <span class="var-default">null</span>], <span class="var-type">Additional</span>&nbsp;<span class="var-name">1</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result">int</span>
+										<a href="#countRows" title="details" class="method-name">countRows</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, [<span class="var-type">mixed</span>&nbsp;<span class="var-name">$criteria</span> = <span class="var-default">null</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result">void</span>
+										<a href="#delete" title="details" class="method-name">delete</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$id</span>, [<span class="var-type">int</span>&nbsp;<span class="var-name">$constraint</span> = <span class="var-default">DB::MULTIPLE_ROWS</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result">boolean</span>
+										<a href="#exists" title="details" class="method-name">exists</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$name</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result">array</span>
+										<a href="#fetchMetaData" title="details" class="method-name">fetchMetaData</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>)
+									</div>
+																								<div class="method-definition">
+											<span class="method-result">string</span>
+										<a href="#getDBName" title="details" class="method-name">getDBName</a>
+										()
+									</div>
+																<div class="method-definition">
+											<span class="method-result">string</span>
+										<a href="#getDSN" title="details" class="method-name">getDSN</a>
+										()
+									</div>
+																<div class="method-definition">
+											<span class="method-result">array</span>
+										<a href="#getFieldNames" title="details" class="method-name">getFieldNames</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result">array</span>
+										<a href="#getMetaData" title="details" class="method-name">&amp;getMetaData</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result">object|resource</span>
+										<a href="#getNative" title="details" class="method-name">getNative</a>
+										()
+									</div>
+																<div class="method-definition">
+											<span class="method-result">array</span>
+										<a href="#getPrimaryKeys" title="details" class="method-name">getPrimaryKeys</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, [<span class="var-type">bool</span>&nbsp;<span class="var-name">$autoIncrementOnly</span> = <span class="var-default">false</span>], [<span class="var-type">bool</span>&nbsp;<span class="var-name">$asIdentifier</span> = <span class="var-default">false</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result">array</span>
+										<a href="#getSettings" title="details" class="method-name">getSettings</a>
+										()
+									</div>
+																<div class="method-definition">
+											<span class="method-result">array</span>
+										<a href="#getTableInfo" title="details" class="method-name">getTableInfo</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result">array</span>
+										<a href="#getTableNames" title="details" class="method-name">getTableNames</a>
+										()
+									</div>
+																<div class="method-definition">
+											<span class="method-result">array</span>
+										<a href="#load" title="details" class="method-name">load</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$id</span>, [<span class="var-type">int</span>&nbsp;<span class="var-name">$resulttype</span> = <span class="var-default">DB::FETCH_RECORD</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result">mixed</span>
+										<a href="#lookupValue" title="details" class="method-name">lookupValue</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$fieldname</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$id</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result">boolean</span>
+										<a href="#makeIdentifier" title="details" class="method-name">makeIdentifier</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$group</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$name</span>, [<span class="var-type">string</span>&nbsp;<span class="var-name">$alias</span> = <span class="var-default">null</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result">mixed</span>
+										<a href="#parse" title="details" class="method-name">parse</a>
+											(<span class="var-type">mixed</span>&nbsp;<span class="var-name">$statement</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$args</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result"><a href="../DB/DB_Statement.html">DB_Statement</a></span>
+										<a href="#prepare" title="details" class="method-name">prepare</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$statement</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result"><a href="../DB/DB_Statement.html">DB_Statement</a></span>
+										<a href="#prepareDelete" title="details" class="method-name">prepareDelete</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$id</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result"><a href="../DB/DB_Statement.html">DB_Statement</a></span>
+										<a href="#prepareSelect" title="details" class="method-name">prepareSelect</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, [<span class="var-type">mixed</span>&nbsp;<span class="var-name">$fields</span> = <span class="var-default">null</span>], [<span class="var-type">mixed</span>&nbsp;<span class="var-name">$criteria</span> = <span class="var-default">null</span>], [<span class="var-type">string</span>&nbsp;<span class="var-name">$where</span> = <span class="var-default">null</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result"><a href="../DB/DB_Statement.html">DB_Statement</a></span>
+										<a href="#prepareStore" title="details" class="method-name">prepareStore</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$values</span>, <span class="var-type">Give</span>&nbsp;<span class="var-name">2</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result"><a href="../DB/DB_Statement.html">DB_Statement</a></span>
+										<a href="#prepareUpdate" title="details" class="method-name">prepareUpdate</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$id</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$values</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result"><a href="../DB/DB_Result.html">DB_Result</a></span>
+										<a href="#query" title="details" class="method-name">query</a>
+											(<span class="var-type">mixed</span>&nbsp;<span class="var-name">$statement</span>, <span class="var-type">Additional</span>&nbsp;<span class="var-name">1</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result">string</span>
+										<a href="#quote" title="details" class="method-name">quote</a>
+											(<span class="var-type">mixed</span>&nbsp;<span class="var-name">$value</span>, [<span class="var-type">string</span>&nbsp;<span class="var-name">$empty</span> = <span class="var-default">'NULL'</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result">string</span>
+										<a href="#quoteIdentifier" title="details" class="method-name">quoteIdentifier</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$identifier</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result">void</span>
+										<a href="#reconnect" title="details" class="method-name">reconnect</a>
+										()
+									</div>
+																<div class="method-definition">
+											<span class="method-result"><a href="../DB/DB_Result.html">DB_Result</a></span>
+										<a href="#select" title="details" class="method-name">select</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, [<span class="var-type">mixed</span>&nbsp;<span class="var-name">$fields</span> = <span class="var-default">null</span>], [<span class="var-type">mixed</span>&nbsp;<span class="var-name">$criteria</span> = <span class="var-default">null</span>], [<span class="var-type">string</span>&nbsp;<span class="var-name">$where</span> = <span class="var-default">null</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result">array</span>
+										<a href="#splitIdentifier" title="details" class="method-name">splitIdentifier</a>
+											(<span class="var-type"></span>&nbsp;<span class="var-name">$name</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$fieldname</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result">int</span>
+										<a href="#store" title="details" class="method-name">store</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$values</span>, <span class="var-type">Give</span>&nbsp;<span class="var-name">2</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result"><a href="../DB/DB_Table.html">DB_Table</a></span>
+										<a href="#table" title="details" class="method-name">table</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result">void</span>
+										<a href="#update" title="details" class="method-name">update</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$id</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$values</span>, [<span class="var-type">int</span>&nbsp;<span class="var-name">$constraint</span> = <span class="var-default">DB::MULTIPLE_ROWS</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result">void</span>
+										<a href="#useFor" title="details" class="method-name">useFor</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$name</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result">boolean</span>
+										<a href="#validIdentifier" title="details" class="method-name">validIdentifier</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$name</span>, [<span class="var-type"></span>&nbsp;<span class="var-name">$withgroup</span> = <span class="var-default">null</span>], [<span class="var-type">boolean</span>&nbsp;<span class="var-name">$withalias</span> = <span class="var-default">false</span>], <span class="var-type">boolean</span>&nbsp;<span class="var-name">$withtable</span>)
+									</div>
+																</div>
+		</div>
+	</div>		
+
+	<a name="sec-vars"></a>
+	<div class="info-box">
+		<div class="info-box-title">Variables</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+							<a href="#sec-descendents">Descendents</a> |
+										<a href="#sec-var-summary">Vars</a> (<span class="disabled">details</span>)
+						
+			
+												<a href="#sec-const-summary">Constants</a> (<a href="#sec-consts">details</a>)
+							
+										| 
+									<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+							
+					</div>
+		<div class="info-box-body">
+			<a name="var$defaultFieldProperties" id="$defaultFieldProperties"><!-- --></A>
+<div class="oddrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			static <span class="var-type">array</span>
+			<span class="var-name">$defaultFieldProperties</span>
+			 = <span class="var-default">array(<br />	    'name' =&gt; array(<br />	      '{$table.parent}_id' =&gt; array('datatype'=&gt;'lookupkey', 'role'=&gt;array('parentkey'),'auto:role:parentkey'=&gt;true,'foreign_table'=&gt;'$table.parent','foreign_field'=&gt;'id','orm'=&gt;'$table.parent'),'/^(.*)_id$/'=&gt;array('datatype'=&gt;'lookupkey','foreign_table'=&gt;'$1','foreign_field'=&gt;'id','orm'=&gt;'$1'),),'type'=&gt;array('bit'=&gt;array('numeric'=&gt;true),'tinyint'=&gt;array('numeric'=&gt;true),'smallint'=&gt;array('numeric'=&gt;true),'mediumint'=&gt;array('numeric'=&gt;true),'int'=&gt;array('numeric'=&gt;true),'integer'=&gt;array('numeric'=&gt;true),'bigint'=&gt;array('numeric'=&gt;true),'float'=&gt;array('numeric'=&gt;true),'double'=&gt;array('numeric'=&gt;true),'double precision'=&gt;array('numeric'=&gt;true),'real'=&gt;array('numeric'=&gt;true),'decimal'=&gt;array('numeric'=&gt;true),'dec'=&gt;array('numeric'=&gt;true),'fixed'=&gt;array('numeric'=&gt;true),'string'=&gt;array('role'=&gt;array('description'),'auto:role:description'=&gt;true),'children'=&gt;array('fieldtype'=&gt;'recordset','multiple'=&gt;true),),'datatype'=&gt;array('currency'=&gt;array('unit'=&gt;&quot;�&quot;,'decimals'=&gt;2,'numeric'=&gt;true),'percentage'=&gt;array('unit'=&gt;&quot;%&quot;,'suffix'=&gt;&quot;%&quot;,'numeric'=&gt;true),'lookupkey'=&gt;array('fieldtype'=&gt;'lookup'),'junction'=&gt;array('multiple'=&gt;true,'junction_table'=&gt;'{$table}_{$foreign_table}'),'children'=&gt;array('multiple'=&gt;true)),'role'=&gt;array('id'=&gt;array('hidden'=&gt;true),'parentkey'=&gt;array('hidden'=&gt;true),),)</span>			(line <span class="line-number">135</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Default field properties</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+<a name="var$defaultOptions" id="$defaultOptions"><!-- --></A>
+<div class="evenrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			static <span class="var-type">array</span>
+			<span class="var-name">$defaultOptions</span>
+			 = <span class="var-default">array()</span>			(line <span class="line-number">106</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Default configuration options</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+<a name="var$defaultTableProperties" id="$defaultTableProperties"><!-- --></A>
+<div class="oddrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			static <span class="var-type">array</span>
+			<span class="var-name">$defaultTableProperties</span>
+			 = <span class="var-default">array()</span>			(line <span class="line-number">129</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Default properties for tables</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+<a name="var$drivers" id="$drivers"><!-- --></A>
+<div class="evenrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			static <span class="var-type">array</span>
+			<span class="var-name">$drivers</span>
+			 = <span class="var-default">array(<br />		'mysql'=&gt;'Q\DB_MySQL'<br />	)</span>			(line <span class="line-number">73</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Drivers with classname</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+<a name="var$fieldtypes" id="$fieldtypes"><!-- --></A>
+<div class="oddrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			static <span class="var-type">array</span>
+			<span class="var-name">$fieldtypes</span>
+			 = <span class="var-default">array(<br />	  null=&gt;'Q\DB_Field',<br />	  'lookup'=&gt;'Q\DB_Field_ForRecord',<br />	  'recordset'=&gt;'Q\DB_Field_ForRecordset',<br />	)</span>			(line <span class="line-number">89</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Field types with classname</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	
+		
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../DB/DB_MySQL/DB_MySQL.html#var$fieldtypes">DB_MySQL::$fieldtypes</a>
+								: Field types for MySQL specific types.
+							</li>
+				</ul>
+		
+
+</div>
+<a name="var$forceTypeFieldProperties" id="$forceTypeFieldProperties"><!-- --></A>
+<div class="evenrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			static <span class="var-type">array</span>
+			<span class="var-name">$forceTypeFieldProperties</span>
+			 = <span class="var-default">array(<br />	    'role'=&gt;'array'<br />    )</span>			(line <span class="line-number">121</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Properties that should be cast to a specific type.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+<a name="var$forceTypeTableProperties" id="$forceTypeTableProperties"><!-- --></A>
+<div class="oddrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			static <span class="var-type">array</span>
+			<span class="var-name">$forceTypeTableProperties</span>
+			 = <span class="var-default">array(<br />	    'role'=&gt;'array'<br />    )</span>			(line <span class="line-number">113</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Properties that should be cast to a specific type.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+<a name="var$instances" id="$instances"><!-- --></A>
+<div class="evenrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			static <span class="var-type">Q\DB[]</span>
+			<span class="var-name">$instances</span>
+			 = <span class="var-default">array()</span>			(line <span class="line-number">100</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Registerd instances</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+<a name="var$mappingProperties" id="$mappingProperties"><!-- --></A>
+<div class="oddrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			static <span class="var-type">array</span>
+			<span class="var-name">$mappingProperties</span>
+			 = <span class="var-default">array(<br />	  'role',<br />	  '~orm'<br />	)</span>			(line <span class="line-number">181</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Automaticly create a mapping link, if field contains a properties in this list.</p>
+<p class="description"><p>If the first character is a '~', it means that if the table of field isn't the basetable, the property will not be mapped.</p></p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+<a name="var$recordtypes" id="$recordtypes"><!-- --></A>
+<div class="evenrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			static <span class="var-type">array</span>
+			<span class="var-name">$recordtypes</span>
+			 = <span class="var-default">array(<br />	    null=&gt;'Q\DB_Record',<br />	)</span>			(line <span class="line-number">81</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Field types with classname</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+<a name="var$log" id="$log"><!-- --></A>
+<div class="oddrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			<span class="var-type">Q\Log_Handler</span>
+			<span class="var-name">$log</span>
+						(line <span class="line-number">244</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Log queries and other actions.</p>
+<p class="description"><p>Using DB logging is bad for performance, so for debugging purpose only.</p></p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+<a name="var$logColumns" id="$logColumns"><!-- --></A>
+<div class="evenrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			<span class="var-type">array</span>
+			<span class="var-name">$logColumns</span>
+			 = <span class="var-default">array('statement', 'count', 'time', 'errno', 'error')</span>			(line <span class="line-number">254</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Columns supplied for logging.</p>
+<p class="description"><p>Possible columns: 'statement', 'count', 'time', 'rows', 'errno', 'error'.</p><p>Note: Using 'rows' is extremely bad for performance, only use when needed.</p></p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+<a name="var$metaData" id="$metaData"><!-- --></A>
+<div class="oddrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			<span class="var-type">Q\Config</span>
+			<span class="var-name">$metaData</span>
+						(line <span class="line-number">229</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Config collection for table and field properties.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+<a name="var$native" id="$native"><!-- --></A>
+<div class="evenrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			<span class="var-type">object|resource</span>
+			<span class="var-name">$native</span>
+						(line <span class="line-number">216</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Native DB connection object</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	
+		
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../DB/DB_MySQL/DB_MySQL.html#var$native">DB_MySQL::$native</a>
+								: Native mysql connection object
+							</li>
+				</ul>
+		
+
+</div>
+<a name="var$settings" id="$settings"><!-- --></A>
+<div class="oddrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			<span class="var-type">array</span>
+			<span class="var-name">$settings</span>
+						(line <span class="line-number">223</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Settings used to create connection</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+<a name="var$tables" id="$tables"><!-- --></A>
+<div class="evenrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			<span class="var-type">array</span>
+			<span class="var-name">$tables</span>
+			 = <span class="var-default">array()</span>			(line <span class="line-number">235</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Cached table objects</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+						
+		</div>
+	</div>
+	
+	<a name="sec-methods"></a>
+	<div class="info-box">
+		<div class="info-box-title">Methods</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+							<a href="#sec-descendents">Descendents</a> |
+															<a href="#sec-var-summary">Vars</a> (<a href="#sec-vars">details</a>)
+																			<a href="#sec-const-summary">Constants</a> (<a href="#sec-consts">details</a>)
+							
+										<a href="#sec-method-summary">Methods</a> (<span class="disabled">details</span>)
+						
+		</div>
+		<div class="info-box-body">
+			<A NAME='method_detail'></A>
+<a name="methodapplyFieldDefaults" id="applyFieldDefaults"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method applyFieldDefaults</span> (line <span class="line-number">566</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Apply defaults to field properties</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">void</span>
+		<span class="method-name">
+			applyFieldDefaults
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">&$properties</span>, [<span class="var-type">string</span>&nbsp;<span class="var-name">$index</span> = <span class="var-default">null</span>], <span class="var-type">array</span>&nbsp;<span class="var-name">$properties</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$properties</span><span class="var-description">: Table properties or field properties</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$index</span><span class="var-description">: Fieldname (when table properties are specified)</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">&$properties</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodapplyTableDefaults" id="applyTableDefaults"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method applyTableDefaults</span> (line <span class="line-number">539</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Apply defaults to table properties</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">void</span>
+		<span class="method-name">
+			applyTableDefaults
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">&$properties</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$properties</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$properties</span><span class="var-description">: Table properties</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">&$properties</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodgenerateCode_ApplyDefaultProperties" id="generateCode_ApplyDefaultProperties"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method generateCode_ApplyDefaultProperties</span> (line <span class="line-number">597</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Create code for default properties</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">void</span>
+		<span class="method-name">
+			generateCode_ApplyDefaultProperties
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$type</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$type_key</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$key</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$type</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$key</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$type_key</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="method__callstatic" id="__callstatic"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method __callstatic</span> (line <span class="line-number">309</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Magic method to return specific instance</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result"><a href="../DB/DB.html">DB</a></span>
+		<span class="method-name">
+			__callstatic
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$name</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$args</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$name</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$args</span>			</li>
+				</ul>
+		
+			
+	</div>
+
+<a name="method__construct" id="__construct"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">Constructor __construct</span> (line <span class="line-number">349</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Class constructor</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">DB</span>
+		<span class="method-name">
+			__construct
+		</span>
+					(<span class="var-type">object|resource</span>&nbsp;<span class="var-name">$native</span>, [<span class="var-type">array</span>&nbsp;<span class="var-name">$settings</span> = <span class="var-default">array()</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">object|resource</span>
+				<span class="var-name">$native</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$settings</span><span class="var-description">: Settings used to create connection</span>			</li>
+				</ul>
+		
+			
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../DB/DB_MySQL/DB_MySQL.html#method__construct">DB_MySQL::__construct()</a>
+								: Class constructor
+							</li>
+				</ul>
+	</div>
+<a name="methodaffectedRows" id="affectedRows"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">affectedRows</span> (line <span class="line-number">857</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Gets the number of affected rows in a previous operation.</p>
+	<ul class="tags">
+				<li><span class="field">abstract:</span> </li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">int</span>
+		<span class="method-name">
+			affectedRows
+		</span>
+				()
+			</div>
+	
+		
+			
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../DB/DB_MySQL/DB_MySQL.html#methodaffectedRows">DB_MySQL::affectedRows()</a>
+								: Gets the number of affected rows in a previous MySQL operation.
+							</li>
+				</ul>
+	</div>
+<a name="methodapplyMapping" id="applyMapping"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">applyMapping</span> (line <span class="line-number">651</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Apply symantic mapping.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			applyMapping
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">&$properties</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$index</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$properties</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$properties</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$index</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">&$properties</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodarg" id="arg"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">arg</span> (line <span class="line-number">774</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Create a named argument which can be parsed</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">object</span>
+		<span class="method-name">
+			arg
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$name</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$value</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$name</span>			</li>
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$value</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodconnect" id="connect"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">connect</span> (line <span class="line-number">267</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Open a new connection to a database server.</p>
+<p class="description"><p>If DSN is given, it will be passed to the connect method of the driver class, otherwise all additional arguments are passed.</p></p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result"><a href="../DB/DB.html">DB</a></span>
+		<span class="method-name">
+			connect
+		</span>
+					([<span class="var-type">string|array</span>&nbsp;<span class="var-name">$dsn</span> = <span class="var-default">null</span>], <span class="var-type">Additional</span>&nbsp;<span class="var-name">1</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string|array</span>
+				<span class="var-name">$dsn</span><span class="var-description">: DSN, driver or array('driver'=&gt;DRIVER, 'host'=&gt;HOST, ...)</span>			</li>
+					<li>
+				<span class="var-type">Additional</span>
+				<span class="var-name">1</span><span class="var-description">: arguments are passed to driver-class::connect()</span>			</li>
+				</ul>
+		
+			
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../DB/DB_MySQL/DB_MySQL.html#methodconnect">DB_MySQL::connect()</a>
+								: Open a new connection to MySQL database server.
+							</li>
+				</ul>
+	</div>
+<a name="methodcountRows" id="countRows"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">countRows</span> (line <span class="line-number">879</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Count the number of rows in a table (with the given criteria)</p>
+	<ul class="tags">
+				<li><span class="field">abstract:</span> </li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">int</span>
+		<span class="method-name">
+			countRows
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, [<span class="var-type">mixed</span>&nbsp;<span class="var-name">$criteria</span> = <span class="var-default">null</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span><span class="var-description">: Table name</span>			</li>
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$criteria</span><span class="var-description">: The value for a primairy (or as array(key, ..) if multiple key fields ) or array(field=&gt;value, ...)</span>			</li>
+				</ul>
+		
+			
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../DB/DB_MySQL/DB_MySQL.html#methodcountRows">DB_MySQL::countRows()</a>
+								: Count the number of rows in a table (with the given criteria)
+							</li>
+				</ul>
+	</div>
+<a name="methoddelete" id="delete"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">delete</span> (line <span class="line-number">959</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Delete a single record or multiple records from a table.</p>
+	<ul class="tags">
+				<li><span class="field">throws:</span> Q\DB_Constraint_Exception if query results in &gt; 1 record and constraint == SINGLE_ROW</li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			delete
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$id</span>, [<span class="var-type">int</span>&nbsp;<span class="var-name">$constraint</span> = <span class="var-default">DB::MULTIPLE_ROWS</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span>			</li>
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$id</span><span class="var-description">: The value for a primairy (or as array(value, ..) if multiple key fields) or array(field=&gt;value, ...)</span>			</li>
+					<li>
+				<span class="var-type">int</span>
+				<span class="var-name">$constraint</span><span class="var-description">: Constraint based on the number or rows: SINGLE_ROW, MULTIPLE_ROWS, ALL_ROWS.</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodexists" id="exists"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">exists</span> (line <span class="line-number">325</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Check if instance exists.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">boolean</span>
+		<span class="method-name">
+			exists
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$name</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$name</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodfetchMetaData" id="fetchMetaData"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">fetchMetaData</span> (line <span class="line-number">439</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Get properties for $table from the database.</p>
+	<ul class="tags">
+				<li><span class="field">abstract:</span> </li>
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			fetchMetaData
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span>			</li>
+				</ul>
+		
+			
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../DB/DB_MySQL/DB_MySQL.html#methodfetchMetaData">DB_MySQL::fetchMetaData()</a>
+								: Get properties for the table and all fields from the database
+							</li>
+				</ul>
+	</div>
+<a name="methodgetDBName" id="getDBName"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">getDBName</span> (line <span class="line-number">397</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Get the database (schema) name.</p>
+	<ul class="tags">
+				<li><span class="field">abstract:</span> </li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">string</span>
+		<span class="method-name">
+			getDBName
+		</span>
+				()
+			</div>
+	
+		
+			
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../DB/DB_MySQL/DB_MySQL.html#methodgetDBName">DB_MySQL::getDBName()</a>
+								: Get the database (schema) name.
+							</li>
+				</ul>
+	</div>
+<a name="methodgetDSN" id="getDSN"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">getDSN</span> (line <span class="line-number">368</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Return the connection string (without additional settings)</p>
+	<ul class="tags">
+				<li><span class="field">abstract:</span> </li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">string</span>
+		<span class="method-name">
+			getDSN
+		</span>
+				()
+			</div>
+	
+		
+			
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../DB/DB_MySQL/DB_MySQL.html#methodgetDSN">DB_MySQL::getDSN()</a>
+								: Return the connection string (without additional settings)
+							</li>
+				</ul>
+	</div>
+<a name="methodgetFieldNames" id="getFieldNames"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">getFieldNames</span> (line <span class="line-number">412</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Get the field names of a table</p>
+	<ul class="tags">
+				<li><span class="field">abstract:</span> </li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			getFieldNames
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span>			</li>
+				</ul>
+		
+			
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../DB/DB_MySQL/DB_MySQL.html#methodgetFieldNames">DB_MySQL::getFieldNames()</a>
+								: Get a list of all the fields in a table.
+							</li>
+				</ul>
+	</div>
+<a name="methodgetMetaData" id="getMetaData"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">getMetaData</span> (line <span class="line-number">448</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Get properties for $table.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			&amp;getMetaData
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodgetNative" id="getNative"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">getNative</span> (line <span class="line-number">375</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Get the native object or resource.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">object|resource</span>
+		<span class="method-name">
+			getNative
+		</span>
+				()
+			</div>
+	
+		
+			
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../DB/DB_MySQL/DB_MySQL.html#methodgetNative">DB_MySQL::getNative()</a>
+								: Get the native mysqli object.
+							</li>
+				</ul>
+	</div>
+<a name="methodgetPrimaryKeys" id="getPrimaryKeys"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">getPrimaryKeys</span> (line <span class="line-number">422</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Return the fieldnames of the primairy key.</p>
+	<ul class="tags">
+				<li><span class="field">abstract:</span> </li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			getPrimaryKeys
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, [<span class="var-type">bool</span>&nbsp;<span class="var-name">$autoIncrementOnly</span> = <span class="var-default">false</span>], [<span class="var-type">bool</span>&nbsp;<span class="var-name">$asIdentifier</span> = <span class="var-default">false</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span>			</li>
+					<li>
+				<span class="var-type">bool</span>
+				<span class="var-name">$autoIncrementOnly</span><span class="var-description">: Only return fields with the autoincrement feature</span>			</li>
+					<li>
+				<span class="var-type">bool</span>
+				<span class="var-name">$asIdentifier</span><span class="var-description">: Add table and quote</span>			</li>
+				</ul>
+		
+			
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../DB/DB_MySQL/DB_MySQL.html#methodgetPrimaryKeys">DB_MySQL::getPrimaryKeys()</a>
+								: Return the fieldnames of the primairy key.
+							</li>
+				</ul>
+	</div>
+<a name="methodgetSettings" id="getSettings"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">getSettings</span> (line <span class="line-number">385</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Get the settings used to create connection.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			getSettings
+		</span>
+				()
+			</div>
+	
+		
+			
+	</div>
+<a name="methodgetTableInfo" id="getTableInfo"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">getTableInfo</span> (line <span class="line-number">430</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Get status information about a table.</p>
+	<ul class="tags">
+				<li><span class="field">abstract:</span> </li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			getTableInfo
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span>			</li>
+				</ul>
+		
+			
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../DB/DB_MySQL/DB_MySQL.html#methodgetTableInfo">DB_MySQL::getTableInfo()</a>
+								: Get status information about a table.
+							</li>
+				</ul>
+	</div>
+<a name="methodgetTableNames" id="getTableNames"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">getTableNames</span> (line <span class="line-number">404</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Get a list of all the tables in the DB.</p>
+	<ul class="tags">
+				<li><span class="field">abstract:</span> </li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			getTableNames
+		</span>
+				()
+			</div>
+	
+		
+			
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../DB/DB_MySQL/DB_MySQL.html#methodgetTableNames">DB_MySQL::getTableNames()</a>
+								: Get a list of all the tables in the DB.
+							</li>
+				</ul>
+	</div>
+<a name="methodload" id="load"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">load</span> (line <span class="line-number">892</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Select a single record from a table.</p>
+	<ul class="tags">
+				<li><span class="field">abstract:</span> </li>
+				<li><span class="field">throws:</span> DB_Constraint_Exception if query results in &gt; 1 record</li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			load
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$id</span>, [<span class="var-type">int</span>&nbsp;<span class="var-name">$resulttype</span> = <span class="var-default">DB::FETCH_RECORD</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span><span class="var-description">: Tablename or 'SELECT' query with one ? (per primairy key field)</span>			</li>
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$id</span><span class="var-description">: The value for a primairy (or as array(key, ..) if multiple key fields ) or array(field=&gt;value, ...)</span>			</li>
+					<li>
+				<span class="var-type">int</span>
+				<span class="var-name">$resulttype</span><span class="var-description">: Specify how to format the result. A DB::FETCH_% constant</span>			</li>
+				</ul>
+		
+			
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../DB/DB_MySQL/DB_MySQL.html#methodload">DB_MySQL::load()</a>
+								: Select a single record from a table.
+							</li>
+				</ul>
+	</div>
+<a name="methodlookupValue" id="lookupValue"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">lookupValue</span> (line <span class="line-number">870</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Select a single value from a table.</p>
+	<ul class="tags">
+				<li><span class="field">abstract:</span> </li>
+				<li><span class="field">throws:</span> DB_Constraint_Exception if query results in &gt; 1 record</li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">mixed</span>
+		<span class="method-name">
+			lookupValue
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$fieldname</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$id</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span><span class="var-description">: Table name</span>			</li>
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$fieldname</span><span class="var-description">: The fieldname for the column to fetch the value from. CAUTION: the fieldname is *not* quoted!</span>			</li>
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$id</span><span class="var-description">: The value for a primairy (or as array(key, ..) if multiple key fields ) or array(field=&gt;value, ...)</span>			</li>
+				</ul>
+		
+			
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../DB/DB_MySQL/DB_MySQL.html#methodlookupValue">DB_MySQL::lookupValue()</a>
+								: Select a single value from a table.
+							</li>
+				</ul>
+	</div>
+<a name="methodmakeIdentifier" id="makeIdentifier"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">makeIdentifier</span> (line <span class="line-number">765</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Create a full fieldname OR create a full tablename</p>
+	<ul class="tags">
+				<li><span class="field">abstract:</span> </li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">boolean</span>
+		<span class="method-name">
+			makeIdentifier
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$group</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$name</span>, [<span class="var-type">string</span>&nbsp;<span class="var-name">$alias</span> = <span class="var-default">null</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$group</span><span class="var-description">: Table name / DB name</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$name</span><span class="var-description">: Field name / Table name</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$alias</span>			</li>
+				</ul>
+		
+			
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../DB/DB_MySQL/DB_MySQL.html#methodmakeIdentifier">DB_MySQL::makeIdentifier()</a>
+								: Create a full fieldname OR create a full tablename
+							</li>
+				</ul>
+	</div>
+<a name="methodparse" id="parse"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">parse</span> (line <span class="line-number">786</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Parse arguments into a statement</p>
+	<ul class="tags">
+				<li><span class="field">abstract:</span> </li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">mixed</span>
+		<span class="method-name">
+			parse
+		</span>
+					(<span class="var-type">mixed</span>&nbsp;<span class="var-name">$statement</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$args</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$statement</span><span class="var-description">: String or query object</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$args</span><span class="var-description">: Arguments to parse into statement on ?</span>			</li>
+				</ul>
+		
+			
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../DB/DB_MySQL/DB_MySQL.html#methodparse">DB_MySQL::parse()</a>
+								: Parse arguments into a statement
+							</li>
+				</ul>
+	</div>
+<a name="methodprepare" id="prepare"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">prepare</span> (line <span class="line-number">796</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Prepare a statement for execution.</p>
+	<ul class="tags">
+				<li><span class="field">abstract:</span> </li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result"><a href="../DB/DB_Statement.html">DB_Statement</a></span>
+		<span class="method-name">
+			prepare
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$statement</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$statement</span>			</li>
+				</ul>
+		
+			
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../DB/DB_MySQL/DB_MySQL.html#methodprepare">DB_MySQL::prepare()</a>
+								: Prepare a statement for execution.
+							</li>
+				</ul>
+	</div>
+<a name="methodprepareDelete" id="prepareDelete"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">prepareDelete</span> (line <span class="line-number">839</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Build a delete query statement</p>
+	<ul class="tags">
+				<li><span class="field">abstract:</span> </li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result"><a href="../DB/DB_Statement.html">DB_Statement</a></span>
+		<span class="method-name">
+			prepareDelete
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$id</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span><span class="var-description">: Tablename</span>			</li>
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$id</span><span class="var-description">: The value for a primairy (or as array(value, ..) if multiple key fields) or array(field=&gt;value, ...)</span>			</li>
+				</ul>
+		
+			
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../DB/DB_MySQL/DB_MySQL.html#methodprepareDelete">DB_MySQL::prepareDelete()</a>
+								: Build a delete query statement.
+							</li>
+				</ul>
+	</div>
+<a name="methodprepareSelect" id="prepareSelect"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">prepareSelect</span> (line <span class="line-number">808</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Build a select query statement.</p>
+	<ul class="tags">
+				<li><span class="field">abstract:</span> </li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result"><a href="../DB/DB_Statement.html">DB_Statement</a></span>
+		<span class="method-name">
+			prepareSelect
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, [<span class="var-type">mixed</span>&nbsp;<span class="var-name">$fields</span> = <span class="var-default">null</span>], [<span class="var-type">mixed</span>&nbsp;<span class="var-name">$criteria</span> = <span class="var-default">null</span>], [<span class="var-type">string</span>&nbsp;<span class="var-name">$where</span> = <span class="var-default">null</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span><span class="var-description">: Tablename</span>			</li>
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$fields</span><span class="var-description">: Array with fieldnames, fieldlist (string) or SELECT statement (string). NULL means all fields.</span>			</li>
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$criteria</span><span class="var-description">: The value for the primairy key (int/string or array(value, ...)) or array(field=&gt;value, ...)</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$where</span><span class="var-description">: Additional criteria as string</span>			</li>
+				</ul>
+		
+			
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../DB/DB_MySQL/DB_MySQL.html#methodprepareSelect">DB_MySQL::prepareSelect()</a>
+								: Create a select statement for a table
+							</li>
+				</ul>
+	</div>
+<a name="methodprepareStore" id="prepareStore"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">prepareStore</span> (line <span class="line-number">820</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Build an insert or insert/update query statement.</p>
+	<ul class="tags">
+				<li><span class="field">abstract:</span> </li>
+				<li><span class="field">throws:</span> Q\DB_Constraint_Exception when no rows are given.</li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result"><a href="../DB/DB_Statement.html">DB_Statement</a></span>
+		<span class="method-name">
+			prepareStore
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$values</span>, <span class="var-type">Give</span>&nbsp;<span class="var-name">2</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span><span class="var-description">: Tablename</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$values</span><span class="var-description">: Assasioted array as (fielname=&gt;value, ...) or ordered array (value, ...) with 1 value for each field</span>			</li>
+					<li>
+				<span class="var-type">Give</span>
+				<span class="var-name">2</span><span class="var-description">: additional arguments (arrays) to insert/update multiple rows. $value should be array(fieldname, ...) instead. U can also use Q\DB::args(values, $rows).</span>			</li>
+				</ul>
+		
+			
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../DB/DB_MySQL/DB_MySQL.html#methodprepareStore">DB_MySQL::prepareStore()</a>
+								: Build an insert/update query statement.
+							</li>
+				</ul>
+	</div>
+<a name="methodprepareUpdate" id="prepareUpdate"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">prepareUpdate</span> (line <span class="line-number">830</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Build a update query statement</p>
+	<ul class="tags">
+				<li><span class="field">abstract:</span> </li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result"><a href="../DB/DB_Statement.html">DB_Statement</a></span>
+		<span class="method-name">
+			prepareUpdate
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$id</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$values</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span><span class="var-description">: Tablename</span>			</li>
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$id</span><span class="var-description">: The value for a primairy (or as array(value, ..) if multiple key fields) or array(field=&gt;value, ...)</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$values</span><span class="var-description">: Assasioted array as (fielname=&gt;value, ...) or ordered array (value, ...) with 1 value for each field</span>			</li>
+				</ul>
+		
+			
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../DB/DB_MySQL/DB_MySQL.html#methodprepareUpdate">DB_MySQL::prepareUpdate()</a>
+								: Build a update query statement
+							</li>
+				</ul>
+	</div>
+<a name="methodquery" id="query"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">query</span> (line <span class="line-number">850</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Excecute a query statement.</p>
+<p class="description"><p>Returns DB_Result for 'SELECT', 'SHOW', etc queries, returns new id for 'INSERT' query, returns TRUE for other</p></p>
+	<ul class="tags">
+				<li><span class="field">abstract:</span> </li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result"><a href="../DB/DB_Result.html">DB_Result</a></span>
+		<span class="method-name">
+			query
+		</span>
+					(<span class="var-type">mixed</span>&nbsp;<span class="var-name">$statement</span>, <span class="var-type">Additional</span>&nbsp;<span class="var-name">1</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$statement</span><span class="var-description">: String or query object</span>			</li>
+					<li>
+				<span class="var-type">Additional</span>
+				<span class="var-name">1</span><span class="var-description">: arguments are parsed into the query on placeholders</span>			</li>
+				</ul>
+		
+			
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../DB/DB_MySQL/DB_MySQL.html#methodquery">DB_MySQL::query()</a>
+								: Excecute query.
+							</li>
+				</ul>
+	</div>
+<a name="methodquote" id="quote"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">quote</span> (line <span class="line-number">725</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Quote a value so it can be savely used in a query.</p>
+	<ul class="tags">
+				<li><span class="field">abstract:</span> </li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">string</span>
+		<span class="method-name">
+			quote
+		</span>
+					(<span class="var-type">mixed</span>&nbsp;<span class="var-name">$value</span>, [<span class="var-type">string</span>&nbsp;<span class="var-name">$empty</span> = <span class="var-default">'NULL'</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$value</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$empty</span><span class="var-description">: Return $empty if $value is null</span>			</li>
+				</ul>
+		
+			
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../DB/DB_MySQL/DB_MySQL.html#methodquote">DB_MySQL::quote()</a>
+								: Quote a value so it can be savely used in a query.
+							</li>
+				</ul>
+	</div>
+<a name="methodquoteIdentifier" id="quoteIdentifier"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">quoteIdentifier</span> (line <span class="line-number">736</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Quotes a string so it can be safely used as a table or column name.</p>
+<p class="description"><p>Dots are seen as seperator and are kept out of quotes.</p><p>Return NULL if $identifier is not valid.</p></p>
+	<ul class="tags">
+				<li><span class="field">abstract:</span> </li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">string</span>
+		<span class="method-name">
+			quoteIdentifier
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$identifier</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$identifier</span>			</li>
+				</ul>
+		
+			
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../DB/DB_MySQL/DB_MySQL.html#methodquoteIdentifier">DB_MySQL::quoteIdentifier()</a>
+								: Quotes a string so it can be safely used as a table or column name.
+							</li>
+				</ul>
+	</div>
+<a name="methodreconnect" id="reconnect"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">reconnect</span> (line <span class="line-number">296</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Reconnect the db connection</p>
+	<ul class="tags">
+				<li><span class="field">abstract:</span> </li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			reconnect
+		</span>
+				()
+			</div>
+	
+		
+			
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../DB/DB_MySQL/DB_MySQL.html#methodreconnect">DB_MySQL::reconnect()</a>
+								: Reconnect to the db server
+							</li>
+				</ul>
+	</div>
+<a name="methodselect" id="select"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">select</span> (line <span class="line-number">903</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Select data from a table.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result"><a href="../DB/DB_Result.html">DB_Result</a></span>
+		<span class="method-name">
+			select
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, [<span class="var-type">mixed</span>&nbsp;<span class="var-name">$fields</span> = <span class="var-default">null</span>], [<span class="var-type">mixed</span>&nbsp;<span class="var-name">$criteria</span> = <span class="var-default">null</span>], [<span class="var-type">string</span>&nbsp;<span class="var-name">$where</span> = <span class="var-default">null</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span><span class="var-description">: Tablename</span>			</li>
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$fields</span><span class="var-description">: Array with fieldnames, fieldlist (string) or SELECT statement (string). NULL means all fields.</span>			</li>
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$criteria</span><span class="var-description">: The value for the primairy key (int/string or array(value, ...)) or array(field=&gt;value, ...)</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$where</span><span class="var-description">: Additional criteria as string</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodsplitIdentifier" id="splitIdentifier"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">splitIdentifier</span> (line <span class="line-number">755</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Split a column name in table, column and alias OR table name in db, table and alias.</p>
+<p class="description"><p>Returns array(table, fieldname, alias) / array(db, table, alias)</p></p>
+	<ul class="tags">
+				<li><span class="field">abstract:</span> </li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			splitIdentifier
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$name</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$fieldname</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$fieldname</span><span class="var-description">: Full fieldname</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$name</span>			</li>
+				</ul>
+		
+			
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../DB/DB_MySQL/DB_MySQL.html#methodsplitIdentifier">DB_MySQL::splitIdentifier()</a>
+								: Split a column name in table, column and alias OR table name in db, table and alias
+							</li>
+				</ul>
+	</div>
+<a name="methodstore" id="store"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">store</span> (line <span class="line-number">924</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Inserts or updates rows for a table.</p>
+<p class="description"><p>If the row can't be inserted because of primairy/unique key constraints (the record already exists), the specific row is updated instead.</p><p>Fields for which there is no key in the array, are not affected.  If a record is inserted in a table that has an unique key other than the primary key and the value for the unique key already exists, the record is updated but the id is not changed.</p><p>Returns the last inserted/updated id</p></p>
+	<ul class="tags">
+				<li><span class="field">throws:</span> Q\DB_Constraint_Exception when no rows are given.</li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">int</span>
+		<span class="method-name">
+			store
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$values</span>, <span class="var-type">Give</span>&nbsp;<span class="var-name">2</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$values</span><span class="var-description">: Assasioted array as (fielname=&gt;value, ...) or ordered array (value, ...) with 1 value for each field</span>			</li>
+					<li>
+				<span class="var-type">Give</span>
+				<span class="var-name">2</span><span class="var-description">: additional args to insert/update multiple rows. $value should be array(fieldname, ...) instead.</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodtable" id="table"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">table</span> (line <span class="line-number">701</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Return a table definition.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result"><a href="../DB/DB_Table.html">DB_Table</a></span>
+		<span class="method-name">
+			table
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodupdate" id="update"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">update</span> (line <span class="line-number">941</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Update rows of a table.</p>
+<p class="description"><p>Fields for which there is no key in the array, are not affected.</p></p>
+	<ul class="tags">
+				<li><span class="field">throws:</span> Q\DB_Constraint_Exception if query results in &gt; 1 record and constraint == SINGLE_ROW</li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			update
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$id</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$values</span>, [<span class="var-type">int</span>&nbsp;<span class="var-name">$constraint</span> = <span class="var-default">DB::MULTIPLE_ROWS</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span>			</li>
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$id</span><span class="var-description">: The value for a primairy (or as array(value, ..) if multiple key fields) or array(field=&gt;value, ...)</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$values</span><span class="var-description">: Assasioted array as (fielname=&gt;value, ...) or ordered array (value, ...) with 1 value for each field</span>			</li>
+					<li>
+				<span class="var-type">int</span>
+				<span class="var-name">$constraint</span><span class="var-description">: Constraint based on the number or rows: SINGLE_ROW, MULTIPLE_ROWS, ALL_ROWS.</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methoduseFor" id="useFor"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">useFor</span> (line <span class="line-number">335</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Register instance.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			useFor
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$name</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$name</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodvalidIdentifier" id="validIdentifier"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">validIdentifier</span> (line <span class="line-number">746</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Check if a identifier is valid as field name or table name.</p>
+	<ul class="tags">
+				<li><span class="field">abstract:</span> </li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">boolean</span>
+		<span class="method-name">
+			validIdentifier
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$name</span>, [<span class="var-type"></span>&nbsp;<span class="var-name">$withgroup</span> = <span class="var-default">null</span>], [<span class="var-type">boolean</span>&nbsp;<span class="var-name">$withalias</span> = <span class="var-default">false</span>], <span class="var-type">boolean</span>&nbsp;<span class="var-name">$withtable</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$name</span>			</li>
+					<li>
+				<span class="var-type">boolean</span>
+				<span class="var-name">$withtable</span><span class="var-description">: TRUE: group.name, FALSE: name, NULL: both</span>			</li>
+					<li>
+				<span class="var-type">boolean</span>
+				<span class="var-name">$withalias</span><span class="var-description">: Allow an alias (AS alias)</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$withgroup</span>			</li>
+				</ul>
+		
+			
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../DB/DB_MySQL/DB_MySQL.html#methodvalidIdentifier">DB_MySQL::validIdentifier()</a>
+								: Check if a identifier is valid as field name or table name
+							</li>
+				</ul>
+	</div>
+						
+		</div>
+	</div>
+
+	<a name="sec-consts"></a>
+	<div class="info-box">
+		<div class="info-box-title">Class Constants</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+							<a href="#sec-descendents">Descendants</a> |
+										<a href="#sec-var-summary">Constants</a> (<span class="disabled">details</span>)
+						
+			
+												<a href="#sec-var-summary">Vars</a> (<a href="#sec-vars">details</a>)
+														| 
+									<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+							
+					</div>
+		<div class="info-box-body">
+			<a name="constADD_APPEND" id="ADD_APPEND"><!-- --></A>
+<div class="oddrow">
+
+	<div class="const-header">
+		<img src="../media/images/Variable.png" />
+		<span class="const-title">
+			<span class="const-name">ADD_APPEND</span>
+			 = <span class="const-default"> 0x4</span>
+			(line <span class="line-number">57</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	
+</div>
+<a name="constADD_HAVING" id="ADD_HAVING"><!-- --></A>
+<div class="evenrow">
+
+	<div class="const-header">
+		<img src="../media/images/Variable.png" />
+		<span class="const-title">
+			<span class="const-name">ADD_HAVING</span>
+			 = <span class="const-default"> 0x100</span>
+			(line <span class="line-number">58</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	
+</div>
+<a name="constADD_PREPEND" id="ADD_PREPEND"><!-- --></A>
+<div class="oddrow">
+
+	<div class="const-header">
+		<img src="../media/images/Variable.png" />
+		<span class="const-title">
+			<span class="const-name">ADD_PREPEND</span>
+			 = <span class="const-default"> 0x2</span>
+			(line <span class="line-number">56</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	
+</div>
+<a name="constADD_REPLACE" id="ADD_REPLACE"><!-- --></A>
+<div class="evenrow">
+
+	<div class="const-header">
+		<img src="../media/images/Variable.png" />
+		<span class="const-title">
+			<span class="const-name">ADD_REPLACE</span>
+			 = <span class="const-default"> 0x1</span>
+			(line <span class="line-number">55</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	
+</div>
+<a name="constALL_ROWS" id="ALL_ROWS"><!-- --></A>
+<div class="oddrow">
+
+	<div class="const-header">
+		<img src="../media/images/Variable.png" />
+		<span class="const-title">
+			<span class="const-name">ALL_ROWS</span>
+			 = <span class="const-default"> 3</span>
+			(line <span class="line-number">63</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	
+</div>
+<a name="constCOMMAND_PART" id="COMMAND_PART"><!-- --></A>
+<div class="evenrow">
+
+	<div class="const-header">
+		<img src="../media/images/Variable.png" />
+		<span class="const-title">
+			<span class="const-name">COMMAND_PART</span>
+			 = <span class="const-default"> 0</span>
+			(line <span class="line-number">66</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	
+</div>
+<a name="constFETCH_ASSOC" id="FETCH_ASSOC"><!-- --></A>
+<div class="oddrow">
+
+	<div class="const-header">
+		<img src="../media/images/Variable.png" />
+		<span class="const-title">
+			<span class="const-name">FETCH_ASSOC</span>
+			 = <span class="const-default"> 2</span>
+			(line <span class="line-number">39</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	
+</div>
+<a name="constFETCH_FULLARRAY" id="FETCH_FULLARRAY"><!-- --></A>
+<div class="evenrow">
+
+	<div class="const-header">
+		<img src="../media/images/Variable.png" />
+		<span class="const-title">
+			<span class="const-name">FETCH_FULLARRAY</span>
+			 = <span class="const-default"> 3</span>
+			(line <span class="line-number">40</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	
+</div>
+<a name="constFETCH_NON_RECURSIVE" id="FETCH_NON_RECURSIVE"><!-- --></A>
+<div class="oddrow">
+
+	<div class="const-header">
+		<img src="../media/images/Variable.png" />
+		<span class="const-title">
+			<span class="const-name">FETCH_NON_RECURSIVE</span>
+			 = <span class="const-default"> 0x100</span>
+			(line <span class="line-number">46</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	
+</div>
+<a name="constFETCH_OBJECT" id="FETCH_OBJECT"><!-- --></A>
+<div class="evenrow">
+
+	<div class="const-header">
+		<img src="../media/images/Variable.png" />
+		<span class="const-title">
+			<span class="const-name">FETCH_OBJECT</span>
+			 = <span class="const-default"> 8</span>
+			(line <span class="line-number">45</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	
+</div>
+<a name="constFETCH_ORDERED" id="FETCH_ORDERED"><!-- --></A>
+<div class="oddrow">
+
+	<div class="const-header">
+		<img src="../media/images/Variable.png" />
+		<span class="const-title">
+			<span class="const-name">FETCH_ORDERED</span>
+			 = <span class="const-default"> 1</span>
+			(line <span class="line-number">38</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	
+</div>
+<a name="constFETCH_PERTABLE" id="FETCH_PERTABLE"><!-- --></A>
+<div class="evenrow">
+
+	<div class="const-header">
+		<img src="../media/images/Variable.png" />
+		<span class="const-title">
+			<span class="const-name">FETCH_PERTABLE</span>
+			 = <span class="const-default"> 4</span>
+			(line <span class="line-number">41</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	
+</div>
+<a name="constFETCH_RECORD" id="FETCH_RECORD"><!-- --></A>
+<div class="oddrow">
+
+	<div class="const-header">
+		<img src="../media/images/Variable.png" />
+		<span class="const-title">
+			<span class="const-name">FETCH_RECORD</span>
+			 = <span class="const-default"> 6</span>
+			(line <span class="line-number">43</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	
+</div>
+<a name="constFETCH_ROLES" id="FETCH_ROLES"><!-- --></A>
+<div class="evenrow">
+
+	<div class="const-header">
+		<img src="../media/images/Variable.png" />
+		<span class="const-title">
+			<span class="const-name">FETCH_ROLES</span>
+			 = <span class="const-default"> 7</span>
+			(line <span class="line-number">44</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	
+</div>
+<a name="constFETCH_VALUE" id="FETCH_VALUE"><!-- --></A>
+<div class="oddrow">
+
+	<div class="const-header">
+		<img src="../media/images/Variable.png" />
+		<span class="const-title">
+			<span class="const-name">FETCH_VALUE</span>
+			 = <span class="const-default"> 5</span>
+			(line <span class="line-number">42</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	
+</div>
+<a name="constFIELDNAME_COL" id="FIELDNAME_COL"><!-- --></A>
+<div class="evenrow">
+
+	<div class="const-header">
+		<img src="../media/images/Variable.png" />
+		<span class="const-title">
+			<span class="const-name">FIELDNAME_COL</span>
+			 = <span class="const-default"> 0</span>
+			(line <span class="line-number">49</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	
+</div>
+<a name="constFIELDNAME_DB" id="FIELDNAME_DB"><!-- --></A>
+<div class="oddrow">
+
+	<div class="const-header">
+		<img src="../media/images/Variable.png" />
+		<span class="const-title">
+			<span class="const-name">FIELDNAME_DB</span>
+			 = <span class="const-default"> 2</span>
+			(line <span class="line-number">51</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	
+</div>
+<a name="constFIELDNAME_DBFULL" id="FIELDNAME_DBFULL"><!-- --></A>
+<div class="evenrow">
+
+	<div class="const-header">
+		<img src="../media/images/Variable.png" />
+		<span class="const-title">
+			<span class="const-name">FIELDNAME_DBFULL</span>
+			 = <span class="const-default"> 3</span>
+			(line <span class="line-number">52</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	
+</div>
+<a name="constFIELDNAME_FULL" id="FIELDNAME_FULL"><!-- --></A>
+<div class="oddrow">
+
+	<div class="const-header">
+		<img src="../media/images/Variable.png" />
+		<span class="const-title">
+			<span class="const-name">FIELDNAME_FULL</span>
+			 = <span class="const-default"> 1</span>
+			(line <span class="line-number">50</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	
+</div>
+<a name="constMULTIPLE_ROWS" id="MULTIPLE_ROWS"><!-- --></A>
+<div class="evenrow">
+
+	<div class="const-header">
+		<img src="../media/images/Variable.png" />
+		<span class="const-title">
+			<span class="const-name">MULTIPLE_ROWS</span>
+			 = <span class="const-default"> 2</span>
+			(line <span class="line-number">62</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	
+</div>
+<a name="constSINGLE_ROW" id="SINGLE_ROW"><!-- --></A>
+<div class="oddrow">
+
+	<div class="const-header">
+		<img src="../media/images/Variable.png" />
+		<span class="const-title">
+			<span class="const-name">SINGLE_ROW</span>
+			 = <span class="const-default"> 1</span>
+			(line <span class="line-number">61</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	
+</div>
+						
+		</div>
+	</div>
+
+	<p class="notes" id="credit">
+		Documentation generated on Fri, 20 Feb 2009 11:37:06 +0100 by <a href="http://www.phpdoc.org" target="_blank">phpDocumentor 1.4.2</a>
+	</p>
+	</div></body>
+</html>

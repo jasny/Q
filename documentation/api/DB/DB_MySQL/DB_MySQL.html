@@ -1,0 +1,1741 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+  <html xmlns="http://www.w3.org/1999/xhtml">
+		<head>
+			<!-- template designed by Marco Von Ballmoos -->
+			<title>Docs For Class DB_MySQL</title>
+			<link rel="stylesheet" href="../../media/stylesheet.css" />
+			<meta http-equiv='Content-Type' content='text/html; charset=iso-8859-1'/>
+		</head>
+		<body>
+			<div class="page-body">			
+<h2 class="class-name">Class DB_MySQL</h2>
+
+<a name="sec-description"></a>
+<div class="info-box">
+	<div class="info-box-title">Description</div>
+	<div class="nav-bar">
+					<span class="disabled">Description</span> |
+													<a href="#sec-var-summary">Vars</a> (<a href="#sec-vars">details</a>)
+						|											<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+						
+											<a href="#sec-consts">Constants</a>
+						
+			</div>
+	<div class="info-box-body">
+        		<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">DB abstraction layer for MySQL.</p>
+	<ul class="tags">
+				<li><span class="field">version:</span> devel</li>
+			</ul>
+		<p class="notes">
+			Located in <a class="field" href="_Q---DB---MySQL.php.html">/Q/DB/MySQL.php</a> (line <span class="field">20</span>)
+		</p>
+		
+				
+		<pre><a href="../../DB/DB.html">DB</a>
+   |
+   --DB_MySQL</pre>
+	
+			</div>
+</div>
+
+
+
+	<a name="sec-var-summary"></a>
+	<div class="info-box">
+		<div class="info-box-title">Variable Summary</span></div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+						<span class="disabled">Vars</span> (<a href="#sec-vars">details</a>)
+							| 
+									<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+							
+															<a href="#sec-consts">Constants</a>
+							
+					</div>
+		<div class="info-box-body">
+			<div class="var-summary">
+												<div class="var-title">
+					static <span class="var-type">string</span>
+					<a href="#$classes" title="details" class="var-name">$classes</a>
+				</div>
+																<div class="var-title">
+					static <span class="var-type">array</span>
+					<a href="#$fieldtypes" title="details" class="var-name">$fieldtypes</a>
+				</div>
+																<div class="var-title">
+					static <span class="var-type">array</span>
+					<a href="#$fieldtypeSizes" title="details" class="var-name">$fieldtypeSizes</a>
+				</div>
+																																																																				<div class="var-title">
+					<span class="var-type">mysqli</span>
+					<a href="#$native" title="details" class="var-name">$native</a>
+				</div>
+																<div class="var-title">
+					<span class="var-type">array</span>
+					<a href="#$primaryKeys" title="details" class="var-name">$primaryKeys</a>
+				</div>
+																<div class="var-title">
+					<span class="var-type"><a href="../../DB/DB_MySQL/DB_MySQL_QuerySplitter.html">DB_MySQL_QuerySplitter</a></span>
+					<a href="#$querySplitter" title="details" class="var-name">$querySplitter</a>
+				</div>
+											</div>
+		</div>
+	</div>
+
+	<a name="sec-method-summary"></a>
+	<div class="info-box">
+		<div class="info-box-title">Method Summary</span></div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+															<a href="#sec-consts">Constants</a>
+							
+															<a href="#sec-var-summary">Vars</a> (<a href="#sec-vars">details</a>)
+				 
+				|
+						<span class="disabled">Methods</span> (<a href="#sec-methods">details</a>)
+		</div>
+		<div class="info-box-body">			
+			<div class="method-summary">
+																																												<div class="method-definition">
+					static 						<span class="method-result"><a href="../../DB/DB_MySQL/DB_MySQL.html">DB_MySQL</a></span>
+										<a href="#connect" title="details" class="method-name">connect</a>
+											([<span class="var-type">string</span>&nbsp;<span class="var-name">$host</span> = <span class="var-default">null</span>], [<span class="var-type"></span>&nbsp;<span class="var-name">$user</span> = <span class="var-default">null</span>], [<span class="var-type">string</span>&nbsp;<span class="var-name">$password</span> = <span class="var-default">null</span>], [<span class="var-type"></span>&nbsp;<span class="var-name">$database</span> = <span class="var-default">null</span>], [<span class="var-type">string</span>&nbsp;<span class="var-name">$port</span> = <span class="var-default">null</span>], [<span class="var-type"></span>&nbsp;<span class="var-name">$unix_socket</span> = <span class="var-default">null</span>], [<span class="var-type"></span>&nbsp;<span class="var-name">$settings</span> = <span class="var-default">array()</span>], <span class="var-type">string</span>&nbsp;<span class="var-name">$username</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$dbname</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$socket</span>)
+									</div>
+																																																																																																																																																																																																																
+												<div class="method-definition">
+											<span class="method-result">DB_MySQL</span>
+										<a href="#__construct" title="details" class="method-name">__construct</a>
+											(<span class="var-type"></span>&nbsp;<span class="var-name">\$native</span>, [<span class="var-type">array</span>&nbsp;<span class="var-name">$settings</span> = <span class="var-default">array()</span>], <span class="var-type">mysqli</span>&nbsp;<span class="var-name">$native</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result">void</span>
+										<a href="#__destruct" title="details" class="method-name">__destruct</a>
+										()
+									</div>
+																<div class="method-definition">
+											<span class="method-result">int</span>
+										<a href="#affectedRows" title="details" class="method-name">affectedRows</a>
+										()
+									</div>
+																<div class="method-definition">
+											<span class="method-result">void</span>
+										<a href="#close" title="details" class="method-name">close</a>
+										()
+									</div>
+																								<div class="method-definition">
+											<span class="method-result">int</span>
+										<a href="#countRows" title="details" class="method-name">countRows</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, [<span class="var-type">mixed</span>&nbsp;<span class="var-name">$criteria</span> = <span class="var-default">null</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result">array</span>
+										<a href="#fetchMetaData" title="details" class="method-name">fetchMetaData</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result">string</span>
+										<a href="#getDBName" title="details" class="method-name">getDBName</a>
+										()
+									</div>
+																<div class="method-definition">
+											<span class="method-result">string</span>
+										<a href="#getDSN" title="details" class="method-name">getDSN</a>
+										()
+									</div>
+																<div class="method-definition">
+											<span class="method-result">array</span>
+										<a href="#getFieldNames" title="details" class="method-name">getFieldNames</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result">mysqli</span>
+										<a href="#getNative" title="details" class="method-name">getNative</a>
+										()
+									</div>
+																<div class="method-definition">
+											<span class="method-result">array</span>
+										<a href="#getPrimaryKeys" title="details" class="method-name">getPrimaryKeys</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, [<span class="var-type">boolean</span>&nbsp;<span class="var-name">$autoIncrementOnly</span> = <span class="var-default">false</span>], [<span class="var-type">boolean</span>&nbsp;<span class="var-name">$asIdentifier</span> = <span class="var-default">false</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result">array</span>
+										<a href="#getTableInfo" title="details" class="method-name">getTableInfo</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result">array</span>
+										<a href="#getTableNames" title="details" class="method-name">getTableNames</a>
+										()
+									</div>
+																<div class="method-definition">
+											<span class="method-result"><a href="../../DB/DB_Record.html">DB_Record</a></span>
+										<a href="#load" title="details" class="method-name">load</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$id</span>, [<span class="var-type">int</span>&nbsp;<span class="var-name">$resulttype</span> = <span class="var-default">DB::FETCH_RECORD</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result">mixed</span>
+										<a href="#lookupValue" title="details" class="method-name">lookupValue</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$fieldname</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$id</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result">boolean</span>
+										<a href="#makeIdentifier" title="details" class="method-name">makeIdentifier</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$group</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$name</span>, [<span class="var-type">string</span>&nbsp;<span class="var-name">$alias</span> = <span class="var-default">null</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result">mysqli_result</span>
+										<a href="#nativeQuery" title="details" class="method-name">nativeQuery</a>
+											(<span class="var-type"></span>&nbsp;<span class="var-name">$statement</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result">string</span>
+										<a href="#parse" title="details" class="method-name">parse</a>
+											(<span class="var-type">mixed</span>&nbsp;<span class="var-name">$statement</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$args</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result"><a href="../../DB/DB_SQLStatement.html">DB_SQLStatement</a></span>
+										<a href="#prepare" title="details" class="method-name">prepare</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$statement</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result"><a href="../../DB/DB_SQLStatement.html">DB_SQLStatement</a></span>
+										<a href="#prepareDelete" title="details" class="method-name">prepareDelete</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$id</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result"><a href="../../DB/DB_SQLStatement.html">DB_SQLStatement</a></span>
+										<a href="#prepareSelect" title="details" class="method-name">prepareSelect</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, [<span class="var-type">mixed</span>&nbsp;<span class="var-name">$fields</span> = <span class="var-default">null</span>], [<span class="var-type">mixed</span>&nbsp;<span class="var-name">$criteria</span> = <span class="var-default">null</span>], [<span class="var-type">string</span>&nbsp;<span class="var-name">$where</span> = <span class="var-default">null</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result"><a href="../../DB/DB_SQLStatement.html">DB_SQLStatement</a></span>
+										<a href="#prepareStore" title="details" class="method-name">prepareStore</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$values</span>, <span class="var-type">Give</span>&nbsp;<span class="var-name">2</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result"><a href="../../DB/DB_SQLStatement.html">DB_SQLStatement</a></span>
+										<a href="#prepareUpdate" title="details" class="method-name">prepareUpdate</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$id</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$values</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html">DB_MySQL_Result</a></span>
+										<a href="#query" title="details" class="method-name">query</a>
+											(<span class="var-type">mixed</span>&nbsp;<span class="var-name">$statement</span>, <span class="var-type">Additional</span>&nbsp;<span class="var-name">1</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result">string</span>
+										<a href="#quote" title="details" class="method-name">quote</a>
+											(<span class="var-type">mixed</span>&nbsp;<span class="var-name">$value</span>, [<span class="var-type">string</span>&nbsp;<span class="var-name">$empty</span> = <span class="var-default">'NULL'</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result">string</span>
+										<a href="#quoteIdentifier" title="details" class="method-name">quoteIdentifier</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$identifier</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result">void</span>
+										<a href="#reconnect" title="details" class="method-name">reconnect</a>
+										()
+									</div>
+																<div class="method-definition">
+											<span class="method-result">array</span>
+										<a href="#splitIdentifier" title="details" class="method-name">splitIdentifier</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$name</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result">boolean</span>
+										<a href="#validIdentifier" title="details" class="method-name">validIdentifier</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$name</span>, [<span class="var-type">boolean</span>&nbsp;<span class="var-name">$withgroup</span> = <span class="var-default">null</span>], [<span class="var-type">boolean</span>&nbsp;<span class="var-name">$withalias</span> = <span class="var-default">false</span>])
+									</div>
+								</div>
+		</div>
+	</div>		
+
+	<a name="sec-vars"></a>
+	<div class="info-box">
+		<div class="info-box-title">Variables</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+										<a href="#sec-var-summary">Vars</a> (<span class="disabled">details</span>)
+						
+			
+												<a href="#sec-consts">Constants</a>
+							
+										| 
+									<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+							
+					</div>
+		<div class="info-box-body">
+			<a name="var$classes" id="$classes"><!-- --></A>
+<div class="oddrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			static <span class="var-type">string</span>
+			<span class="var-name">$classes</span>
+			 = <span class="var-default">array( <br />	    'QuerySplitter'=&gt;'Q\DB_MySQL_QuerySplitter',<br />	    'Statement'=&gt;'Q\DB_SQLStatement',<br />		'Result'=&gt;'Q\DB_MySQL_Result',<br />		'Result_Tree'=&gt;'Q\DB_MySQL_Result_Tree',<br />		'Result_NestedSet'=&gt;'Q\DB_MySQL_Result_NestedSet',<br />	    'native'=&gt;'mysqli',<br />	)</span>			(line <span class="line-number">28</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Class of objects created by Q\DB_MySQL.</p>
+<p class="description"><p>This may be overwritten, but make sure to extend the correct class. This is assumed and not checked!</p></p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+<a name="var$fieldtypes" id="$fieldtypes"><!-- --></A>
+<div class="evenrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			static <span class="var-type">array</span>
+			<span class="var-name">$fieldtypes</span>
+			 = <span class="var-default">array(<br />		MYSQLI_TYPE_DECIMAL=&gt;'decimal',<br />		MYSQLI_TYPE_NEWDECIMAL=&gt;'decimal',<br />		MYSQLI_TYPE_BIT=&gt;'bit',<br />		MYSQLI_TYPE_TINY=&gt;'integer',<br />		MYSQLI_TYPE_SHORT=&gt;'integer',<br />		MYSQLI_TYPE_LONG=&gt;'integer',<br />		MYSQLI_TYPE_FLOAT=&gt;'double',<br />		MYSQLI_TYPE_DOUBLE=&gt;'double',<br />		MYSQLI_TYPE_NULL=&gt;'null',<br />		MYSQLI_TYPE_TIMESTAMP=&gt;'datetime',<br />		MYSQLI_TYPE_LONGLONG=&gt;'integer',<br />		MYSQLI_TYPE_INT24=&gt;'integer',<br />		MYSQLI_TYPE_DATE=&gt;'date',<br />		MYSQLI_TYPE_TIME=&gt;'time',<br />		MYSQLI_TYPE_DATETIME=&gt;'datetime',<br />		MYSQLI_TYPE_YEAR=&gt;'year',<br />		MYSQLI_TYPE_NEWDATE=&gt;'date',<br />		MYSQLI_TYPE_ENUM=&gt;'enum',<br />		MYSQLI_TYPE_SET=&gt;'set',<br />		MYSQLI_TYPE_TINY_BLOB=&gt;'blob',<br />		MYSQLI_TYPE_MEDIUM_BLOB=&gt;'blob',<br />		MYSQLI_TYPE_LONG_BLOB=&gt;'blob',<br />		MYSQLI_TYPE_BLOB=&gt;'blob',<br />		MYSQLI_TYPE_VAR_STRING=&gt;'string',<br />		MYSQLI_TYPE_STRING=&gt;'string',<br />		MYSQLI_TYPE_GEOMETRY=&gt;'geometry',<br />		'varchar'=&gt;'string',<br />		'timestamp'=&gt;'datetime'<br />	)</span>			(line <span class="line-number">41</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Field types for MySQL specific types.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB.html#var$fieldtypes">DB::$fieldtypes</a></dt>
+						<dd>Field types with classname</dd>
+					</dl>
+		
+		
+
+</div>
+<a name="var$fieldtypeSizes" id="$fieldtypeSizes"><!-- --></A>
+<div class="oddrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			static <span class="var-type">array</span>
+			<span class="var-name">$fieldtypeSizes</span>
+			 = <span class="var-default">array(<br />        MYSQLI_TYPE_TINY=&gt;255<br />	)</span>			(line <span class="line-number">78</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Unsigned for MySQL specific types.</p>
+	<ul class="tags">
+				<li><span class="field">todo:</span> Find out max per field type (and apply it)</li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+<a name="var$native" id="$native"><!-- --></A>
+<div class="evenrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			<span class="var-type">mysqli</span>
+			<span class="var-name">$native</span>
+						(line <span class="line-number">87</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Native mysql connection object</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB.html#var$native">DB::$native</a></dt>
+						<dd>Native DB connection object</dd>
+					</dl>
+		
+		
+
+</div>
+<a name="var$primaryKeys" id="$primaryKeys"><!-- --></A>
+<div class="oddrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			<span class="var-type">array</span>
+			<span class="var-name">$primaryKeys</span>
+						(line <span class="line-number">100</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Cached results: The primary keys per table</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+<a name="var$querySplitter" id="$querySplitter"><!-- --></A>
+<div class="evenrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			<span class="var-type"><a href="../../DB/DB_MySQL/DB_MySQL_QuerySplitter.html">DB_MySQL_QuerySplitter</a></span>
+			<span class="var-name">$querySplitter</span>
+						(line <span class="line-number">93</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">A querysplitter object, holding functions to split a query.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+							<h4>Inherited Variables</h4>
+				<A NAME='inherited_vars'><!-- --></A>
+									<p>Inherited from <span class="classname"><a href="../../DB/DB.html">DB</a></span></p>
+					<blockquote>
+													<span class="var-title">
+								<span class="var-name"><a href="../../DB/DB.html#var$defaultFieldProperties">DB::$defaultFieldProperties</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../../DB/DB.html#var$defaultOptions">DB::$defaultOptions</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../../DB/DB.html#var$defaultTableProperties">DB::$defaultTableProperties</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../../DB/DB.html#var$drivers">DB::$drivers</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../../DB/DB.html#var$forceTypeFieldProperties">DB::$forceTypeFieldProperties</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../../DB/DB.html#var$forceTypeTableProperties">DB::$forceTypeTableProperties</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../../DB/DB.html#var$instances">DB::$instances</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../../DB/DB.html#var$log">DB::$log</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../../DB/DB.html#var$logColumns">DB::$logColumns</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../../DB/DB.html#var$mappingProperties">DB::$mappingProperties</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../../DB/DB.html#var$metaData">DB::$metaData</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../../DB/DB.html#var$recordtypes">DB::$recordtypes</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../../DB/DB.html#var$settings">DB::$settings</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../../DB/DB.html#var$tables">DB::$tables</a></span><br>
+							</span>
+											</blockquote> 
+										
+		</div>
+	</div>
+	
+	<a name="sec-methods"></a>
+	<div class="info-box">
+		<div class="info-box-title">Methods</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+															<a href="#sec-var-summary">Vars</a> (<a href="#sec-vars">details</a>)
+																			<a href="#sec-consts">Constants</a>
+							
+										<a href="#sec-method-summary">Methods</a> (<span class="disabled">details</span>)
+						
+		</div>
+		<div class="info-box-body">
+			<A NAME='method_detail'></A>
+<a name="methodconnect" id="connect"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method connect</span> (line <span class="line-number">116</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Open a new connection to MySQL database server.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result"><a href="../../DB/DB_MySQL/DB_MySQL.html">DB_MySQL</a></span>
+		<span class="method-name">
+			connect
+		</span>
+					([<span class="var-type">string</span>&nbsp;<span class="var-name">$host</span> = <span class="var-default">null</span>], [<span class="var-type"></span>&nbsp;<span class="var-name">$user</span> = <span class="var-default">null</span>], [<span class="var-type">string</span>&nbsp;<span class="var-name">$password</span> = <span class="var-default">null</span>], [<span class="var-type"></span>&nbsp;<span class="var-name">$database</span> = <span class="var-default">null</span>], [<span class="var-type">string</span>&nbsp;<span class="var-name">$port</span> = <span class="var-default">null</span>], [<span class="var-type"></span>&nbsp;<span class="var-name">$unix_socket</span> = <span class="var-default">null</span>], [<span class="var-type"></span>&nbsp;<span class="var-name">$settings</span> = <span class="var-default">array()</span>], <span class="var-type">string</span>&nbsp;<span class="var-name">$username</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$dbname</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$socket</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$host</span><span class="var-description">: Hostname, hostname:port or DSN</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$username</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$password</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$dbname</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$port</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$socket</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$settings</span><span class="var-description">: Additional settings</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$user</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$database</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$unix_socket</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB.html#methodconnect">DB::connect()</a></dt>
+						<dd>Open a new connection to a database server.</dd>
+					</dl>
+			
+	</div>
+
+<a name="method__construct" id="__construct"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">Constructor __construct</span> (line <span class="line-number">182</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Class constructor</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">DB_MySQL</span>
+		<span class="method-name">
+			__construct
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">\$native</span>, [<span class="var-type">array</span>&nbsp;<span class="var-name">$settings</span> = <span class="var-default">array()</span>], <span class="var-type">mysqli</span>&nbsp;<span class="var-name">$native</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">mysqli</span>
+				<span class="var-name">$native</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$settings</span><span class="var-description">: Settings used to create connection</span>			</li>
+					<li>
+				<span class="var-type">mysqli</span>
+				<span class="var-name">\$native</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB.html#method__construct">DB::__construct()</a></dt>
+						<dd>Class constructor</dd>
+					</dl>
+			
+	</div>
+<a name="method__destruct" id="__destruct"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">Destructor __destruct</span> (line <span class="line-number">195</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Class destructor: close db connection</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			__destruct
+		</span>
+				()
+			</div>
+	
+		
+			
+	</div>
+<a name="methodaffectedRows" id="affectedRows"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">affectedRows</span> (line <span class="line-number">727</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Gets the number of affected rows in a previous MySQL operation.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">int</span>
+		<span class="method-name">
+			affectedRows
+		</span>
+				()
+			</div>
+	
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB.html#methodaffectedRows">DB::affectedRows()</a></dt>
+						<dd>Gets the number of affected rows in a previous operation.</dd>
+					</dl>
+			
+	</div>
+<a name="methodclose" id="close"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">close</span> (line <span class="line-number">170</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Close the db connection</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			close
+		</span>
+				()
+			</div>
+	
+		
+			
+	</div>
+<a name="methodcountRows" id="countRows"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">countRows</span> (line <span class="line-number">770</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Count the number of rows in a table (with the given criteria)</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">int</span>
+		<span class="method-name">
+			countRows
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, [<span class="var-type">mixed</span>&nbsp;<span class="var-name">$criteria</span> = <span class="var-default">null</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span><span class="var-description">: Table name</span>			</li>
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$criteria</span><span class="var-description">: The value for a primairy (or as array(key, ..) if multiple key fields ) or array(field=&gt;value, ...)</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB.html#methodcountRows">DB::countRows()</a></dt>
+						<dd>Count the number of rows in a table (with the given criteria)</dd>
+					</dl>
+			
+	</div>
+<a name="methodfetchMetaData" id="fetchMetaData"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">fetchMetaData</span> (line <span class="line-number">318</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Get properties for the table and all fields from the database</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			fetchMetaData
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB.html#methodfetchMetaData">DB::fetchMetaData()</a></dt>
+						<dd>Get properties for $table from the database.</dd>
+					</dl>
+			
+	</div>
+<a name="methodgetDBName" id="getDBName"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">getDBName</span> (line <span class="line-number">256</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Get the database (schema) name.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">string</span>
+		<span class="method-name">
+			getDBName
+		</span>
+				()
+			</div>
+	
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB.html#methodgetDBName">DB::getDBName()</a></dt>
+						<dd>Get the database (schema) name.</dd>
+					</dl>
+			
+	</div>
+<a name="methodgetDSN" id="getDSN"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">getDSN</span> (line <span class="line-number">206</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Return the connection string (without additional settings)</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">string</span>
+		<span class="method-name">
+			getDSN
+		</span>
+				()
+			</div>
+	
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB.html#methodgetDSN">DB::getDSN()</a></dt>
+						<dd>Return the connection string (without additional settings)</dd>
+					</dl>
+			
+	</div>
+<a name="methodgetFieldNames" id="getFieldNames"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">getFieldNames</span> (line <span class="line-number">286</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Get a list of all the fields in a table.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			getFieldNames
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB.html#methodgetFieldNames">DB::getFieldNames()</a></dt>
+						<dd>Get the field names of a table</dd>
+					</dl>
+			
+	</div>
+<a name="methodgetNative" id="getNative"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">getNative</span> (line <span class="line-number">216</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Get the native mysqli object.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">mysqli</span>
+		<span class="method-name">
+			getNative
+		</span>
+				()
+			</div>
+	
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB.html#methodgetNative">DB::getNative()</a></dt>
+						<dd>Get the native object or resource.</dd>
+					</dl>
+			
+	</div>
+<a name="methodgetPrimaryKeys" id="getPrimaryKeys"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">getPrimaryKeys</span> (line <span class="line-number">402</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Return the fieldnames of the primairy key.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			getPrimaryKeys
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, [<span class="var-type">boolean</span>&nbsp;<span class="var-name">$autoIncrementOnly</span> = <span class="var-default">false</span>], [<span class="var-type">boolean</span>&nbsp;<span class="var-name">$asIdentifier</span> = <span class="var-default">false</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span>			</li>
+					<li>
+				<span class="var-type">boolean</span>
+				<span class="var-name">$autoIncrementOnly</span><span class="var-description">: Only return fields with the autoincrement feature</span>			</li>
+					<li>
+				<span class="var-type">boolean</span>
+				<span class="var-name">$asIdentifier</span><span class="var-description">: Add table and quote</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB.html#methodgetPrimaryKeys">DB::getPrimaryKeys()</a></dt>
+						<dd>Return the fieldnames of the primairy key.</dd>
+					</dl>
+			
+	</div>
+<a name="methodgetTableInfo" id="getTableInfo"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">getTableInfo</span> (line <span class="line-number">303</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Get status information about a table.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			getTableInfo
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB.html#methodgetTableInfo">DB::getTableInfo()</a></dt>
+						<dd>Get status information about a table.</dd>
+					</dl>
+			
+	</div>
+<a name="methodgetTableNames" id="getTableNames"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">getTableNames</span> (line <span class="line-number">269</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Get a list of all the tables in the DB.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			getTableNames
+		</span>
+				()
+			</div>
+	
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB.html#methodgetTableNames">DB::getTableNames()</a></dt>
+						<dd>Get a list of all the tables in the DB.</dd>
+					</dl>
+			
+	</div>
+<a name="methodload" id="load"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">load</span> (line <span class="line-number">798</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Select a single record from a table.</p>
+	<ul class="tags">
+				<li><span class="field">throws:</span> Q\DB_Constraint_Exception if query results in &gt; 1 record</li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result"><a href="../../DB/DB_Record.html">DB_Record</a></span>
+		<span class="method-name">
+			load
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$id</span>, [<span class="var-type">int</span>&nbsp;<span class="var-name">$resulttype</span> = <span class="var-default">DB::FETCH_RECORD</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span><span class="var-description">: Table name or 'SELECT' query with one ? (per primairy key field)</span>			</li>
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$id</span><span class="var-description">: The value for a primairy (or as array(key, ..) if multiple key fields ) or array(field=&gt;value, ...)</span>			</li>
+					<li>
+				<span class="var-type">int</span>
+				<span class="var-name">$resulttype</span><span class="var-description">: Specify how to format the result. A DB::FETCH_% constant</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB.html#methodload">DB::load()</a></dt>
+						<dd>Select a single record from a table.</dd>
+					</dl>
+			
+	</div>
+<a name="methodlookupValue" id="lookupValue"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">lookupValue</span> (line <span class="line-number">743</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Select a single value from a table.</p>
+	<ul class="tags">
+				<li><span class="field">throws:</span> Q\DB_Constraint_Exception if query results in &gt; 1 record</li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">mixed</span>
+		<span class="method-name">
+			lookupValue
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$fieldname</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$id</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span><span class="var-description">: Table name</span>			</li>
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$fieldname</span><span class="var-description">: The fieldname for the column to fetch the value from. CAUTION: the fieldname is *not* quoted!</span>			</li>
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$id</span><span class="var-description">: The value for a primairy (or as array(key, ..) if multiple key fields ) or array(field=&gt;value, ...)</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB.html#methodlookupValue">DB::lookupValue()</a></dt>
+						<dd>Select a single value from a table.</dd>
+					</dl>
+			
+	</div>
+<a name="methodmakeIdentifier" id="makeIdentifier"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">makeIdentifier</span> (line <span class="line-number">479</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Create a full fieldname OR create a full tablename</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">boolean</span>
+		<span class="method-name">
+			makeIdentifier
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$group</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$name</span>, [<span class="var-type">string</span>&nbsp;<span class="var-name">$alias</span> = <span class="var-default">null</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$group</span><span class="var-description">: Table name / DB name</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$name</span><span class="var-description">: Field name / Table name</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$alias</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB.html#methodmakeIdentifier">DB::makeIdentifier()</a></dt>
+						<dd>Create a full fieldname OR create a full tablename</dd>
+					</dl>
+			
+	</div>
+<a name="methodnativeQuery" id="nativeQuery"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">nativeQuery</span> (line <span class="line-number">227</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Actually execute a query.</p>
+<p class="description"><p>Logs statement and result if a logger is set.</p></p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">mysqli_result</span>
+		<span class="method-name">
+			nativeQuery
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$statement</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$statement</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodparse" id="parse"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">parse</span> (line <span class="line-number">491</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Parse arguments into a statement</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">string</span>
+		<span class="method-name">
+			parse
+		</span>
+					(<span class="var-type">mixed</span>&nbsp;<span class="var-name">$statement</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$args</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$statement</span><span class="var-description">: String or query object</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$args</span><span class="var-description">: Arguments to parse into statement on placeholders</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB.html#methodparse">DB::parse()</a></dt>
+						<dd>Parse arguments into a statement</dd>
+					</dl>
+			
+	</div>
+<a name="methodprepare" id="prepare"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">prepare</span> (line <span class="line-number">503</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Prepare a statement for execution.</p>
+<p class="description"><p></p></p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result"><a href="../../DB/DB_SQLStatement.html">DB_SQLStatement</a></span>
+		<span class="method-name">
+			prepare
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$statement</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$statement</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB.html#methodprepare">DB::prepare()</a></dt>
+						<dd>Prepare a statement for execution.</dd>
+					</dl>
+			
+	</div>
+<a name="methodprepareDelete" id="prepareDelete"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">prepareDelete</span> (line <span class="line-number">636</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Build a delete query statement.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result"><a href="../../DB/DB_SQLStatement.html">DB_SQLStatement</a></span>
+		<span class="method-name">
+			prepareDelete
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$id</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span><span class="var-description">: Tablename</span>			</li>
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$id</span><span class="var-description">: The value for a primairy (or as array(value, ..) if multiple key fields) or array(field=&gt;value, ...)</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB.html#methodprepareDelete">DB::prepareDelete()</a></dt>
+						<dd>Build a delete query statement</dd>
+					</dl>
+			
+	</div>
+<a name="methodprepareSelect" id="prepareSelect"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">prepareSelect</span> (line <span class="line-number">527</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Create a select statement for a table</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result"><a href="../../DB/DB_SQLStatement.html">DB_SQLStatement</a></span>
+		<span class="method-name">
+			prepareSelect
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, [<span class="var-type">mixed</span>&nbsp;<span class="var-name">$fields</span> = <span class="var-default">null</span>], [<span class="var-type">mixed</span>&nbsp;<span class="var-name">$criteria</span> = <span class="var-default">null</span>], [<span class="var-type">string</span>&nbsp;<span class="var-name">$where</span> = <span class="var-default">null</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span><span class="var-description">: Tablename</span>			</li>
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$fields</span><span class="var-description">: Array with fieldnames, fieldlist (string) or SELECT statement (string). NULL means all fields.</span>			</li>
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$criteria</span><span class="var-description">: The value for the primairy key (int/string or array(value, ...)) or array(field=&gt;value, ...)</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$where</span><span class="var-description">: Additional criteria as string</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB.html#methodprepareSelect">DB::prepareSelect()</a></dt>
+						<dd>Build a select query statement.</dd>
+					</dl>
+			
+	</div>
+<a name="methodprepareStore" id="prepareStore"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">prepareStore</span> (line <span class="line-number">570</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Build an insert/update query statement.</p>
+	<ul class="tags">
+				<li><span class="field">throws:</span> Q\DB_Constraint_Exception when no rows are given.</li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result"><a href="../../DB/DB_SQLStatement.html">DB_SQLStatement</a></span>
+		<span class="method-name">
+			prepareStore
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$values</span>, <span class="var-type">Give</span>&nbsp;<span class="var-name">2</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span><span class="var-description">: Tablename</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$values</span><span class="var-description">: Assasioted array as (fielname=&gt;value, ...) or ordered array (value, ...) with 1 value for each field</span>			</li>
+					<li>
+				<span class="var-type">Give</span>
+				<span class="var-name">2</span><span class="var-description">: additional arguments (arrays) to insert/update multiple rows. $value should be array(fieldname, ...) instead. U can also use Q\DB::args(values, $rows).</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB.html#methodprepareStore">DB::prepareStore()</a></dt>
+						<dd>Build an insert or insert/update query statement.</dd>
+					</dl>
+			
+	</div>
+<a name="methodprepareUpdate" id="prepareUpdate"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">prepareUpdate</span> (line <span class="line-number">609</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Build a update query statement</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result"><a href="../../DB/DB_SQLStatement.html">DB_SQLStatement</a></span>
+		<span class="method-name">
+			prepareUpdate
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$id</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$values</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span><span class="var-description">: Tablename</span>			</li>
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$id</span><span class="var-description">: The value for a primairy (or as array(value, ..) if multiple key fields) or array(field=&gt;value, ...)</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$values</span><span class="var-description">: Assasioted array as (fielname=&gt;value, ...) or ordered array (value, ...) with 1 value for each field</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB.html#methodprepareUpdate">DB::prepareUpdate()</a></dt>
+						<dd>Build a update query statement</dd>
+					</dl>
+			
+	</div>
+<a name="methodquery" id="query"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">query</span> (line <span class="line-number">666</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Excecute query.</p>
+<p class="description"><p>Returns DB_MySQL_Result for 'SELECT', 'SHOW', etc queries, returns new id for 'INSERT' query, returns TRUE for other</p></p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result"><a href="../../DB/DB_MySQL/DB_MySQL_Result.html">DB_MySQL_Result</a></span>
+		<span class="method-name">
+			query
+		</span>
+					(<span class="var-type">mixed</span>&nbsp;<span class="var-name">$statement</span>, <span class="var-type">Additional</span>&nbsp;<span class="var-name">1</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$statement</span><span class="var-description">: String or a query statement object</span>			</li>
+					<li>
+				<span class="var-type">Additional</span>
+				<span class="var-name">1</span><span class="var-description">: arguments are parsed into the query on ?</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB.html#methodquery">DB::query()</a></dt>
+						<dd>Excecute a query statement.</dd>
+					</dl>
+			
+	</div>
+<a name="methodquote" id="quote"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">quote</span> (line <span class="line-number">428</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Quote a value so it can be savely used in a query.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">string</span>
+		<span class="method-name">
+			quote
+		</span>
+					(<span class="var-type">mixed</span>&nbsp;<span class="var-name">$value</span>, [<span class="var-type">string</span>&nbsp;<span class="var-name">$empty</span> = <span class="var-default">'NULL'</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$value</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$empty</span><span class="var-description">: Return $empty if $value is null</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB.html#methodquote">DB::quote()</a></dt>
+						<dd>Quote a value so it can be savely used in a query.</dd>
+					</dl>
+			
+	</div>
+<a name="methodquoteIdentifier" id="quoteIdentifier"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">quoteIdentifier</span> (line <span class="line-number">442</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Quotes a string so it can be safely used as a table or column name.</p>
+<p class="description"><p>Dots are seen as seperator and are kept out of quotes.</p><p>Return NULL if $identifier is not valid.</p></p>
+	
+	<div class="method-signature">
+		<span class="method-result">string</span>
+		<span class="method-name">
+			quoteIdentifier
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$identifier</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$identifier</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB.html#methodquoteIdentifier">DB::quoteIdentifier()</a></dt>
+						<dd>Quotes a string so it can be safely used as a table or column name.</dd>
+					</dl>
+			
+	</div>
+<a name="methodreconnect" id="reconnect"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">reconnect</span> (line <span class="line-number">158</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Reconnect to the db server</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			reconnect
+		</span>
+				()
+			</div>
+	
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB.html#methodreconnect">DB::reconnect()</a></dt>
+						<dd>Reconnect the db connection</dd>
+					</dl>
+			
+	</div>
+<a name="methodsplitIdentifier" id="splitIdentifier"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">splitIdentifier</span> (line <span class="line-number">466</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Split a column name in table, column and alias OR table name in db, table and alias</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			splitIdentifier
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$name</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$name</span><span class="var-description">: Full fieldname</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB.html#methodsplitIdentifier">DB::splitIdentifier()</a></dt>
+						<dd>Split a column name in table, column and alias OR table name in db, table and alias.</dd>
+					</dl>
+			
+	</div>
+<a name="methodvalidIdentifier" id="validIdentifier"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">validIdentifier</span> (line <span class="line-number">455</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Check if a identifier is valid as field name or table name</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">boolean</span>
+		<span class="method-name">
+			validIdentifier
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$name</span>, [<span class="var-type">boolean</span>&nbsp;<span class="var-name">$withgroup</span> = <span class="var-default">null</span>], [<span class="var-type">boolean</span>&nbsp;<span class="var-name">$withalias</span> = <span class="var-default">false</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$name</span>			</li>
+					<li>
+				<span class="var-type">boolean</span>
+				<span class="var-name">$withgroup</span><span class="var-description">: TRUE: group.name, FALSE: name, NULL: both</span>			</li>
+					<li>
+				<span class="var-type">boolean</span>
+				<span class="var-name">$withalias</span><span class="var-description">: Allow an alias (AS alias)</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../../DB/DB.html#methodvalidIdentifier">DB::validIdentifier()</a></dt>
+						<dd>Check if a identifier is valid as field name or table name.</dd>
+					</dl>
+			
+	</div>
+							<h4>Inherited Methods</h4>
+				<a name='inherited_methods'><!-- --></a>	
+									<!-- =========== Summary =========== -->
+					<p>Inherited From <span class="classname"><a href="../../DB/DB.html">DB</a></span></p>
+					<blockquote>
+													<span class="method-name"><a href="../../DB/DB.html#method__construct">DB::__construct()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodaffectedRows">DB::affectedRows()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodapplyFieldDefaults">DB::applyFieldDefaults()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodapplyMapping">DB::applyMapping()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodapplyTableDefaults">DB::applyTableDefaults()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodarg">DB::arg()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodconnect">DB::connect()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodcountRows">DB::countRows()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methoddelete">DB::delete()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodexists">DB::exists()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodfetchMetaData">DB::fetchMetaData()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodgenerateCode_ApplyDefaultProperties">DB::generateCode_ApplyDefaultProperties()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodgetDBName">DB::getDBName()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodgetDSN">DB::getDSN()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodgetFieldNames">DB::getFieldNames()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodgetMetaData">DB::getMetaData()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodgetNative">DB::getNative()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodgetPrimaryKeys">DB::getPrimaryKeys()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodgetSettings">DB::getSettings()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodgetTableInfo">DB::getTableInfo()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodgetTableNames">DB::getTableNames()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodload">DB::load()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodlookupValue">DB::lookupValue()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodmakeIdentifier">DB::makeIdentifier()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodparse">DB::parse()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodprepare">DB::prepare()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodprepareDelete">DB::prepareDelete()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodprepareSelect">DB::prepareSelect()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodprepareStore">DB::prepareStore()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodprepareUpdate">DB::prepareUpdate()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodquery">DB::query()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodquote">DB::quote()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodquoteIdentifier">DB::quoteIdentifier()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodreconnect">DB::reconnect()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodselect">DB::select()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodsplitIdentifier">DB::splitIdentifier()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodstore">DB::store()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodtable">DB::table()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodupdate">DB::update()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methoduseFor">DB::useFor()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#methodvalidIdentifier">DB::validIdentifier()</a></span><br>
+													<span class="method-name"><a href="../../DB/DB.html#method__callstatic">DB::__callstatic()</a></span><br>
+											</blockquote>
+										
+		</div>
+	</div>
+
+	<a name="sec-consts"></a>
+	<div class="info-box">
+		<div class="info-box-title">Class Constants</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+										<a href="#sec-var-summary">Constants</a> (<span class="disabled">details</span>)
+						
+			
+												<a href="#sec-var-summary">Vars</a> (<a href="#sec-vars">details</a>)
+														| 
+									<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+							
+					</div>
+		<div class="info-box-body">
+										<h4>Inherited Constants</h4>
+				<A NAME='inherited_vars'><!-- --></A>
+									<p>Inherited from <span class="classname"><a href="../../DB/DB.html">DB</a></span></p>
+					<blockquote>
+													<img src="../../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../../DB/DB.html#constADD_APPEND">DB::ADD_APPEND</a></span><br>
+							</span>
+													<img src="../../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../../DB/DB.html#constADD_HAVING">DB::ADD_HAVING</a></span><br>
+							</span>
+													<img src="../../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../../DB/DB.html#constADD_PREPEND">DB::ADD_PREPEND</a></span><br>
+							</span>
+													<img src="../../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../../DB/DB.html#constADD_REPLACE">DB::ADD_REPLACE</a></span><br>
+							</span>
+													<img src="../../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../../DB/DB.html#constALL_ROWS">DB::ALL_ROWS</a></span><br>
+							</span>
+													<img src="../../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../../DB/DB.html#constCOMMAND_PART">DB::COMMAND_PART</a></span><br>
+							</span>
+													<img src="../../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../../DB/DB.html#constFETCH_ASSOC">DB::FETCH_ASSOC</a></span><br>
+							</span>
+													<img src="../../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../../DB/DB.html#constFETCH_FULLARRAY">DB::FETCH_FULLARRAY</a></span><br>
+							</span>
+													<img src="../../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../../DB/DB.html#constFETCH_NON_RECURSIVE">DB::FETCH_NON_RECURSIVE</a></span><br>
+							</span>
+													<img src="../../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../../DB/DB.html#constFETCH_OBJECT">DB::FETCH_OBJECT</a></span><br>
+							</span>
+													<img src="../../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../../DB/DB.html#constFETCH_ORDERED">DB::FETCH_ORDERED</a></span><br>
+							</span>
+													<img src="../../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../../DB/DB.html#constFETCH_PERTABLE">DB::FETCH_PERTABLE</a></span><br>
+							</span>
+													<img src="../../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../../DB/DB.html#constFETCH_RECORD">DB::FETCH_RECORD</a></span><br>
+							</span>
+													<img src="../../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../../DB/DB.html#constFETCH_ROLES">DB::FETCH_ROLES</a></span><br>
+							</span>
+													<img src="../../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../../DB/DB.html#constFETCH_VALUE">DB::FETCH_VALUE</a></span><br>
+							</span>
+													<img src="../../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../../DB/DB.html#constFIELDNAME_COL">DB::FIELDNAME_COL</a></span><br>
+							</span>
+													<img src="../../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../../DB/DB.html#constFIELDNAME_DB">DB::FIELDNAME_DB</a></span><br>
+							</span>
+													<img src="../../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../../DB/DB.html#constFIELDNAME_DBFULL">DB::FIELDNAME_DBFULL</a></span><br>
+							</span>
+													<img src="../../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../../DB/DB.html#constFIELDNAME_FULL">DB::FIELDNAME_FULL</a></span><br>
+							</span>
+													<img src="../../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../../DB/DB.html#constMULTIPLE_ROWS">DB::MULTIPLE_ROWS</a></span><br>
+							</span>
+													<img src="../../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../../DB/DB.html#constSINGLE_ROW">DB::SINGLE_ROW</a></span><br>
+							</span>
+											</blockquote> 
+										
+		</div>
+	</div>
+
+	<p class="notes" id="credit">
+		Documentation generated on Fri, 20 Feb 2009 11:37:11 +0100 by <a href="http://www.phpdoc.org" target="_blank">phpDocumentor 1.4.2</a>
+	</p>
+	</div></body>
+</html>

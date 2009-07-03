@@ -1,0 +1,695 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+  <html xmlns="http://www.w3.org/1999/xhtml">
+		<head>
+			<!-- template designed by Marco Von Ballmoos -->
+			<title>Docs For Class Authenticate_DB</title>
+			<link rel="stylesheet" href="../media/stylesheet.css" />
+			<meta http-equiv='Content-Type' content='text/html; charset=iso-8859-1'/>
+		</head>
+		<body>
+			<div class="page-body">			
+<h2 class="class-name">Class Authenticate_DB</h2>
+
+<a name="sec-description"></a>
+<div class="info-box">
+	<div class="info-box-title">Description</div>
+	<div class="nav-bar">
+					<span class="disabled">Description</span> |
+													<a href="#sec-var-summary">Vars</a> (<a href="#sec-vars">details</a>)
+						|											<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+						
+											<a href="#sec-consts">Constants</a>
+						
+			</div>
+	<div class="info-box-body">
+        		<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Authenticate using checking against a DB.</p>
+<p class="description"><p>Authentication table should have an 'authenticate' statement and possibly an 'onstart', 'onlogin' and 'onlogout' statement.</p></p>
+		<p class="notes">
+			Located in <a class="field" href="_Q---Authenticate---DB.php.html">/Q/Authenticate/DB.php</a> (line <span class="field">12</span>)
+		</p>
+		
+				
+		<pre><a href="../Authenticate/Authenticate.html">Authenticate</a>
+   |
+   --Authenticate_DB</pre>
+	
+			</div>
+</div>
+
+
+
+	<a name="sec-var-summary"></a>
+	<div class="info-box">
+		<div class="info-box-title">Variable Summary</span></div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+						<span class="disabled">Vars</span> (<a href="#sec-vars">details</a>)
+							| 
+									<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+							
+															<a href="#sec-consts">Constants</a>
+							
+					</div>
+		<div class="info-box-body">
+			<div class="var-summary">
+																																																																<div class="var-title">
+					<span class="var-type">Q\DB_Statement|string</span>
+					<a href="#$onLoginQuery" title="details" class="var-name">$onLoginQuery</a>
+				</div>
+																<div class="var-title">
+					<span class="var-type">Q\DB_Statement|string</span>
+					<a href="#$onLogoutQuery" title="details" class="var-name">$onLogoutQuery</a>
+				</div>
+																<div class="var-title">
+					<span class="var-type">Q\DB_Statement|string</span>
+					<a href="#$onStartQuery" title="details" class="var-name">$onStartQuery</a>
+				</div>
+																<div class="var-title">
+					<span class="var-type">Q\DB_Statement|string</span>
+					<a href="#$query" title="details" class="var-name">$query</a>
+				</div>
+																<div class="var-title">
+					<span class="var-type">boolean</span>
+					<a href="#$queryInit" title="details" class="var-name">$queryInit</a>
+				</div>
+																<div class="var-title">
+					<span class="var-type">Q\DB_Table|string</span>
+					<a href="#$table" title="details" class="var-name">$table</a>
+				</div>
+											</div>
+		</div>
+	</div>
+
+	<a name="sec-method-summary"></a>
+	<div class="info-box">
+		<div class="info-box-title">Method Summary</span></div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+															<a href="#sec-consts">Constants</a>
+							
+															<a href="#sec-var-summary">Vars</a> (<a href="#sec-vars">details</a>)
+				 
+				|
+						<span class="disabled">Methods</span> (<a href="#sec-methods">details</a>)
+		</div>
+		<div class="info-box-body">			
+			<div class="method-summary">
+																																																												
+												<div class="method-definition">
+											<span class="method-result">Authenticate_DB</span>
+										<a href="#__construct" title="details" class="method-name">__construct</a>
+											([<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span> = <span class="var-default">null</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result"><a href="../Authenticate/Authenticate_User.html">Authenticate_User</a></span>
+										<a href="#authUser" title="details" class="method-name">authUser</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$username</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$password</span>, <span class="var-type"></span>&nbsp;<span class="var-name">&$code</span>, <span class="var-type">int</span>&nbsp;<span class="var-name">$code</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result"><a href="../Authenticate/Authenticate_User.html">Authenticate_User</a></span>
+										<a href="#fetchUser" title="details" class="method-name">fetchUser</a>
+											(<span class="var-type">int|string</span>&nbsp;<span class="var-name">$uid</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result"><a href="../DB/DB_Statement.html">DB_Statement</a></span>
+										<a href="#getStatement" title="details" class="method-name">getStatement</a>
+										()
+									</div>
+																<div class="method-definition">
+											<span class="method-result">void</span>
+										<a href="#onLogin" title="details" class="method-name">onLogin</a>
+										()
+									</div>
+																<div class="method-definition">
+											<span class="method-result">void</span>
+										<a href="#onLogout" title="details" class="method-name">onLogout</a>
+										()
+									</div>
+																<div class="method-definition">
+											<span class="method-result">void</span>
+										<a href="#onStart" title="details" class="method-name">onStart</a>
+										()
+									</div>
+								</div>
+		</div>
+	</div>		
+
+	<a name="sec-vars"></a>
+	<div class="info-box">
+		<div class="info-box-title">Variables</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+										<a href="#sec-var-summary">Vars</a> (<span class="disabled">details</span>)
+						
+			
+												<a href="#sec-consts">Constants</a>
+							
+										| 
+									<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+							
+					</div>
+		<div class="info-box-body">
+			<a name="var$onLoginQuery" id="$onLoginQuery"><!-- --></A>
+<div class="oddrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			<span class="var-type">Q\DB_Statement|string</span>
+			<span class="var-name">$onLoginQuery</span>
+						(line <span class="line-number">48</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Query to perform on login.</p>
+<p class="description"><p>You can speficy multiple as array.</p></p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+<a name="var$onLogoutQuery" id="$onLogoutQuery"><!-- --></A>
+<div class="evenrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			<span class="var-type">Q\DB_Statement|string</span>
+			<span class="var-name">$onLogoutQuery</span>
+						(line <span class="line-number">56</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Query to perform on logout.</p>
+<p class="description"><p>You can speficy multiple as array.</p></p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+<a name="var$onStartQuery" id="$onStartQuery"><!-- --></A>
+<div class="oddrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			<span class="var-type">Q\DB_Statement|string</span>
+			<span class="var-name">$onStartQuery</span>
+						(line <span class="line-number">40</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Query to perform on session start.</p>
+<p class="description"><p>You can speficy multiple as array.</p></p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+<a name="var$query" id="$query"><!-- --></A>
+<div class="evenrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			<span class="var-type">Q\DB_Statement|string</span>
+			<span class="var-name">$query</span>
+						(line <span class="line-number">32</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Query statement to get user data from the DB.</p>
+<p class="description"><p>Shoud result in array(id, fullname, username, host, password, group(s), active(bool), expire(unix timestamp), ...)</p></p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+<a name="var$queryInit" id="$queryInit"><!-- --></A>
+<div class="oddrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			<span class="var-type">boolean</span>
+			<span class="var-name">$queryInit</span>
+						(line <span class="line-number">24</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Is query initialed</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+<a name="var$table" id="$table"><!-- --></A>
+<div class="evenrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			<span class="var-type">Q\DB_Table|string</span>
+			<span class="var-name">$table</span>
+						(line <span class="line-number">18</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Database table to get user data from.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+							<h4>Inherited Variables</h4>
+				<A NAME='inherited_vars'><!-- --></A>
+									<p>Inherited from <span class="classname"><a href="../Authenticate/Authenticate.html">Authenticate</a></span></p>
+					<blockquote>
+													<span class="var-title">
+								<span class="var-name"><a href="../Authenticate/Authenticate.html#var$crypt">Authenticate::$crypt</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../Authenticate/Authenticate.html#var$drivers">Authenticate::$drivers</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../Authenticate/Authenticate.html#var$expiredPage">Authenticate::$expiredPage</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../Authenticate/Authenticate.html#var$hashCrypt">Authenticate::$hashCrypt</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../Authenticate/Authenticate.html#var$instances">Authenticate::$instances</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../Authenticate/Authenticate.html#var$log">Authenticate::$log</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../Authenticate/Authenticate.html#var$loggedIn">Authenticate::$loggedIn</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../Authenticate/Authenticate.html#var$loginAttempts">Authenticate::$loginAttempts</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../Authenticate/Authenticate.html#var$loginPage">Authenticate::$loginPage</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../Authenticate/Authenticate.html#var$loginRequestVar">Authenticate::$loginRequestVar</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../Authenticate/Authenticate.html#var$loginRequired">Authenticate::$loginRequired</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../Authenticate/Authenticate.html#var$logoutRequestVar">Authenticate::$logoutRequestVar</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../Authenticate/Authenticate.html#var$store">Authenticate::$store</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../Authenticate/Authenticate.html#var$storeAttemps">Authenticate::$storeAttemps</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../Authenticate/Authenticate.html#var$unblockableHosts">Authenticate::$unblockableHosts</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../Authenticate/Authenticate.html#var$_user">Authenticate::$_user</a></span><br>
+							</span>
+											</blockquote> 
+										
+		</div>
+	</div>
+	
+	<a name="sec-methods"></a>
+	<div class="info-box">
+		<div class="info-box-title">Methods</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+															<a href="#sec-var-summary">Vars</a> (<a href="#sec-vars">details</a>)
+																			<a href="#sec-consts">Constants</a>
+							
+										<a href="#sec-method-summary">Methods</a> (<span class="disabled">details</span>)
+						
+		</div>
+		<div class="info-box-body">
+			<A NAME='method_detail'></A>
+
+<a name="method__construct" id="__construct"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">Constructor __construct</span> (line <span class="line-number">64</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Class constructor</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">Authenticate_DB</span>
+		<span class="method-name">
+			__construct
+		</span>
+					([<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span> = <span class="var-default">null</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../Authenticate/Authenticate.html#method__construct">Authenticate::__construct()</a></dt>
+						<dd>Class constructor</dd>
+					</dl>
+			
+	</div>
+<a name="methodauthUser" id="authUser"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">authUser</span> (line <span class="line-number">112</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Fetch user based on username.</p>
+<p class="description"><p>Returns authentication result</p></p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result"><a href="../Authenticate/Authenticate_User.html">Authenticate_User</a></span>
+		<span class="method-name">
+			authUser
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$username</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$password</span>, <span class="var-type"></span>&nbsp;<span class="var-name">&$code</span>, <span class="var-type">int</span>&nbsp;<span class="var-name">$code</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$username</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$password</span>			</li>
+					<li>
+				<span class="var-type">int</span>
+				<span class="var-name">$code</span><span class="var-description">: Output: return code</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">&$code</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../Authenticate/Authenticate.html#methodauthUser">Authenticate::authUser()</a></dt>
+						<dd>Fetch user based on username.</dd>
+					</dl>
+			
+	</div>
+<a name="methodfetchUser" id="fetchUser"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">fetchUser</span> (line <span class="line-number">141</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Fetch user based on id.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result"><a href="../Authenticate/Authenticate_User.html">Authenticate_User</a></span>
+		<span class="method-name">
+			fetchUser
+		</span>
+					(<span class="var-type">int|string</span>&nbsp;<span class="var-name">$uid</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">int|string</span>
+				<span class="var-name">$uid</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../Authenticate/Authenticate.html#methodfetchUser">Authenticate::fetchUser()</a></dt>
+						<dd>Fetch user based on id.</dd>
+					</dl>
+			
+	</div>
+<a name="methodgetStatement" id="getStatement"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">getStatement</span> (line <span class="line-number">75</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Return query statement object.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result"><a href="../DB/DB_Statement.html">DB_Statement</a></span>
+		<span class="method-name">
+			getStatement
+		</span>
+				()
+			</div>
+	
+		
+			
+	</div>
+<a name="methodonLogin" id="onLogin"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">onLogin</span> (line <span class="line-number">172</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Actions to perform on login.</p>
+<p class="description"><p>Executes onLoginQuery, parsing in user info as named arguments.</p></p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			onLogin
+		</span>
+				()
+			</div>
+	
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../Authenticate/Authenticate.html#methodonLogin">Authenticate::onLogin()</a></dt>
+						<dd>Actions to perform on login.</dd>
+					</dl>
+			
+	</div>
+<a name="methodonLogout" id="onLogout"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">onLogout</span> (line <span class="line-number">184</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Actions to perform on login.</p>
+<p class="description"><p>Executes onLogoutQuery.</p></p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			onLogout
+		</span>
+				()
+			</div>
+	
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../Authenticate/Authenticate.html#methodonLogout">Authenticate::onLogout()</a></dt>
+						<dd>Actions to perform on logout.</dd>
+					</dl>
+			
+	</div>
+<a name="methodonStart" id="onStart"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">onStart</span> (line <span class="line-number">160</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Actions to perform on successfull session start.</p>
+<p class="description"><p>Executes onStartQuery, parsing in user info as named arguments.</p></p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			onStart
+		</span>
+				()
+			</div>
+	
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../Authenticate/Authenticate.html#methodonStart">Authenticate::onStart()</a></dt>
+						<dd>Actions to perform on successfull session start.</dd>
+					</dl>
+			
+	</div>
+							<h4>Inherited Methods</h4>
+				<a name='inherited_methods'><!-- --></a>	
+									<!-- =========== Summary =========== -->
+					<p>Inherited From <span class="classname"><a href="../Authenticate/Authenticate.html">Authenticate</a></span></p>
+					<blockquote>
+													<span class="method-name"><a href="../Authenticate/Authenticate.html#method__construct">Authenticate::__construct()</a></span><br>
+													<span class="method-name"><a href="../Authenticate/Authenticate.html#methodauthUser">Authenticate::authUser()</a></span><br>
+													<span class="method-name"><a href="../Authenticate/Authenticate.html#methodexists">Authenticate::exists()</a></span><br>
+													<span class="method-name"><a href="../Authenticate/Authenticate.html#methodfetchUser">Authenticate::fetchUser()</a></span><br>
+													<span class="method-name"><a href="../Authenticate/Authenticate.html#methodgetInfo">Authenticate::getInfo()</a></span><br>
+													<span class="method-name"><a href="../Authenticate/Authenticate.html#methodgetMessage">Authenticate::getMessage()</a></span><br>
+													<span class="method-name"><a href="../Authenticate/Authenticate.html#methodhash">Authenticate::hash()</a></span><br>
+													<span class="method-name"><a href="../Authenticate/Authenticate.html#methodisBlocked">Authenticate::isBlocked()</a></span><br>
+													<span class="method-name"><a href="../Authenticate/Authenticate.html#methodisLoggedIn">Authenticate::isLoggedIn()</a></span><br>
+													<span class="method-name"><a href="../Authenticate/Authenticate.html#methodlogEvent">Authenticate::logEvent()</a></span><br>
+													<span class="method-name"><a href="../Authenticate/Authenticate.html#methodlogin">Authenticate::login()</a></span><br>
+													<span class="method-name"><a href="../Authenticate/Authenticate.html#methodlogout">Authenticate::logout()</a></span><br>
+													<span class="method-name"><a href="../Authenticate/Authenticate.html#methodonLogin">Authenticate::onLogin()</a></span><br>
+													<span class="method-name"><a href="../Authenticate/Authenticate.html#methodonLogout">Authenticate::onLogout()</a></span><br>
+													<span class="method-name"><a href="../Authenticate/Authenticate.html#methodonStart">Authenticate::onStart()</a></span><br>
+													<span class="method-name"><a href="../Authenticate/Authenticate.html#methodstart">Authenticate::start()</a></span><br>
+													<span class="method-name"><a href="../Authenticate/Authenticate.html#methodstoreInfo">Authenticate::storeInfo()</a></span><br>
+													<span class="method-name"><a href="../Authenticate/Authenticate.html#methoduseFor">Authenticate::useFor()</a></span><br>
+													<span class="method-name"><a href="../Authenticate/Authenticate.html#methodwith">Authenticate::with()</a></span><br>
+													<span class="method-name"><a href="../Authenticate/Authenticate.html#method__callstatic">Authenticate::__callstatic()</a></span><br>
+													<span class="method-name"><a href="../Authenticate/Authenticate.html#method__get">Authenticate::__get()</a></span><br>
+											</blockquote>
+										
+		</div>
+	</div>
+
+	<a name="sec-consts"></a>
+	<div class="info-box">
+		<div class="info-box-title">Class Constants</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+										<a href="#sec-var-summary">Constants</a> (<span class="disabled">details</span>)
+						
+			
+												<a href="#sec-var-summary">Vars</a> (<a href="#sec-vars">details</a>)
+														| 
+									<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+							
+					</div>
+		<div class="info-box-body">
+										<h4>Inherited Constants</h4>
+				<A NAME='inherited_vars'><!-- --></A>
+									<p>Inherited from <span class="classname"><a href="../Authenticate/Authenticate.html">Authenticate</a></span></p>
+					<blockquote>
+													<img src="../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../Authenticate/Authenticate.html#constHOST_BLOCKED">Authenticate::HOST_BLOCKED</a></span><br>
+							</span>
+													<img src="../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../Authenticate/Authenticate.html#constINACTIVE_USER">Authenticate::INACTIVE_USER</a></span><br>
+							</span>
+													<img src="../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../Authenticate/Authenticate.html#constINCORRECT_PASSWORD">Authenticate::INCORRECT_PASSWORD</a></span><br>
+							</span>
+													<img src="../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../Authenticate/Authenticate.html#constINVALID_SESSION">Authenticate::INVALID_SESSION</a></span><br>
+							</span>
+													<img src="../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../Authenticate/Authenticate.html#constNO_PASSWORD">Authenticate::NO_PASSWORD</a></span><br>
+							</span>
+													<img src="../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../Authenticate/Authenticate.html#constNO_SESSION">Authenticate::NO_SESSION</a></span><br>
+							</span>
+													<img src="../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../Authenticate/Authenticate.html#constNO_USERNAME">Authenticate::NO_USERNAME</a></span><br>
+							</span>
+													<img src="../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../Authenticate/Authenticate.html#constOK">Authenticate::OK</a></span><br>
+							</span>
+													<img src="../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../Authenticate/Authenticate.html#constPASSWORD_EXPIRED">Authenticate::PASSWORD_EXPIRED</a></span><br>
+							</span>
+													<img src="../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../Authenticate/Authenticate.html#constSESSION_EXPIRED">Authenticate::SESSION_EXPIRED</a></span><br>
+							</span>
+													<img src="../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../Authenticate/Authenticate.html#constUNKNOWN_USER">Authenticate::UNKNOWN_USER</a></span><br>
+							</span>
+											</blockquote> 
+										
+		</div>
+	</div>
+
+	<p class="notes" id="credit">
+		Documentation generated on Fri, 20 Feb 2009 11:37:05 +0100 by <a href="http://www.phpdoc.org" target="_blank">phpDocumentor 1.4.2</a>
+	</p>
+	</div></body>
+</html>

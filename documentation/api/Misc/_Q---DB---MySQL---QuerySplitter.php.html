@@ -1,0 +1,723 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+  <html xmlns="http://www.w3.org/1999/xhtml">
+		<head>
+			<!-- template designed by Marco Von Ballmoos -->
+			<title>Docs for page QuerySplitter.php</title>
+			<link rel="stylesheet" href="../media/stylesheet.css" />
+			<meta http-equiv='Content-Type' content='text/html; charset=iso-8859-1'/>
+		</head>
+		<body>
+			<div class="page-body">			
+<h2 class="file-name">/Q/DB/MySQL/QuerySplitter.php</h2>
+
+<a name="sec-description"></a>
+<div class="info-box">
+	<div class="info-box-title">Description</div>
+	<div class="nav-bar">
+					<span class="disabled">Description</span> |
+							<a href="#sec-classes">Classes</a>
+			|							<a href="#sec-includes">Includes</a>
+			|											<a href="#sec-functions">Functions</a>
+			</div>
+	<div class="info-box-body">	
+		<!-- ========== Info from phpDoc block ========= -->
+		
+			</div>
+</div>
+		
+	<a name="sec-classes"></a>	
+	<div class="info-box">
+		<div class="info-box-title">Classes</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+			<span class="disabled">Classes</span>
+			|							<a href="#sec-includes">Includes</a>
+				|																<a href="#sec-functions">Functions</a>
+					</div>
+		<div class="info-box-body">	
+			<table cellpadding="2" cellspacing="0" class="class-table">
+				<tr>
+					<th class="class-table-header">Class</th>
+					<th class="class-table-header">Description</th>
+				</tr>
+								<tr>
+					<td style="padding-right: 2em; vertical-align: top">
+						<a href="../Misc/DB_MySQL_QuerySplitter.html">DB_MySQL_QuerySplitter</a>
+					</td>
+					<td>
+											
+										</td>
+				</tr>
+							</table>
+		</div>
+	</div>
+
+	<a name="sec-includes"></a>	
+	<div class="info-box">
+		<div class="info-box-title">Includes</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+							<a href="#sec-classes">Classes</a>
+				|						<span class="disabled">Includes</span>
+			|													<a href="#sec-functions">Functions</a>
+					</div>
+		<div class="info-box-body">	
+			<a name="_Q/DB/QuerySplitter_php"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="include-title">
+			<span class="include-type">require_once</span>
+			(<span class="include-name"><a href="../DB/_Q---DB---QuerySplitter.php.html">'Q/DB/QuerySplitter.php'</a></span>)
+			(line <span class="line-number">6</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+</div>
+<a name="_Q/misc_php"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="include-title">
+			<span class="include-type">require_once</span>
+			(<span class="include-name"><a href="../Misc/_Q---misc.php.html">'Q/misc.php'</a></span>)
+			(line <span class="line-number">4</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+</div>
+<a name="_Q/DB_php"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="include-title">
+			<span class="include-type">require_once</span>
+			(<span class="include-name"><a href="../DB/_Q---DB.php.html">'Q/DB.php'</a></span>)
+			(line <span class="line-number">5</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+</div>
+		</div>
+	</div>
+	
+	
+	
+	<a name="sec-functions"></a>	
+	<div class="info-box">
+		<div class="info-box-title">Functions</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+							<a href="#sec-classes">Classes</a>
+				|										<a href="#sec-includes">Includes</a>
+				|												<span class="disabled">Functions</span>
+		</div>
+		<div class="info-box-body">	
+			<a name="functionaddCriteria" id="functionaddCriteria"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">addCriteria</span> (line <span class="line-number">783</span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Add criteria as where or having statement as $column=$value.</p>
+<p class="description"><p>If $value == null and $compare == '=', $compare becomes 'IS NULL'.</p><p>NOTE: This function does not escape $column</p></p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			addCriteria
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$object</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$column</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$value</span>, [<span class="var-type">string</span>&nbsp;<span class="var-name">$compare</span> = <span class="var-default">&amp;quot;=&amp;quot;</span>], [<span class="var-type">int</span>&nbsp;<span class="var-name">$options</span> = <span class="var-default">0</span>], [<span class="var-type">int</span>&nbsp;<span class="var-name">$subset</span> = <span class="var-default">0</span>])
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type">Q\DB_SQLStatement</span>
+				<span class="var-name">$object</span><span class="var-description">: The statement object to add the criteria to</span>			</li>
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$column</span><span class="var-description">: Column name, column number or array of column names ($column[0]=$value OR $column[1]=$value)</span>			</li>
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$value</span><span class="var-description">: Value or array of values ($column=$value[0] OR $column=$value[1])</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$compare</span><span class="var-description">: Comparision operator oa. =, !=, &gt;, &lt;, &gt;=, &lt;=, LIKE, LIKE%, %LIKE%, REVERSE LIKE (value LIKE column), IN and BETWEEN</span>			</li>
+					<li>
+				<span class="var-type">int</span>
+				<span class="var-name">$options</span><span class="var-description">: DB_Statement options (language specific) as binairy set</span>			</li>
+					<li>
+				<span class="var-type">int</span>
+				<span class="var-name">$subset</span><span class="var-description">: Specify to wich subset the change applies (0=main query)</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionbuildCountStatement" id="functionbuildCountStatement"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">buildCountStatement</span> (line <span class="line-number">935</span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Build query to count the number of rows</p>
+	
+	<div class="method-signature">
+		<span class="method-result">string</span>
+		<span class="method-name">
+			buildCountStatement
+		</span>
+					(<span class="var-type">mixed</span>&nbsp;<span class="var-name">$statement</span>, [<span class="var-type">bool</span>&nbsp;<span class="var-name">$all</span> = <span class="var-default">false</span>])
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$statement</span>			</li>
+					<li>
+				<span class="var-type">bool</span>
+				<span class="var-name">$all</span><span class="var-description">: Don't use limit</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionbuildDeleteStatement" id="functionbuildDeleteStatement"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">buildDeleteStatement</span> (line <span class="line-number">1020</span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Create query to delete rows from a table.</p>
+	
+	<div class="method-signature">
+		<span class="method-result">string</span>
+		<span class="method-name">
+			buildDeleteStatement
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$criteria</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span><span class="var-description">: Tablename</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$criteria</span><span class="var-description">: As array(field=&gt;value, ...)</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionbuildSelectStatement" id="functionbuildSelectStatement"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">buildSelectStatement</span> (line <span class="line-number">892</span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Create a select statement for a table</p>
+	
+	<div class="method-signature">
+		<span class="method-result">string</span>
+		<span class="method-name">
+			buildSelectStatement
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, [<span class="var-type">mixed</span>&nbsp;<span class="var-name">$fields</span> = <span class="var-default">null</span>], [<span class="var-type">mixed</span>&nbsp;<span class="var-name">$criteria</span> = <span class="var-default">null</span>], [<span class="var-type">string</span>&nbsp;<span class="var-name">$add_where</span> = <span class="var-default">null</span>])
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span><span class="var-description">: Tablename</span>			</li>
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$fields</span><span class="var-description">: Array with fieldnames, fieldlist (string) or SELECT statement (string). NULL means all fields.</span>			</li>
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$criteria</span><span class="var-description">: The value for the primairy key (int/string or array(value, ...)) or array(field=&gt;value, ...)</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$add_where</span><span class="var-description">: Additional criteria as string</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionbuildStoreStatement" id="functionbuildStoreStatement"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">buildStoreStatement</span> (line <span class="line-number">968</span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Create a statement to insert/update rows.</p>
+	
+	<div class="method-signature">
+		<span class="method-result">string</span>
+		<span class="method-name">
+			buildStoreStatement
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$primairy_keys</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$fieldnames</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$rows</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$primairy_keys</span><span class="var-description">: Array with unique fields</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$fieldnames</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$rows</span><span class="var-description">: As array(array(value, value, ...), array(value, value, ...), ...)</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionbuildTruncateStatement" id="functionbuildTruncateStatement"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">buildTruncateStatement</span> (line <span class="line-number">1034</span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Create query to delete all rows from a table.</p>
+	
+	<div class="method-signature">
+		<span class="method-result">string</span>
+		<span class="method-name">
+			buildTruncateStatement
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span><span class="var-description">: Tablename</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionbuildUpdateStatement" id="functionbuildUpdateStatement"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">buildUpdateStatement</span> (line <span class="line-number">999</span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Create query to update rows of a table.</p>
+	
+	<div class="method-signature">
+		<span class="method-result">string</span>
+		<span class="method-name">
+			buildUpdateStatement
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$table</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$criteria</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$values</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$table</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$criteria</span><span class="var-description">: As array(field=&gt;value, ...)</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$values</span><span class="var-description">: Assasioted array as (fielname=&gt;value, ...)</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionextractSplit" id="functionextractSplit"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">extractSplit</span> (line <span class="line-number">384</span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Extract subqueries from sql query and split each subquery in different parts.</p>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			extractSplit
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$sql</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$statement</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$statement</span><span class="var-description">: Query statement</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$sql</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionextractTree" id="functionextractTree"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">extractTree</span> (line <span class="line-number">337</span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Extract childqueries for tree data from sql query (only for SELECT queries) and replace them with NULL in the main query.</p>
+<p class="description"><p>Returns array(main query, array(subquery1, parent field, child field), [array(subquery2, parent field, child field), ...])</p></p>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			extractTree
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$sql</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functioninjectSubsets" id="functioninjectSubsets"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">injectSubsets</span> (line <span class="line-number">318</span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Inject extracted subsets back into main sql query.</p>
+	
+	<div class="method-signature">
+		<span class="method-result">string</span>
+		<span class="method-name">
+			injectSubsets
+		</span>
+					(<span class="var-type">array</span>&nbsp;<span class="var-name">$sets</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$sets</span><span class="var-description">: array(main query, subquery1, [subquery2, ...])</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionjoinInject" id="functionjoinInject"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">joinInject</span> (line <span class="line-number">398</span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Join parts and inject extracted subsets back into main sql query.</p>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			joinInject
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$parts</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$sets</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$sets</span><span class="var-description">: array(main parts, parts subquery1 [, parts subquery2, ...])</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$parts</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionsplitColumns" id="functionsplitColumns"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">splitColumns</span> (line <span class="line-number">604</span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Return the columns of a (partual) query.</p>
+	<ul class="tags">
+				<li><span class="field">todo:</span> Implemented splitColumns() for INSERT, REPLACE and UPDATE</li>
+				<li><span class="field">todo:</span> Sets might be parsed in to early. Test this and solve if needed.</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			splitColumns
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>, [<span class="var-type">boolean</span>&nbsp;<span class="var-name">$splitFieldname</span> = <span class="var-default">false</span>], [<span class="var-type">boolean</span>&nbsp;<span class="var-name">$assoc</span> = <span class="var-default">false</span>])
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$sql</span><span class="var-description">: SQL query or 'column, column, ...'</span>			</li>
+					<li>
+				<span class="var-type">boolean</span>
+				<span class="var-name">$splitFieldname</span><span class="var-description">: Split fieldname in array(table, field, alias)</span>			</li>
+					<li>
+				<span class="var-type">boolean</span>
+				<span class="var-name">$assoc</span><span class="var-description">: Remove '[AS] alias' (for SELECT) or 'to=' (for INSERT/UPDATE) and return as associated array</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionsplitDeleteQuery" id="functionsplitDeleteQuery"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">splitDeleteQuery</span> (line <span class="line-number">531</span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Split delete query in different parts</p>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			splitDeleteQuery
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$sql</span><span class="var-description">: SQL DELETE query statement</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionsplitInsertQuery" id="functionsplitInsertQuery"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">splitInsertQuery</span> (line <span class="line-number">453</span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Split insert/replace query in different parts.</p>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			splitInsertQuery
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$sql</span><span class="var-description">: SQL INSERT query statement</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionsplitJoin" id="functionsplitJoin"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">splitJoin</span> (line <span class="line-number">726</span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Split a single part from a join expression</p>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			splitJoin
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$sql</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionsplitLimit" id="functionsplitLimit"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">splitLimit</span> (line <span class="line-number">750</span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Split limit in array(limit, offset)</p>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			splitLimit
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$sql</span><span class="var-description">: SQL query or limit part</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionsplitSelectQuery" id="functionsplitSelectQuery"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">splitSelectQuery</span> (line <span class="line-number">414</span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Split select query in different parts.</p>
+<p class="description"><p>NOTE: Splitting a query with a subquery is considerably slower.</p></p>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			splitSelectQuery
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$sql</span><span class="var-description">: SQL SELECT query statement</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionsplitTables" id="functionsplitTables"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">splitTables</span> (line <span class="line-number">675</span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Return tables from a query or join expression.</p>
+	<ul class="tags">
+				<li><span class="field">todo:</span> Make splitTables work for subqueries</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			splitTables
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>, [<span class="var-type">boolean</span>&nbsp;<span class="var-name">$splitTablename</span> = <span class="var-default">false</span>], [<span class="var-type">boolean</span>&nbsp;<span class="var-name">$assoc</span> = <span class="var-default">false</span>])
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$sql</span><span class="var-description">: SQL query or FROM part</span>			</li>
+					<li>
+				<span class="var-type">boolean</span>
+				<span class="var-name">$splitTablename</span><span class="var-description">: Split tablename in array(db, table, alias)</span>			</li>
+					<li>
+				<span class="var-type">boolean</span>
+				<span class="var-name">$assoc</span><span class="var-description">: Remove 'AS ...' and return as associated array</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionsplitTruncateQuery" id="functionsplitTruncateQuery"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">splitTruncateQuery</span> (line <span class="line-number">564</span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Split delete query in different parts</p>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			splitTruncateQuery
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$sql</span><span class="var-description">: SQL DELETE query statement</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionsplitUpdateQuery" id="functionsplitUpdateQuery"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">splitUpdateQuery</span> (line <span class="line-number">500</span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Split update query in different parts</p>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			splitUpdateQuery
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$sql</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$sql</span><span class="var-description">: SQL UPDATE query statement</span>			</li>
+				</ul>
+		
+	
+</div>
+		</div>
+	</div>
+	
+	<p class="notes" id="credit">
+		Documentation generated on Fri, 20 Feb 2009 11:31:57 +0100 by <a href="http://www.phpdoc.org" target="_blank">phpDocumentor 1.4.2</a>
+	</p>
+	</div></body>
+</html>

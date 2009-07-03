@@ -1,0 +1,414 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+  <html xmlns="http://www.w3.org/1999/xhtml">
+		<head>
+			<!-- template designed by Marco Von Ballmoos -->
+			<title>Docs For Class Crypt</title>
+			<link rel="stylesheet" href="../media/stylesheet.css" />
+			<meta http-equiv='Content-Type' content='text/html; charset=iso-8859-1'/>
+		</head>
+		<body>
+			<div class="page-body">			
+<h2 class="class-name">Class Crypt</h2>
+
+<a name="sec-description"></a>
+<div class="info-box">
+	<div class="info-box-title">Description</div>
+	<div class="nav-bar">
+					<span class="disabled">Description</span> |
+							<a href="#sec-descendents">Descendents</a>
+			|											<a href="#sec-var-summary">Vars</a> (<a href="#sec-vars">details</a>)
+						|											<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+						
+					</div>
+	<div class="info-box-body">
+        		<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Encryption class (as Command pattern).</p>
+<p class="description"><p>If you don't need the abstraction, don't use this class. Just call the function. It will perform much better.</p></p>
+	<ul class="tags">
+				<li><span class="field">abstract:</span> </li>
+			</ul>
+		<p class="notes">
+			Located in <a class="field" href="_Q---Crypt.php.html">/Q/Crypt.php</a> (line <span class="field">14</span>)
+		</p>
+		
+				
+		<pre></pre>
+	
+			</div>
+</div>
+
+	<a name="sec-descendents"></a>
+	<div class="info-box">
+		<div class="info-box-title">Direct descendents</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+			<span class="disabled">Descendents</span>
+			|												<a href="#sec-var-summary">Vars</a> (<a href="#sec-vars">details</a>)
+								|															<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+							
+								</div>
+		<div class="info-box-body">
+			<table cellpadding="2" cellspacing="0" class="class-table">
+				<tr>
+					<th class="class-table-header">Class</th>
+					<th class="class-table-header">Description</th>
+				</tr>
+								<tr>
+					<td style="padding-right: 2em"><a href="../Crypt/Crypt_MD5.html">Crypt_MD5</a></td>
+					<td>
+											Encryption class for md5 method.
+										</td>
+				</tr>
+								<tr>
+					<td style="padding-right: 2em"><a href="../Crypt/Crypt_System.html">Crypt_System</a></td>
+					<td>
+											Encryption class for crypt method.
+										</td>
+				</tr>
+								<tr>
+					<td style="padding-right: 2em"><a href="../Crypt/Crypt_CRC32.html">Crypt_CRC32</a></td>
+					<td>
+											Encryption class for CRC32 method.
+										</td>
+				</tr>
+								<tr>
+					<td style="padding-right: 2em"><a href="../Crypt/Crypt_None.html">Crypt_None</a></td>
+					<td>
+											Encryption class for no encryption at all.
+										</td>
+				</tr>
+								<tr>
+					<td style="padding-right: 2em"><a href="../Crypt/Crypt_MCrypt.html">Crypt_MCrypt</a></td>
+					<td>
+											Encryption class wrapping mcrypt.
+										</td>
+				</tr>
+							</table>
+		</div>
+	</div>
+
+
+	<a name="sec-var-summary"></a>
+	<div class="info-box">
+		<div class="info-box-title">Variable Summary</span></div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+							<a href="#sec-descendents">Descendents</a> |
+						<span class="disabled">Vars</span> (<a href="#sec-vars">details</a>)
+							| 
+									<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+							
+								</div>
+		<div class="info-box-body">
+			<div class="var-summary">
+												<div class="var-title">
+					static <span class="var-type">array</span>
+					<a href="#$drivers" title="details" class="var-name">$drivers</a>
+				</div>
+																																				<div class="var-title">
+					<span class="var-type">string</span>
+					<a href="#$secret" title="details" class="var-name">$secret</a>
+				</div>
+											</div>
+		</div>
+	</div>
+
+	<a name="sec-method-summary"></a>
+	<div class="info-box">
+		<div class="info-box-title">Method Summary</span></div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+							<a href="#sec-descendents">Descendents</a> |
+																		<a href="#sec-var-summary">Vars</a> (<a href="#sec-vars">details</a>)
+				 
+				|
+						<span class="disabled">Methods</span> (<a href="#sec-methods">details</a>)
+		</div>
+		<div class="info-box-body">			
+			<div class="method-summary">
+																												<div class="method-definition">
+					static 						<span class="method-result">string</span>
+										<a href="#makesalt" title="details" class="method-name">makesalt</a>
+											([<span class="var-type"></span>&nbsp;<span class="var-name">$length</span> = <span class="var-default">6</span>], <span class="var-type">int</span>&nbsp;<span class="var-name">$lenght</span>)
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result"><a href="../Crypt/Crypt.html">Crypt</a></span>
+										<a href="#with" title="details" class="method-name">with</a>
+											(<span class="var-type">string|array</span>&nbsp;<span class="var-name">$method</span>, [<span class="var-type">array</span>&nbsp;<span class="var-name">$props</span> = <span class="var-default">array()</span>])
+									</div>
+								
+												<div class="method-definition">
+											<span class="method-result">Crypt</span>
+										<a href="#__construct" title="details" class="method-name">__construct</a>
+										()
+									</div>
+																<div class="method-definition">
+											<span class="method-result">string</span>
+										<a href="#encrypt" title="details" class="method-name">encrypt</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$value</span>, [<span class="var-type">string</span>&nbsp;<span class="var-name">$salt</span> = <span class="var-default">null</span>])
+									</div>
+																								</div>
+		</div>
+	</div>		
+
+	<a name="sec-vars"></a>
+	<div class="info-box">
+		<div class="info-box-title">Variables</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+							<a href="#sec-descendents">Descendents</a> |
+										<a href="#sec-var-summary">Vars</a> (<span class="disabled">details</span>)
+						
+			
+										| 
+									<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+							
+					</div>
+		<div class="info-box-body">
+			<a name="var$drivers" id="$drivers"><!-- --></A>
+<div class="evenrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			static <span class="var-type">array</span>
+			<span class="var-name">$drivers</span>
+			 = <span class="var-default">array (<br />	  null=&gt;'Q\Crypt_None',<br />	  'none'=&gt;'Q\Crypt_None',<br />	  'crypt'=&gt;'Q\Crypt_System',<br />	  'md5'=&gt;'Q\Crypt_MD5',<br />	  '2md5'=&gt;'Q\Crypt_2MD5',<br />	  'mcrypt'=&gt;'Q\Crypt_MCrypt'<br />	)</span>			(line <span class="line-number">26</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Driver classes for methods</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+<a name="var$secret" id="$secret"><!-- --></A>
+<div class="oddrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			<span class="var-type">string</span>
+			<span class="var-name">$secret</span>
+						(line <span class="line-number">20</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Secret phrase which is appended to the value to create a checksum hash.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+						
+		</div>
+	</div>
+	
+	<a name="sec-methods"></a>
+	<div class="info-box">
+		<div class="info-box-title">Methods</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+							<a href="#sec-descendents">Descendents</a> |
+															<a href="#sec-var-summary">Vars</a> (<a href="#sec-vars">details</a>)
+																	<a href="#sec-method-summary">Methods</a> (<span class="disabled">details</span>)
+						
+		</div>
+		<div class="info-box-body">
+			<A NAME='method_detail'></A>
+<a name="methodmakesalt" id="makesalt"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method makesalt</span> (line <span class="line-number">96</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Create a random salt</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">string</span>
+		<span class="method-name">
+			makesalt
+		</span>
+					([<span class="var-type"></span>&nbsp;<span class="var-name">$length</span> = <span class="var-default">6</span>], <span class="var-type">int</span>&nbsp;<span class="var-name">$lenght</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">int</span>
+				<span class="var-name">$lenght</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$length</span>			</li>
+				</ul>
+		
+			
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../Crypt/Crypt_System.html#methodmakesalt">Crypt_System::makesalt()</a>
+								: Create a random salt.
+							</li>
+				</ul>
+	</div>
+<a name="methodwith" id="with"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method with</span> (line <span class="line-number">42</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Factory method.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result"><a href="../Crypt/Crypt.html">Crypt</a></span>
+		<span class="method-name">
+			with
+		</span>
+					(<span class="var-type">string|array</span>&nbsp;<span class="var-name">$method</span>, [<span class="var-type">array</span>&nbsp;<span class="var-name">$props</span> = <span class="var-default">array()</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string|array</span>
+				<span class="var-name">$method</span><span class="var-description">: DSN/method (string) or array(method[, arg1, ...])</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$props</span><span class="var-description">: Values for public properties</span>			</li>
+				</ul>
+		
+			
+	</div>
+
+<a name="method__construct" id="__construct"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">Constructor __construct</span> (line <span class="line-number">78</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Class constructor.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">Crypt</span>
+		<span class="method-name">
+			__construct
+		</span>
+				()
+			</div>
+	
+		
+			
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../Crypt/Crypt_System.html#method__construct">Crypt_System::__construct()</a>
+								: Class constructor.
+							</li>
+					<li>
+				<a href="../Crypt/Crypt_CRC32.html#method__construct">Crypt_CRC32::__construct()</a>
+								: Class constructor.
+							</li>
+					<li>
+				<a href="../Crypt/Crypt_MCrypt.html#method__construct">Crypt_MCrypt::__construct()</a>
+								: Class constructor.
+							</li>
+				</ul>
+	</div>
+<a name="methodencrypt" id="encrypt"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">encrypt</span> (line <span class="line-number">87</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Encrypt value.</p>
+	<ul class="tags">
+				<li><span class="field">abstract:</span> </li>
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">string</span>
+		<span class="method-name">
+			encrypt
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$value</span>, [<span class="var-type">string</span>&nbsp;<span class="var-name">$salt</span> = <span class="var-default">null</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$value</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$salt</span><span class="var-description">: Salt or crypted hash</span>			</li>
+				</ul>
+		
+			
+			<hr class="separator" />
+		<div class="notes">Redefined in descendants as:</div>
+		<ul class="redefinitions">
+					<li>
+				<a href="../Crypt/Crypt_MD5.html#methodencrypt">Crypt_MD5::encrypt()</a>
+								: Encrypt value.
+							</li>
+					<li>
+				<a href="../Crypt/Crypt_DoubleMD5.html#methodencrypt">Crypt_DoubleMD5::encrypt()</a>
+								: Encrypt value.
+							</li>
+					<li>
+				<a href="../Crypt/Crypt_System.html#methodencrypt">Crypt_System::encrypt()</a>
+								: Encrypt value
+							</li>
+					<li>
+				<a href="../Crypt/Crypt_CRC32.html#methodencrypt">Crypt_CRC32::encrypt()</a>
+								: Encrypt value.
+							</li>
+					<li>
+				<a href="../Crypt/Crypt_None.html#methodencrypt">Crypt_None::encrypt()</a>
+								: Returns value.
+							</li>
+					<li>
+				<a href="../Crypt/Crypt_MCrypt.html#methodencrypt">Crypt_MCrypt::encrypt()</a>
+								: Encrypt value.
+							</li>
+				</ul>
+	</div>
+						
+		</div>
+	</div>
+
+
+	<p class="notes" id="credit">
+		Documentation generated on Fri, 20 Feb 2009 11:37:05 +0100 by <a href="http://www.phpdoc.org" target="_blank">phpDocumentor 1.4.2</a>
+	</p>
+	</div></body>
+</html>

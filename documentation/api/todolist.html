@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+  <html xmlns="http://www.w3.org/1999/xhtml">
+		<head>
+			<!-- template designed by Marco Von Ballmoos -->
+			<title>Todo List</title>
+			<link rel="stylesheet" href="media/stylesheet.css" />
+			<meta http-equiv='Content-Type' content='text/html; charset=iso-8859-1'/>
+		</head>
+		<body>
+						<div align="center"><h1>Todo List</h1></div>
+<h2>Authenticate</h2>
+<h3><a href="Authenticate/Authenticate.html">Authenticate</a></h3>
+<ul>
+    <li>Implement session expire (not using session lifetime)</li>
+</ul>
+<h2>Connection</h2>
+<h3><a href="Connection/Connection.html#methodisOpen">Connection::isOpen()</a></h3>
+<ul>
+    <li>Find a better way to find out if a connection is closed.</li>
+</ul>
+<h2>DB</h2>
+<h3><a href="DB/DB_MySQL/DB_MySQL.html#var$fieldtypeSizes">DB_MySQL::$fieldtypeSizes</a></h3>
+<ul>
+    <li>Find out max per field type (and apply it)</li>
+</ul>
+<h3><a href="DB/DB_MySQL/DB_MySQL_QuerySplitter.html#methodconvertStatement">DB_MySQL_QuerySplitter::convertStatement()</a></h3>
+<ul>
+    <li>Currently only works for SELECT to DELETE and vise versa</li>
+</ul>
+<h3><a href="DB/DB.html">DB</a></h3>
+<ul>
+    <li>Do the auto:role thing automaticly for all mapping properties.</li>
+    <li>For DB_QueryException: Don't stick query in message, but save in seperate property.</li>
+    <li>Using vars in array for default values should work.</li>
+</ul>
+<h3><a href="DB/DB_MySQL/DB_MySQL_QuerySplitter.html">DB_MySQL_QuerySplitter</a></h3>
+<ul>
+    <li>BUG: addCriteria using column index for column with alias, puts alias in WHERE. (+ make a testcase)</li>
+    <li>It might be possible to use recursion instead of extracting subqueries, using \((?&gt;SELECT\b)(?R)\). For query other that select, I should do (?:^\s++UPDATE ...|(?&lt;!^)\s++SELECT ...) to match SELECT and not UPDATE statement in recursion.</li>
+</ul>
+<h3><a href="DB/DB_Table.html">DB_Table</a></h3>
+<ul>
+    <li>Add factory method</li>
+</ul>
+<h3><a href="DB/DB_Record.html#methoddelete">DB_Record::delete()</a></h3>
+<ul>
+    <li>Current only deletes record in basetable</li>
+</ul>
+<h3><a href="DB/DB_MySQL/DB_MySQL_QuerySplitter.html#methodjoin">DB_MySQL_QuerySplitter::join()</a></h3>
+<ul>
+    <li>Make blind join optional and let $parts also be an object</li>
+</ul>
+<h3><a href="DB/DB_Table.html#methodremapField">DB_Table::remapField()</a></h3>
+<ul>
+    <li>Implement remapField</li>
+</ul>
+<h3><a href="DB/DB_Result.html#methodRemapField">DB_Result::RemapField()</a></h3>
+<ul>
+    <li>Not yet implemented Q\DB_Result::RemapField()</li>
+</ul>
+<h3><a href="DB/DB_Record.html#methodRemapField">DB_Record::RemapField()</a></h3>
+<ul>
+    <li>Not yet implemented Q\DB_Record::RemapField()</li>
+</ul>
+<h3><a href="DB/DB_Record.html#methodsave">DB_Record::save()</a></h3>
+<ul>
+    <li>Get fields from join part of statement instead of useing the foreign_table property</li>
+    <li>Storing child rows in Q\DB_Record::save() is not supported yet</li>
+</ul>
+<h3><a href="DB/DB_Field.html#methodsetProperty">DB_Field::setProperty()</a></h3>
+<ul>
+    <li>If property is a mapping property, it should call parent-&gt;_RemapField()</li>
+</ul>
+<h3><a href="DB/DB_MySQL/DB_MySQL_QuerySplitter.html#methodsplitColumns">DB_MySQL_QuerySplitter::splitColumns()</a></h3>
+<ul>
+    <li>Implemented splitColumns() for INSERT, REPLACE and UPDATE</li>
+    <li>Sets might be parsed in to early. Test this and solve if needed.</li>
+</ul>
+<h3><a href="DB/DB_MySQL/DB_MySQL_QuerySplitter.html#methodsplitTables">DB_MySQL_QuerySplitter::splitTables()</a></h3>
+<ul>
+    <li>Make splitTables work for subqueries</li>
+</ul>
+<h3><a href="DB/DB_Record.html#methodvalidate">DB_Record::validate()</a></h3>
+<ul>
+    <li>Implement validation for Q\DB_Record</li>
+</ul>
+<h2>Log</h2>
+<h3><a href="Log/Log.html">Log</a></h3>
+<ul>
+    <li>Set filters using magic property, just like settings event values.</li>
+</ul>
+<h2>Misc</h2>
+<h3><a href="Misc/_Q---misc.php.html#functionarray_merge_recursive">array_merge_recursive()</a></h3>
+<ul>
+    <li>Remove this, replacing it with the PHP equivelant.</li>
+</ul>
+<h3><a href="Misc/_Q---misc.php.html#functionsplit_set_assoc">split_set_assoc()</a></h3>
+<ul>
+    <li>Combine with split_set</li>
+</ul>
+<h2>PHPParser</h2>
+<h3><a href="PHPParser/PHPParser.html">PHPParser</a></h3>
+<ul>
+    <li>Change to general parse class, that supports syntax Parse::with('php')-&gt;process($file)</li>
+</ul>
+	<p class="notes" id="credit">
+		Documentation generated on Fri, 20 Feb 2009 11:37:17 +0100 by <a href="http://www.phpdoc.org" target="_blank">phpDocumentor 1.4.2</a>
+	</p>
+	</body>
+</html>

@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+  <html xmlns="http://www.w3.org/1999/xhtml">
+		<head>
+			<!-- template designed by Marco Von Ballmoos -->
+			<title>Docs For Class Cache_None</title>
+			<link rel="stylesheet" href="../media/stylesheet.css" />
+			<meta http-equiv='Content-Type' content='text/html; charset=iso-8859-1'/>
+		</head>
+		<body>
+			<div class="page-body">			
+<h2 class="class-name">Class Cache_None</h2>
+
+<a name="sec-description"></a>
+<div class="info-box">
+	<div class="info-box-title">Description</div>
+	<div class="nav-bar">
+					<span class="disabled">Description</span> |
+													<a href="#sec-vars">Vars</a>
+						|											<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+						
+					</div>
+	<div class="info-box-body">
+        		<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Black hole for Cache light weight cache system.</p>
+		<p class="notes">
+			Located in <a class="field" href="_Q---Cache---None.php.html">/Q/Cache/None.php</a> (line <span class="field">11</span>)
+		</p>
+		
+				
+		<pre><a href="../Cache/Cache.html">Cache</a>
+   |
+   --Cache_None</pre>
+	
+			</div>
+</div>
+
+
+
+
+	<a name="sec-method-summary"></a>
+	<div class="info-box">
+		<div class="info-box-title">Method Summary</span></div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+																		<a href="#sec-vars">Vars</a>
+				 
+				|
+						<span class="disabled">Methods</span> (<a href="#sec-methods">details</a>)
+		</div>
+		<div class="info-box-body">			
+			<div class="method-summary">
+																																				
+												<div class="method-definition">
+											<span class="method-result">void</span>
+										<a href="#doClean" title="details" class="method-name">doClean</a>
+											([<span class="var-type">boolean</span>&nbsp;<span class="var-name">$all</span> = <span class="var-default">false</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result">mixed</span>
+										<a href="#doGet" title="details" class="method-name">doGet</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$id</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result">void</span>
+										<a href="#doRemove" title="details" class="method-name">doRemove</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$id</span>)
+									</div>
+																<div class="method-definition">
+											<span class="method-result">void</span>
+										<a href="#doSave" title="details" class="method-name">doSave</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$id</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$data</span>)
+									</div>
+								</div>
+		</div>
+	</div>		
+
+	<a name="sec-vars"></a>
+	<div class="info-box">
+		<div class="info-box-title">Variables</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+										<a href="#sec-var-summary">Vars</a> (<span class="disabled">details</span>)
+						
+			
+										| 
+									<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+							
+					</div>
+		<div class="info-box-body">
+										<h4>Inherited Variables</h4>
+				<A NAME='inherited_vars'><!-- --></A>
+									<p>Inherited from <span class="classname"><a href="../Cache/Cache.html">Cache</a></span></p>
+					<blockquote>
+													<span class="var-title">
+								<span class="var-name"><a href="../Cache/Cache.html#var$cache">Cache::$cache</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../Cache/Cache.html#var$defaultOptions">Cache::$defaultOptions</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../Cache/Cache.html#var$drivers">Cache::$drivers</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../Cache/Cache.html#var$instances">Cache::$instances</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../Cache/Cache.html#var$isSessionHandler">Cache::$isSessionHandler</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../Cache/Cache.html#var$options">Cache::$options</a></span><br>
+							</span>
+											</blockquote> 
+										
+		</div>
+	</div>
+	
+	<a name="sec-methods"></a>
+	<div class="info-box">
+		<div class="info-box-title">Methods</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+															<a href="#sec-vars">Vars</a>
+																	<a href="#sec-method-summary">Methods</a> (<span class="disabled">details</span>)
+						
+		</div>
+		<div class="info-box-body">
+			<A NAME='method_detail'></A>
+
+<a name="methoddoClean" id="doClean"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">doClean</span> (line <span class="line-number">44</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Remove old/all data from cache</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			doClean
+		</span>
+					([<span class="var-type">boolean</span>&nbsp;<span class="var-name">$all</span> = <span class="var-default">false</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">boolean</span>
+				<span class="var-name">$all</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../Cache/Cache.html#methoddoClean">Cache::doClean()</a></dt>
+						<dd>Remove old/all data from cache backend</dd>
+					</dl>
+			
+	</div>
+<a name="methoddoGet" id="doGet"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">doGet</span> (line <span class="line-number">19</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Test if a cache is available and (if yes) return it</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">mixed</span>
+		<span class="method-name">
+			doGet
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$id</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$id</span><span class="var-description">: Cache id</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../Cache/Cache.html#methoddoGet">Cache::doGet()</a></dt>
+						<dd>Test if a cache is available in backend and (if yes) return it.</dd>
+					</dl>
+			
+	</div>
+<a name="methoddoRemove" id="doRemove"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">doRemove</span> (line <span class="line-number">37</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Remove data from cache</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			doRemove
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$id</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$id</span><span class="var-description">: Cache id</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../Cache/Cache.html#methoddoRemove">Cache::doRemove()</a></dt>
+						<dd>Remove data from cache backend</dd>
+					</dl>
+			
+	</div>
+<a name="methoddoSave" id="doSave"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">doSave</span> (line <span class="line-number">30</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Save data into cache</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			doSave
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$id</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$data</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$id</span><span class="var-description">: Cache id</span>			</li>
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$data</span><span class="var-description">: Data to put in the cache</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../Cache/Cache.html#methoddoSave">Cache::doSave()</a></dt>
+						<dd>Save data into cache backend</dd>
+					</dl>
+			
+	</div>
+							<h4>Inherited Methods</h4>
+				<a name='inherited_methods'><!-- --></a>	
+									<!-- =========== Summary =========== -->
+					<p>Inherited From <span class="classname"><a href="../Cache/Cache.html">Cache</a></span></p>
+					<blockquote>
+													<span class="method-name"><a href="../Cache/Cache.html#method__construct">Cache::__construct()</a></span><br>
+													<span class="method-name"><a href="../Cache/Cache.html#methodasSessionHandler">Cache::asSessionHandler()</a></span><br>
+													<span class="method-name"><a href="../Cache/Cache.html#methodclean">Cache::clean()</a></span><br>
+													<span class="method-name"><a href="../Cache/Cache.html#methoddoClean">Cache::doClean()</a></span><br>
+													<span class="method-name"><a href="../Cache/Cache.html#methoddoGet">Cache::doGet()</a></span><br>
+													<span class="method-name"><a href="../Cache/Cache.html#methoddoRemove">Cache::doRemove()</a></span><br>
+													<span class="method-name"><a href="../Cache/Cache.html#methoddoSave">Cache::doSave()</a></span><br>
+													<span class="method-name"><a href="../Cache/Cache.html#methodexists">Cache::exists()</a></span><br>
+													<span class="method-name"><a href="../Cache/Cache.html#methodget">Cache::get()</a></span><br>
+													<span class="method-name"><a href="../Cache/Cache.html#methodremove">Cache::remove()</a></span><br>
+													<span class="method-name"><a href="../Cache/Cache.html#methodsave">Cache::save()</a></span><br>
+													<span class="method-name"><a href="../Cache/Cache.html#methoduseFor">Cache::useFor()</a></span><br>
+													<span class="method-name"><a href="../Cache/Cache.html#methodwith">Cache::with()</a></span><br>
+													<span class="method-name"><a href="../Cache/Cache.html#method__callstatic">Cache::__callstatic()</a></span><br>
+													<span class="method-name"><a href="../Cache/Cache.html#method__destruct">Cache::__destruct()</a></span><br>
+											</blockquote>
+										
+		</div>
+	</div>
+
+
+	<p class="notes" id="credit">
+		Documentation generated on Fri, 20 Feb 2009 11:37:12 +0100 by <a href="http://www.phpdoc.org" target="_blank">phpDocumentor 1.4.2</a>
+	</p>
+	</div></body>
+</html>

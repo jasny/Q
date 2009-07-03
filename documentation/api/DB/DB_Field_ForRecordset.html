@@ -1,0 +1,420 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+  <html xmlns="http://www.w3.org/1999/xhtml">
+		<head>
+			<!-- template designed by Marco Von Ballmoos -->
+			<title>Docs For Class DB_Field_ForRecordset</title>
+			<link rel="stylesheet" href="../media/stylesheet.css" />
+			<meta http-equiv='Content-Type' content='text/html; charset=iso-8859-1'/>
+		</head>
+		<body>
+			<div class="page-body">			
+<h2 class="class-name">Class DB_Field_ForRecordset</h2>
+
+<a name="sec-description"></a>
+<div class="info-box">
+	<div class="info-box-title">Description</div>
+	<div class="nav-bar">
+					<span class="disabled">Description</span> |
+													<a href="#sec-vars">Vars</a>
+						|											<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+						
+											<a href="#sec-consts">Constants</a>
+						
+			</div>
+	<div class="info-box-body">
+        		<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Field to hold a child record.</p>
+		<p class="notes">
+			Located in <a class="field" href="_Q---DB---Field---ForRecordset.php.html">/Q/DB/Field/ForRecordset.php</a> (line <span class="field">11</span>)
+		</p>
+		
+				
+		<pre><a href="../DB/DB_Field.html">DB_Field</a>
+   |
+   --DB_Field_ForRecordset</pre>
+	
+			</div>
+</div>
+
+
+
+
+	<a name="sec-method-summary"></a>
+	<div class="info-box">
+		<div class="info-box-title">Method Summary</span></div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+															<a href="#sec-consts">Constants</a>
+							
+															<a href="#sec-vars">Vars</a>
+				 
+				|
+						<span class="disabled">Methods</span> (<a href="#sec-methods">details</a>)
+		</div>
+		<div class="info-box-body">			
+			<div class="method-summary">
+																																																				
+												<div class="method-definition">
+											<span class="method-result">DB_Field_ForRecordset</span>
+										<a href="#__construct" title="details" class="method-name">__construct</a>
+											(<span class="var-type">mixed</span>&nbsp;<span class="var-name">$parent</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$properties</span>, [<span class="var-type">mixed</span>&nbsp;<span class="var-name">$value</span> = <span class="var-default">null</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result"><a href="../DB/DB_Field.html">DB_Field</a></span>
+										<a href="#asActive" title="details" class="method-name">asActive</a>
+											(<span class="var-type">mixed</span>&nbsp;<span class="var-name">$value</span>, [<span class="var-type"><a href="../DB/DB_Record.html">DB_Record</a></span>&nbsp;<span class="var-name">$parent</span> = <span class="var-default">null</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result">DB_Field_ForRecord_Value</span>
+										<a href="#getORMValue" title="details" class="method-name">getORMValue</a>
+										()
+									</div>
+																<div class="method-definition">
+											<span class="method-result">array</span>
+										<a href="#getValue" title="details" class="method-name">getValue</a>
+										()
+									</div>
+																<div class="method-definition">
+											<span class="method-result">array</span>
+										<a href="#getValueForStore" title="details" class="method-name">getValueForStore</a>
+										()
+									</div>
+																<div class="method-definition">
+											<span class="method-result">void</span>
+										<a href="#setValue" title="details" class="method-name">setValue</a>
+											(<span class="var-type">mixed</span>&nbsp;<span class="var-name">$value</span>)
+									</div>
+								</div>
+		</div>
+	</div>		
+
+	<a name="sec-vars"></a>
+	<div class="info-box">
+		<div class="info-box-title">Variables</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+										<a href="#sec-var-summary">Vars</a> (<span class="disabled">details</span>)
+						
+			
+												<a href="#sec-consts">Constants</a>
+							
+										| 
+									<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+							
+					</div>
+		<div class="info-box-body">
+										<h4>Inherited Variables</h4>
+				<A NAME='inherited_vars'><!-- --></A>
+									<p>Inherited from <span class="classname"><a href="../DB/DB_Field.html">DB_Field</a></span></p>
+					<blockquote>
+													<span class="var-title">
+								<span class="var-name"><a href="../DB/DB_Field.html#var$link">DB_Field::$link</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../DB/DB_Field.html#var$mode">DB_Field::$mode</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../DB/DB_Field.html#var$originalValue">DB_Field::$originalValue</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../DB/DB_Field.html#var$parent">DB_Field::$parent</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../DB/DB_Field.html#var$properties">DB_Field::$properties</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../DB/DB_Field.html#var$protectedProperties">DB_Field::$protectedProperties</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../DB/DB_Field.html#var$value">DB_Field::$value</a></span><br>
+							</span>
+											</blockquote> 
+										
+		</div>
+	</div>
+	
+	<a name="sec-methods"></a>
+	<div class="info-box">
+		<div class="info-box-title">Methods</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+															<a href="#sec-vars">Vars</a>
+																			<a href="#sec-consts">Constants</a>
+							
+										<a href="#sec-method-summary">Methods</a> (<span class="disabled">details</span>)
+						
+		</div>
+		<div class="info-box-body">
+			<A NAME='method_detail'></A>
+
+<a name="method__construct" id="__construct"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">Constructor __construct</span> (line <span class="line-number">20</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Class constructor</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">DB_Field_ForRecordset</span>
+		<span class="method-name">
+			__construct
+		</span>
+					(<span class="var-type">mixed</span>&nbsp;<span class="var-name">$parent</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$properties</span>, [<span class="var-type">mixed</span>&nbsp;<span class="var-name">$value</span> = <span class="var-default">null</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$parent</span><span class="var-description">: Parent record (Q\DB_Record), parent table (Q\DB_Record) or Database connection (Q\DB)</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$properties</span><span class="var-description">: Field properties (can be passed as reference)</span>			</li>
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$value</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../DB/DB_Field.html#method__construct">DB_Field::__construct()</a></dt>
+						<dd>Class constructor</dd>
+					</dl>
+			
+	</div>
+<a name="methodasActive" id="asActive"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">asActive</span> (line <span class="line-number">34</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Create an active field based on this field definition.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result"><a href="../DB/DB_Field.html">DB_Field</a></span>
+		<span class="method-name">
+			asActive
+		</span>
+					(<span class="var-type">mixed</span>&nbsp;<span class="var-name">$value</span>, [<span class="var-type"><a href="../DB/DB_Record.html">DB_Record</a></span>&nbsp;<span class="var-name">$parent</span> = <span class="var-default">null</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$value</span>			</li>
+					<li>
+				<span class="var-type">Q\DB_Record</span>
+				<span class="var-name">$parent</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../DB/DB_Field.html#methodasActive">DB_Field::asActive()</a></dt>
+						<dd>Create an active field based on this field definition.</dd>
+					</dl>
+			
+	</div>
+<a name="methodgetORMValue" id="getORMValue"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">getORMValue</span> (line <span class="line-number">78</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Get the child records.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">DB_Field_ForRecord_Value</span>
+		<span class="method-name">
+			getORMValue
+		</span>
+				()
+			</div>
+	
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../DB/DB_Field.html#methodgetORMValue">DB_Field::getORMValue()</a></dt>
+						<dd>Get the value as given by active record.</dd>
+					</dl>
+			
+	</div>
+<a name="methodgetValue" id="getValue"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">getValue</span> (line <span class="line-number">50</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Get the values.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			getValue
+		</span>
+				()
+			</div>
+	
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../DB/DB_Field.html#methodgetValue">DB_Field::getValue()</a></dt>
+						<dd>Get the value.</dd>
+					</dl>
+			
+	</div>
+<a name="methodgetValueForStore" id="getValueForStore"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">getValueForStore</span> (line <span class="line-number">64</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Get the values to update a record.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			getValueForStore
+		</span>
+				()
+			</div>
+	
+		
+			
+	</div>
+<a name="methodsetValue" id="setValue"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">setValue</span> (line <span class="line-number">89</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Set the value</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			setValue
+		</span>
+					(<span class="var-type">mixed</span>&nbsp;<span class="var-name">$value</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$value</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../DB/DB_Field.html#methodsetValue">DB_Field::setValue()</a></dt>
+						<dd>Set the value</dd>
+					</dl>
+			
+	</div>
+							<h4>Inherited Methods</h4>
+				<a name='inherited_methods'><!-- --></a>	
+									<!-- =========== Summary =========== -->
+					<p>Inherited From <span class="classname"><a href="../DB/DB_Field.html">DB_Field</a></span></p>
+					<blockquote>
+													<span class="method-name"><a href="../DB/DB_Field.html#method__construct">DB_Field::__construct()</a></span><br>
+													<span class="method-name"><a href="../DB/DB_Field.html#methodasActive">DB_Field::asActive()</a></span><br>
+													<span class="method-name"><a href="../DB/DB_Field.html#methodasNewActive">DB_Field::asNewActive()</a></span><br>
+													<span class="method-name"><a href="../DB/DB_Field.html#methodcastValue">DB_Field::castValue()</a></span><br>
+													<span class="method-name"><a href="../DB/DB_Field.html#methodcreate">DB_Field::create()</a></span><br>
+													<span class="method-name"><a href="../DB/DB_Field.html#methodcryptValue">DB_Field::cryptValue()</a></span><br>
+													<span class="method-name"><a href="../DB/DB_Field.html#methodgetBubbleSave">DB_Field::getBubbleSave()</a></span><br>
+													<span class="method-name"><a href="../DB/DB_Field.html#methodgetDatatype">DB_Field::getDatatype()</a></span><br>
+													<span class="method-name"><a href="../DB/DB_Field.html#methodgetDBName">DB_Field::getDBName()</a></span><br>
+													<span class="method-name"><a href="../DB/DB_Field.html#methodgetFullname">DB_Field::getFullname()</a></span><br>
+													<span class="method-name"><a href="../DB/DB_Field.html#methodgetLink">DB_Field::getLink()</a></span><br>
+													<span class="method-name"><a href="../DB/DB_Field.html#methodgetMode">DB_Field::getMode()</a></span><br>
+													<span class="method-name"><a href="../DB/DB_Field.html#methodgetName">DB_Field::getName()</a></span><br>
+													<span class="method-name"><a href="../DB/DB_Field.html#methodgetORMValue">DB_Field::getORMValue()</a></span><br>
+													<span class="method-name"><a href="../DB/DB_Field.html#methodgetProperties">DB_Field::getProperties()</a></span><br>
+													<span class="method-name"><a href="../DB/DB_Field.html#methodgetProperty">DB_Field::getProperty()</a></span><br>
+													<span class="method-name"><a href="../DB/DB_Field.html#methodgetValue">DB_Field::getValue()</a></span><br>
+													<span class="method-name"><a href="../DB/DB_Field.html#methodgetValueForSave">DB_Field::getValueForSave()</a></span><br>
+													<span class="method-name"><a href="../DB/DB_Field.html#methodhasCanged">DB_Field::hasCanged()</a></span><br>
+													<span class="method-name"><a href="../DB/DB_Field.html#methodisCrypted">DB_Field::isCrypted()</a></span><br>
+													<span class="method-name"><a href="../DB/DB_Field.html#methodoffsetExists">DB_Field::offsetExists()</a></span><br>
+													<span class="method-name"><a href="../DB/DB_Field.html#methodoffsetGet">DB_Field::offsetGet()</a></span><br>
+													<span class="method-name"><a href="../DB/DB_Field.html#methodoffsetSet">DB_Field::offsetSet()</a></span><br>
+													<span class="method-name"><a href="../DB/DB_Field.html#methodoffsetUnset">DB_Field::offsetUnset()</a></span><br>
+													<span class="method-name"><a href="../DB/DB_Field.html#methodsetProperty">DB_Field::setProperty()</a></span><br>
+													<span class="method-name"><a href="../DB/DB_Field.html#methodsetValue">DB_Field::setValue()</a></span><br>
+											</blockquote>
+										
+		</div>
+	</div>
+
+	<a name="sec-consts"></a>
+	<div class="info-box">
+		<div class="info-box-title">Class Constants</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+										<a href="#sec-var-summary">Constants</a> (<span class="disabled">details</span>)
+						
+			
+												<a href="#sec-vars">Vars</a>
+														| 
+									<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+							
+					</div>
+		<div class="info-box-body">
+										<h4>Inherited Constants</h4>
+				<A NAME='inherited_vars'><!-- --></A>
+									<p>Inherited from <span class="classname"><a href="../DB/DB_Field.html">DB_Field</a></span></p>
+					<blockquote>
+													<img src="../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../DB/DB_Field.html#constMODE_ACTIVE">DB_Field::MODE_ACTIVE</a></span><br>
+							</span>
+													<img src="../media/images/Variable.png" />
+							<span class="const-title">
+								<span class="const-name"><a href="../DB/DB_Field.html#constMODE_DEFINITION">DB_Field::MODE_DEFINITION</a></span><br>
+							</span>
+											</blockquote> 
+										
+		</div>
+	</div>
+
+	<p class="notes" id="credit">
+		Documentation generated on Fri, 20 Feb 2009 11:37:08 +0100 by <a href="http://www.phpdoc.org" target="_blank">phpDocumentor 1.4.2</a>
+	</p>
+	</div></body>
+</html>

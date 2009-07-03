@@ -1,0 +1,1024 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+  <html xmlns="http://www.w3.org/1999/xhtml">
+		<head>
+			<!-- template designed by Marco Von Ballmoos -->
+			<title>Docs For Class HTTP</title>
+			<link rel="stylesheet" href="../media/stylesheet.css" />
+			<meta http-equiv='Content-Type' content='text/html; charset=iso-8859-1'/>
+		</head>
+		<body>
+			<div class="page-body">			
+<h2 class="class-name">Class HTTP</h2>
+
+<a name="sec-description"></a>
+<div class="info-box">
+	<div class="info-box-title">Description</div>
+	<div class="nav-bar">
+					<span class="disabled">Description</span> |
+													<a href="#sec-var-summary">Vars</a> (<a href="#sec-vars">details</a>)
+						|											<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+						
+											<a href="#sec-const-summary">Constants</a> (<a href="#sec-consts">details</a>)
+						
+			</div>
+	<div class="info-box-body">
+        		<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Yet another static class with HTTP functions.</p>
+<p class="description"><p></p></p>
+		<p class="notes">
+			Located in <a class="field" href="_Q---HTTP.php.html">/Q/HTTP.php</a> (line <span class="field">10</span>)
+		</p>
+		
+				
+		<pre></pre>
+	
+			</div>
+</div>
+
+
+	<a name="sec-const-summary"></a>
+	<div class="info-box">
+		<div class="info-box-title">Class Constant Summary</span></div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+						<span class="disabled">Constants</span> (<a href="#sec-consts">details</a>)
+												<a href="#sec-var-summary">Vars</a> (<a href="#sec-vars">details</a>)
+				 
+				|
+										| 
+									<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+							
+					</div>
+		<div class="info-box-body">
+			<div class="const-summary">
+								<div class="const-title">
+					<img src="../media/images/Constant.png" alt=" " />
+					<a href="#FORWARDED" title="details" class="const-name">FORWARDED</a> = 					<span class="var-type"> true</span>
+
+				</div>
+								<div class="const-title">
+					<img src="../media/images/Constant.png" alt=" " />
+					<a href="#NOT_FORWARDED" title="details" class="const-name">NOT_FORWARDED</a> = 					<span class="var-type"> false</span>
+
+				</div>
+							</div>
+		</div>
+	</div>
+
+	<a name="sec-var-summary"></a>
+	<div class="info-box">
+		<div class="info-box-title">Variable Summary</span></div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+						<span class="disabled">Vars</span> (<a href="#sec-vars">details</a>)
+							| 
+									<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+							
+															<a href="#sec-const-summary">Constants</a> (<a href="#sec-consts">details</a>)
+							
+					</div>
+		<div class="info-box-body">
+			<div class="var-summary">
+												<div class="var-title">
+					static <span class="var-type">int</span>
+					<a href="#$default_cache_time" title="details" class="var-name">$default_cache_time</a>
+				</div>
+																<div class="var-title">
+					static <span class="var-type">array</span>
+					<a href="#$http_status_codes" title="details" class="var-name">$http_status_codes</a>
+				</div>
+																<div class="var-title">
+					static <span class="var-type">array</span>
+					<a href="#$index_of_headers" title="details" class="var-name">$index_of_headers</a>
+				</div>
+																<div class="var-title">
+					static <span class="var-type">array</span>
+					<a href="#$list_of_headers" title="details" class="var-name">$list_of_headers</a>
+				</div>
+																<div class="var-title">
+					static <span class="var-type">mixed</span>
+					<a href="#$rewrite_vars" title="details" class="var-name">$rewrite_vars</a>
+				</div>
+																																																							</div>
+		</div>
+	</div>
+
+	<a name="sec-method-summary"></a>
+	<div class="info-box">
+		<div class="info-box-title">Method Summary</span></div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+															<a href="#sec-const-summary">Constants</a> (<a href="#sec-consts">details</a>)
+							
+															<a href="#sec-var-summary">Vars</a> (<a href="#sec-vars">details</a>)
+				 
+				|
+						<span class="disabled">Methods</span> (<a href="#sec-methods">details</a>)
+		</div>
+		<div class="info-box-body">			
+			<div class="method-summary">
+												<div class="method-definition">
+					static 						<span class="method-result">boolean</span>
+										<a href="#clearHeaders" title="details" class="method-name">clearHeaders</a>
+										()
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">string</span>
+										<a href="#clientHostname" title="details" class="method-name">clientHostname</a>
+											([<span class="var-type">boolean</span>&nbsp;<span class="var-name">$forwarded</span> = <span class="var-default">self::FORWARDED</span>])
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">string</span>
+										<a href="#clientIP" title="details" class="method-name">clientIP</a>
+											([<span class="var-type">boolean</span>&nbsp;<span class="var-name">$forwarded</span> = <span class="var-default">self::FORWARDED</span>])
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">string</span>
+										<a href="#clientRoute" title="details" class="method-name">clientRoute</a>
+										()
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">void</span>
+										<a href="#forceCache" title="details" class="method-name">forceCache</a>
+											([<span class="var-type">string|int</span>&nbsp;<span class="var-name">$expires</span> = <span class="var-default">null</span>], [<span class="var-type">string|int</span>&nbsp;<span class="var-name">$modified</span> = <span class="var-default">null</span>])
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">void</span>
+										<a href="#header" title="details" class="method-name">header</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$string</span>, [<span class="var-type">boolean</span>&nbsp;<span class="var-name">$replace</span> = <span class="var-default">true</span>], [<span class="var-type">int</span>&nbsp;<span class="var-name">$http_response_code</span> = <span class="var-default">null</span>])
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">void</span>
+										<a href="#headersDownload" title="details" class="method-name">headersDownload</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$filename</span>, [<span class="var-type">int</span>&nbsp;<span class="var-name">$filesize</span> = <span class="var-default">null</span>], [<span class="var-type">string|int</span>&nbsp;<span class="var-name">$modified</span> = <span class="var-default">null</span>])
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">array</span>
+										<a href="#headers_list" title="details" class="method-name">headers_list</a>
+										()
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">boolean</span>
+										<a href="#headers_sendable" title="details" class="method-name">headers_sendable</a>
+										()
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">boolean</span>
+										<a href="#headers_sent" title="details" class="method-name">headers_sent</a>
+											(<span class="var-type"></span>&nbsp;<span class="var-name">&$file</span>, <span class="var-type"></span>&nbsp;<span class="var-name">&$line</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$file</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$line</span>)
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">string|array</span>
+										<a href="#header_get" title="details" class="method-name">header_get</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$type</span>)
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">string|array</span>
+										<a href="#header_getValue" title="details" class="method-name">header_getValue</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$type</span>)
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">bool</span>
+										<a href="#inShellMode" title="details" class="method-name">inShellMode</a>
+										()
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">void</span>
+										<a href="#noCache" title="details" class="method-name">noCache</a>
+										()
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">void</span>
+										<a href="#output_add_rewrite_var" title="details" class="method-name">output_add_rewrite_var</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$name</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$value</span>)
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">array</span>
+										<a href="#output_get_rewrite_vars" title="details" class="method-name">output_get_rewrite_vars</a>
+										()
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">void</span>
+										<a href="#output_reset_rewrite_vars" title="details" class="method-name">output_reset_rewrite_vars</a>
+										()
+									</div>
+																								<div class="method-definition">
+					static 						<span class="method-result">void</span>
+										<a href="#response" title="details" class="method-name">response</a>
+											(<span class="var-type">int</span>&nbsp;<span class="var-name">$code</span>, [<span class="var-type">string</span>&nbsp;<span class="var-name">$msg</span> = <span class="var-default">null</span>])
+									</div>
+																<div class="method-definition">
+					static 						<span class="method-result">array</span>
+										<a href="#scriptArgs" title="details" class="method-name">scriptArgs</a>
+										()
+									</div>
+								
+																																																																																																																																																				<div class="method-definition">
+											<span class="method-result">boolean</span>
+										<a href="#redirect" title="details" class="method-name">redirect</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$url</span>, [<span class="var-type">bool</span>&nbsp;<span class="var-name">$exit</span> = <span class="var-default">true</span>], [<span class="var-type">mixed</span>&nbsp;<span class="var-name">$output</span> = <span class="var-default">true</span>])
+									</div>
+																								</div>
+		</div>
+	</div>		
+
+	<a name="sec-vars"></a>
+	<div class="info-box">
+		<div class="info-box-title">Variables</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+										<a href="#sec-var-summary">Vars</a> (<span class="disabled">details</span>)
+						
+			
+												<a href="#sec-const-summary">Constants</a> (<a href="#sec-consts">details</a>)
+							
+										| 
+									<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+							
+					</div>
+		<div class="info-box-body">
+			<a name="var$default_cache_time" id="$default_cache_time"><!-- --></A>
+<div class="oddrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			static <span class="var-type">int</span>
+			<span class="var-name">$default_cache_time</span>
+			 = <span class="var-default"> 300</span>			(line <span class="line-number">86</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Default time for cache to expire (in seconds)</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+<a name="var$http_status_codes" id="$http_status_codes"><!-- --></A>
+<div class="evenrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			static <span class="var-type">array</span>
+			<span class="var-name">$http_status_codes</span>
+			 = <span class="var-default">array(<br />		100 =&gt; 'Continue',<br />		101 =&gt; 'Switching Protocols',<br />		102 =&gt; 'Processing',<br />		122 =&gt; 'Request-URI too long',<br /><br />		200 =&gt; 'OK',<br />		201 =&gt; 'Created',<br />		202 =&gt; 'Accepted',<br />		203 =&gt; 'Non-Authoritative Information',<br />		204 =&gt; 'No Content',<br />		205 =&gt; 'Reset Content',<br />		206 =&gt; 'Partial Content',<br />		207 =&gt; 'Multi-Status',<br /><br />		300 =&gt; 'Multiple Choices',<br />		301 =&gt; 'Moved Permanently',<br />		302 =&gt; 'Found',<br />		303 =&gt; 'See Other',<br />		304 =&gt; 'Not Modified',<br />		305 =&gt; 'Use Proxy',<br />		307 =&gt; 'Temporary Redirect',<br /><br />		400 =&gt; 'Bad Request',<br />		401 =&gt; 'Unauthorized',<br />		403 =&gt; 'Forbidden',<br />		404 =&gt; 'Not Found',<br />		405 =&gt; 'Method Not Allowed',<br />		406 =&gt; 'Not Acceptable',<br />		407 =&gt; 'Proxy Authentication Required',<br />		408 =&gt; 'Request Timeout',<br />		409 =&gt; 'Conflict',<br />		410 =&gt; 'Gone',<br />		411 =&gt; 'Length Required',<br />		412 =&gt; 'Precondition Failed',<br />		413 =&gt; 'Request Entity Too Large',<br />		414 =&gt; 'Request-URI Too Long',<br />		415 =&gt; 'Unsupported Media Type',<br />		416 =&gt; 'Requested Range Not Satisfiable',<br />		417 =&gt; 'Expectation Failed',<br />		418 =&gt; 'I\'m a teapot',<br />		422 =&gt; 'Unprocessable Entity',<br />		423 =&gt; 'Locked',<br />		424 =&gt; 'Failed Dependency',<br />		425 =&gt; 'Unordered Collection',<br />		426 =&gt; 'Upgrade Required',<br />		449 =&gt; 'Retry With',<br />		450 =&gt; 'Blocked',<br /><br />		500 =&gt; 'Internal Server Error',<br />		501 =&gt; 'Not Implemented',<br />		502 =&gt; 'Bad Gateway',<br />		503 =&gt; 'Service Unavailable',<br />		504 =&gt; 'Gateway Timeout',<br />		505 =&gt; 'HTTP Version Not Supported',<br />		506 =&gt; 'Variant Also Negotiates', <br />		507 =&gt; 'Insufficient Storage',<br />		509 =&gt; 'Bandwidth Limit Exceeded',<br />		510 =&gt; 'Not Extended'<br />	)</span>			(line <span class="line-number">21</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Known HTTP codes</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+<a name="var$index_of_headers" id="$index_of_headers"><!-- --></A>
+<div class="oddrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			static <span class="var-type">array</span>
+			<span class="var-name">$index_of_headers</span>
+			 = <span class="var-default">array()</span>			(line <span class="line-number">98</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">An index for the list of headers</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+<a name="var$list_of_headers" id="$list_of_headers"><!-- --></A>
+<div class="evenrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			static <span class="var-type">array</span>
+			<span class="var-name">$list_of_headers</span>
+			 = <span class="var-default">array()</span>			(line <span class="line-number">92</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">A list of all headers (created through this interface)</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+<a name="var$rewrite_vars" id="$rewrite_vars"><!-- --></A>
+<div class="oddrow">
+
+	<div class="var-header">
+		<span class="var-title">
+			static <span class="var-type">mixed</span>
+			<span class="var-name">$rewrite_vars</span>
+			 = <span class="var-default">array()</span>			(line <span class="line-number">103</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">A list of all rewrite_vars (created through this interface)</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	
+		
+		
+
+</div>
+						
+		</div>
+	</div>
+	
+	<a name="sec-methods"></a>
+	<div class="info-box">
+		<div class="info-box-title">Methods</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+															<a href="#sec-var-summary">Vars</a> (<a href="#sec-vars">details</a>)
+																			<a href="#sec-const-summary">Constants</a> (<a href="#sec-consts">details</a>)
+							
+										<a href="#sec-method-summary">Methods</a> (<span class="disabled">details</span>)
+						
+		</div>
+		<div class="info-box-body">
+			<A NAME='method_detail'></A>
+<a name="methodclearHeaders" id="clearHeaders"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method clearHeaders</span> (line <span class="line-number">228</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Clear the cached headers, only works in CLI mode</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">boolean</span>
+		<span class="method-name">
+			clearHeaders
+		</span>
+				()
+			</div>
+	
+		
+			
+	</div>
+<a name="methodclientHostname" id="clientHostname"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method clientHostname</span> (line <span class="line-number">409</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Return the client hostname.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">string</span>
+		<span class="method-name">
+			clientHostname
+		</span>
+					([<span class="var-type">boolean</span>&nbsp;<span class="var-name">$forwarded</span> = <span class="var-default">self::FORWARDED</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">boolean</span>
+				<span class="var-name">$forwarded</span><span class="var-description">: Use X-Forwarded-For</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodclientIP" id="clientIP"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method clientIP</span> (line <span class="line-number">396</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Return the client IP.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">string</span>
+		<span class="method-name">
+			clientIP
+		</span>
+					([<span class="var-type">boolean</span>&nbsp;<span class="var-name">$forwarded</span> = <span class="var-default">self::FORWARDED</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">boolean</span>
+				<span class="var-name">$forwarded</span><span class="var-description">: Use X-Forwarded-For</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodclientRoute" id="clientRoute"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method clientRoute</span> (line <span class="line-number">421</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Return the client and proxy IPs.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">string</span>
+		<span class="method-name">
+			clientRoute
+		</span>
+				()
+			</div>
+	
+		
+			
+	</div>
+<a name="methodforceCache" id="forceCache"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method forceCache</span> (line <span class="line-number">322</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Output headers to make sure the request is cached by browser.</p>
+<p class="description"><p>Be careful with using this in a production enviroment, since users can get stuck with an old version of the page.</p></p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">void</span>
+		<span class="method-name">
+			forceCache
+		</span>
+					([<span class="var-type">string|int</span>&nbsp;<span class="var-name">$expires</span> = <span class="var-default">null</span>], [<span class="var-type">string|int</span>&nbsp;<span class="var-name">$modified</span> = <span class="var-default">null</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string|int</span>
+				<span class="var-name">$expires</span><span class="var-description">: Expires header as ISO date(string) or timestamp</span>			</li>
+					<li>
+				<span class="var-type">string|int</span>
+				<span class="var-name">$modified</span><span class="var-description">: Last-modified header as ISO date(string) or timestamp</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodheader" id="header"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method header</span> (line <span class="line-number">126</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Send a raw HTTP header.</p>
+<p class="description"><p>Same as header() function but stores headers in this class, so they can be used even in CLI mode.</p></p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">void</span>
+		<span class="method-name">
+			header
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$string</span>, [<span class="var-type">boolean</span>&nbsp;<span class="var-name">$replace</span> = <span class="var-default">true</span>], [<span class="var-type">int</span>&nbsp;<span class="var-name">$http_response_code</span> = <span class="var-default">null</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$string</span><span class="var-description">: The header string</span>			</li>
+					<li>
+				<span class="var-type">boolean</span>
+				<span class="var-name">$replace</span><span class="var-description">: Replace existing header or allow multiple headers of the same type</span>			</li>
+					<li>
+				<span class="var-type">int</span>
+				<span class="var-name">$http_response_code</span><span class="var-description">: Forces the HTTP response code to the specified value</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodheadersDownload" id="headersDownload"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method headersDownload</span> (line <span class="line-number">287</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Output headers to force the client to download the file</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">void</span>
+		<span class="method-name">
+			headersDownload
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$filename</span>, [<span class="var-type">int</span>&nbsp;<span class="var-name">$filesize</span> = <span class="var-default">null</span>], [<span class="var-type">string|int</span>&nbsp;<span class="var-name">$modified</span> = <span class="var-default">null</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$filename</span>			</li>
+					<li>
+				<span class="var-type">int</span>
+				<span class="var-name">$filesize</span><span class="var-description">: Leave NULL to use filesize(), set to FALSE not to include content-length info</span>			</li>
+					<li>
+				<span class="var-type">string|int</span>
+				<span class="var-name">$modified</span><span class="var-description">: Last-modified header as ISO date(string) or timestamp</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodheaders_list" id="headers_list"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method headers_list</span> (line <span class="line-number">153</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Returns a list of response headers sent (or ready to send).</p>
+<p class="description"><p>Will also work in CLI mode (only with headers set using this interface)</p></p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">array</span>
+		<span class="method-name">
+			headers_list
+		</span>
+				()
+			</div>
+	
+		
+			
+	</div>
+<a name="methodheaders_sendable" id="headers_sendable"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method headers_sendable</span> (line <span class="line-number">218</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Check if it is possible to send headers in general, becasically check that we aren't running in shell mode.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">boolean</span>
+		<span class="method-name">
+			headers_sendable
+		</span>
+				()
+			</div>
+	
+		
+			
+	</div>
+<a name="methodheaders_sent" id="headers_sent"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method headers_sent</span> (line <span class="line-number">208</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Checks if or where headers have been sent.</p>
+<p class="description"><p>If the optional file and line parameters are set, headers_sent() will put the PHP source file name and line number where output started in the file and line variables.</p></p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">boolean</span>
+		<span class="method-name">
+			headers_sent
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">&$file</span>, <span class="var-type"></span>&nbsp;<span class="var-name">&$line</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$file</span>, <span class="var-type">string</span>&nbsp;<span class="var-name">$line</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$file</span><span class="var-description">: The file where the output started</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$line</span><span class="var-description">: The line where the output started</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">&$file</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">&$line</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodheader_get" id="header_get"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method header_get</span> (line <span class="line-number">165</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Returns a specific response headers sent (or ready to send).</p>
+<p class="description"><p>Will return an array if there are multiple headers.</p></p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">string|array</span>
+		<span class="method-name">
+			header_get
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$type</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$type</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodheader_getValue" id="header_getValue"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method header_getValue</span> (line <span class="line-number">189</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Returns the value of a specific response headers sent (or ready to send).</p>
+<p class="description"><p>Will return an array if there are multiple headers.</p></p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">string|array</span>
+		<span class="method-name">
+			header_getValue
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$type</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$type</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodinShellMode" id="inShellMode"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method inShellMode</span> (line <span class="line-number">112</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Check if this script run in shell (and not in webserver).</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">bool</span>
+		<span class="method-name">
+			inShellMode
+		</span>
+				()
+			</div>
+	
+		
+			
+	</div>
+<a name="methodnoCache" id="noCache"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method noCache</span> (line <span class="line-number">309</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Output headers to make sure the request isn't cached by browser</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">void</span>
+		<span class="method-name">
+			noCache
+		</span>
+				()
+			</div>
+	
+		
+			
+	</div>
+<a name="methodoutput_add_rewrite_var" id="output_add_rewrite_var"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method output_add_rewrite_var</span> (line <span class="line-number">345</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">This function adds another name/value pair to the URL rewrite mechanism.</p>
+<p class="description"><p>The name and value will be added to URLs (as GET parameter) and forms (as hidden input fields) the same way as  the session ID when transparent URL rewriting is enabled with session.use_trans_sid.</p></p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">void</span>
+		<span class="method-name">
+			output_add_rewrite_var
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$name</span>, <span class="var-type">mixed</span>&nbsp;<span class="var-name">$value</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$name</span>			</li>
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$value</span><span class="var-description">: Also allows array</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodoutput_get_rewrite_vars" id="output_get_rewrite_vars"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method output_get_rewrite_vars</span> (line <span class="line-number">382</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Return a list of rewrite vars.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">array</span>
+		<span class="method-name">
+			output_get_rewrite_vars
+		</span>
+				()
+			</div>
+	
+		
+			
+	</div>
+<a name="methodoutput_reset_rewrite_vars" id="output_reset_rewrite_vars"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method output_reset_rewrite_vars</span> (line <span class="line-number">371</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">This function resets the URL rewriter and removes all rewrite variables previously set by the output_add_rewrite_var() function or the session mechanism.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">void</span>
+		<span class="method-name">
+			output_reset_rewrite_vars
+		</span>
+				()
+			</div>
+	
+		
+			
+	</div>
+<a name="methodresponse" id="response"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method response</span> (line <span class="line-number">244</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Send an HTTP header with a responce code.</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">void</span>
+		<span class="method-name">
+			response
+		</span>
+					(<span class="var-type">int</span>&nbsp;<span class="var-name">$code</span>, [<span class="var-type">string</span>&nbsp;<span class="var-name">$msg</span> = <span class="var-default">null</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">int</span>
+				<span class="var-name">$code</span>			</li>
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$msg</span><span class="var-description">: Alternative HTTP responce message (use not not recommended)</span>			</li>
+				</ul>
+		
+			
+	</div>
+<a name="methodscriptArgs" id="scriptArgs"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method scriptArgs</span> (line <span class="line-number">432</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Get arguments passed to the script as script.php/arg1/arg2/...</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result">array</span>
+		<span class="method-name">
+			scriptArgs
+		</span>
+				()
+			</div>
+	
+		
+			
+	</div>
+
+<a name="methodredirect" id="redirect"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">redirect</span> (line <span class="line-number">262</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Redirect client to other URL.</p>
+<p class="description"><p>This is done by issuing a &quot;Location&quot; header and exiting if wanted.</p><p>Returns true on succes (or exits) or false if headers have already been sent.  Will append output rewrite vars.</p></p>
+	
+	<div class="method-signature">
+		<span class="method-result">boolean</span>
+		<span class="method-name">
+			redirect
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$url</span>, [<span class="var-type">bool</span>&nbsp;<span class="var-name">$exit</span> = <span class="var-default">true</span>], [<span class="var-type">mixed</span>&nbsp;<span class="var-name">$output</span> = <span class="var-default">true</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$url</span><span class="var-description">: URL where the redirect should go to.</span>			</li>
+					<li>
+				<span class="var-type">bool</span>
+				<span class="var-name">$exit</span><span class="var-description">: Whether to exit immediately after redirection.</span>			</li>
+					<li>
+				<span class="var-type">mixed</span>
+				<span class="var-name">$output</span><span class="var-description">: Wheter to output a hypertext note where we're redirecting to, boolean or string for custom message.</span>			</li>
+				</ul>
+		
+			
+	</div>
+						
+		</div>
+	</div>
+
+	<a name="sec-consts"></a>
+	<div class="info-box">
+		<div class="info-box-title">Class Constants</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+										<a href="#sec-var-summary">Constants</a> (<span class="disabled">details</span>)
+						
+			
+												<a href="#sec-var-summary">Vars</a> (<a href="#sec-vars">details</a>)
+														| 
+									<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+							
+					</div>
+		<div class="info-box-body">
+			<a name="constFORWARDED" id="FORWARDED"><!-- --></A>
+<div class="evenrow">
+
+	<div class="const-header">
+		<img src="../media/images/Variable.png" />
+		<span class="const-title">
+			<span class="const-name">FORWARDED</span>
+			 = <span class="const-default"> true</span>
+			(line <span class="line-number">13</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Allow forwared IPs</p>
+	
+	
+</div>
+<a name="constNOT_FORWARDED" id="NOT_FORWARDED"><!-- --></A>
+<div class="oddrow">
+
+	<div class="const-header">
+		<img src="../media/images/Variable.png" />
+		<span class="const-title">
+			<span class="const-name">NOT_FORWARDED</span>
+			 = <span class="const-default"> false</span>
+			(line <span class="line-number">15</span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Do not allow forwared IPs</p>
+	
+	
+</div>
+						
+		</div>
+	</div>
+
+	<p class="notes" id="credit">
+		Documentation generated on Fri, 20 Feb 2009 11:37:08 +0100 by <a href="http://www.phpdoc.org" target="_blank">phpDocumentor 1.4.2</a>
+	</p>
+	</div></body>
+</html>
