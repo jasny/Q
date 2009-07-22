@@ -193,4 +193,3 @@ class Log_Mail extends Log
 	}
 }
 
-?>

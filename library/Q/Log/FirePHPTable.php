@@ -115,4 +115,3 @@ class Log_FirePHPTable extends Log_FirePHP
 	}
 }
 
-?>

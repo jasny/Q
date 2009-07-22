@@ -10,4 +10,3 @@ class SecurityException extends Exception
 {
 }
 
-?>

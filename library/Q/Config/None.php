@@ -22,4 +22,3 @@ class Config_None extends Config
 	}
 }
 
-?>

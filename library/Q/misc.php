@@ -106,7 +106,7 @@ function split_set($string, $seperator=";", $unquote=true)
 	
 	$matches = null;
 	$seperator = str_replace('\\.\\.', '-', preg_quote($seperator));
-	preg_match_all('/(?:(?>`[^`]*`)|(?>"(?:\\\\"|[^"])*")|(?>\'(?:\\\\\'|[^\'])*\')|\((?:(?R)|[' . $seperator . '])*\)|(?>[^`"\'()' . $seperator . ']+))+/', $string, $matches);
+	preg_match_all('/(?:(`[^`]*`)|("(?:\\\\"|[^"])*")|(\'(?:\\\\\'|[^\'])*\')|\((?:(?R)|[' . $seperator . '])*\)|([^`"\'()' . $seperator . ']+))+/', $string, $matches);
 	
 	$parts = array_map('trim', $matches[0]);
 	if (!$unquote) return $parts;
@@ -137,7 +137,7 @@ function split_set_assoc($string, $seperator=";", $unquote=true)
 	$str = "";
 	$values = array();
 	
-	preg_match_all('/(?:([^' . $seperator . '=]+)\s*\=)?((?:(?>`[^`]*`)|(?>"(?:\\\\"|[^"])*")|(?>\'(?:\\\\\'|[^\'])*\')|\((?:(?R)|[' . $seperator . '])*\)|(?>[^`"\'()' . $seperator . ']+))+)/', $string, $matches, PREG_SET_ORDER);
+	preg_match_all('/(?:([^' . $seperator . '=]+)\s*\=)?((?:(`[^`]*`)|("(?:\\\\"|[^"])*")|(\'(?:\\\\\'|[^\'])*\')|\((?:(?R)|[' . $seperator . '])*\)|([^`"\'()' . $seperator . ']+))+)/', $string, $matches, PREG_SET_ORDER);
 	
 	foreach ($matches as $match) {
 	    if (empty($match[1])) {
@@ -506,4 +506,3 @@ function serialize_trace($trace, $unset_first=0)
 	}
 	return join("\n", $messages);
 }
-?>

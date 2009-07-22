@@ -105,4 +105,3 @@ class Log_Zend implements Log_Handler
 	}
 }
 
-?>

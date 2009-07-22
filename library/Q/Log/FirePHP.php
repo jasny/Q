@@ -420,4 +420,3 @@ class Log_FirePHP extends Log
     }
 }
 
-?>

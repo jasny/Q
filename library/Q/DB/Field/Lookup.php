@@ -91,4 +91,3 @@ class DB_Field_Lookup extends DB_Field
 	}
 }
 
-?>

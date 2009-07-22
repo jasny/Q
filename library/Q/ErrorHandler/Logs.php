@@ -211,4 +211,3 @@ class ErrorHandler_Logs implements \IteratorAggregate, \ArrayAccess, \Countable
 	    return key($this->logs) === null;
 	}	
 }
-?>

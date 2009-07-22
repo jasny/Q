@@ -59,4 +59,3 @@ class Log_Text extends Log
     }
 }
 
-?>

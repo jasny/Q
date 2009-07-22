@@ -109,4 +109,3 @@ class Crypt_System extends Crypt
 	}
 }
 
-?>

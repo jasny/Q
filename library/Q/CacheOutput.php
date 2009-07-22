@@ -71,4 +71,3 @@ class CacheOutput
 if ($_SERVER['REQUEST_METHOD'] == 'GET' && class_exists('Q\Config') && Config::i()->exists() && ($dsn = Config::i()->get('cacheoutput'))) {
     CacheOutput::with($dsn);
 }
-?>

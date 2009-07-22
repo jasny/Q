@@ -150,4 +150,3 @@ class DB_Field_ForRecordset_Value extends \ArrayObject
     }
 }
 
-?>

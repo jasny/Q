@@ -13,24 +13,27 @@ abstract class DB_Result
 {
 	/**
 	 * Database connection
-	 *
 	 * @var DB
 	 */
 	protected $link;
 
 	/**
 	 * The native result object or resource
-	 *
 	 * @var object|result
 	 */
 	protected $native;
 
 	/**
 	 * The query statement which created this result
-	 *
 	 * @var string
 	 */
 	protected $statement;
+	
+	/**
+	 * Default fetch mode
+	 * @var int
+	 */
+	protected $fetchMode=self::FETCH_ASSOC;
 	
 	
 	/**
@@ -123,11 +126,11 @@ abstract class DB_Result
 	/**
 	 * Set the factory name for the record
 	 * 
-	 * @param string $type
+	 * @param string $class
 	 */
-	public function setRecordType($type)
+	public function setRecordType($class)
 	{
-		return $this->recordtype = $type;
+		return $this->recordtype = $class;
 	}
 		
 	/**
@@ -137,7 +140,11 @@ abstract class DB_Result
 	 */
 	public function getRecordType()
 	{
-		return !isset($this->recordtype) ? $this->getBaseTable()->getRecordType() : $this->recordtype;
+		if (!isset($this->recordtype)) {
+			$bt = $this->getBaseTable();
+			$this->recordtype = $bt ? $bt->getRecordType() : 'Q/DB_Record';
+		}
+		return $this->recordtype;
 	}
 		
 	
@@ -357,6 +364,8 @@ abstract class DB_Result
 
 	/**
 	 * Return array(fields, fieldindex, fieldnames, tablerefs)
+	 * 
+	 * @return array
 	 */
     public function getInternalInfo()
     {
@@ -396,8 +405,9 @@ abstract class DB_Result
 	 * @param int $resulttype  A DB::FETCH_% constant
 	 * @return array
 	 */
-	public function fetch($resulttype=DB::FETCH_ORDERED)
+	public function fetch($resulttype=0)
 	{
+		if ($resulttype & 0xFF == 0) $resulttype |= $this->fetchMode; 
 	    $opt = $resulttype & ~0xFF;
 	    
 		switch ($resulttype & 0xFF) {
@@ -420,7 +430,7 @@ abstract class DB_Result
 	 * @param int $resulttype
 	 * @return array
 	 */
-	final public function fetchRow($resulttype=DB::FETCH_ORDERED)
+	final public function fetchRow($resulttype=0)
 	{
 		return $this->fetch($resulttype);
 	}
@@ -552,37 +562,52 @@ abstract class DB_Result
 	 * @param int   $resulttype  A DB::FETCH_% constant
 	 * @return array
 	 */
-	abstract public function seekRows($column, $value, $resulttype=DB::FETCH_ORDERED);
+	abstract public function seekRows($column, $value, $resulttype=0);
 	
 	
 	/**
 	 * Returns all values from a single column.
 	 * 
 	 * @param mixed $column  Field name(string) or index(int)
+	 * @param mixed $key_col Field to use as associated key
 	 * @param int   $opt     Additional options as binary list
 	 * @return array
 	 */
-	public function fetchColumn($column=0, $opt=0)
+	public function fetchColumn($column=0, $key_col=null, $opt=0)
 	{
 	    $values = null;
-	    $key_field = $this->getFieldIndex('result:key');
+	    if (!isset($key_col)) $key_col = $this->getFieldIndex('result:key');
 		
-		if (isset($key_field)) while (($row = $this->fetchFullArray($opt))) $values[$row[$key_field]] = $row[$column];
-		  else while (($row = $this->fetchFullArray($opt))) $values[$column] = $row;
+		if (isset($key_col)) while (($row = $this->fetchFullArray($opt))) $values[$row[$key_col]] = $row[$column];
+		  else while (($row = $this->fetchFullArray($opt))) $values[] = $row[$column];
 	    
 		$this->resetPointer();
-		return $rows;
+		return $values;
 	}
 
+	/**
+	 * Alias of Q\DB_Result::fetchColumn().
+	 * 
+	 * @param mixed $column  Field name(string) or index(int)
+	 * @param mixed $key_col Field to use as associated key
+	 * @param int   $opt     Additional options as binary list
+	 * @return array
+	 */
+	final public function fetchCol($column, $key_col, $opt)
+	{
+		return $this->fetchColumn($column, $key_col, $opt);
+	}
+	
 	/**
 	 * Returns the values of all rows.
 	 * 
 	 * @param int $resulttype A DB::FETCH_% constant
 	 * @return array
 	 */
-	public function fetchAll($resulttype=DB::FETCH_ORDERED)
+	public function fetchAll($resulttype=0)
 	{
-	    $opt = $resulttype & ~0xFF;
+		if ($resulttype & 0xFF == 0) $resulttype |= $this->fetchMode; 
+		$opt = $resulttype & ~0xFF;
 	    $rows = array();
 	    
 		switch ($resulttype & 0xFF) {
@@ -605,16 +630,15 @@ abstract class DB_Result
 	/**
 	 * Don't call this unless you are a field and a mapping property changed.
 	 * 
-	 * @param Q\DB_Field $field
+	 * @param Q\DB_Field  $field
 	 * @param string      $prop   Property name
 	 * @param string      $value  Property value
 	 * 
-	 * @todo Not yet implemented Q\DB_Result::RemapField()
+	 * @todo Not yet implemented Q\DB_Result::remapField()
 	 */
-	public function RemapField($fieldname, $prop, $value)
+	public function remapField($fieldname, $prop, $value)
 	{
 	    
 	}
 }
 
-?>

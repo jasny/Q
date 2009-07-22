@@ -67,4 +67,3 @@ class Cache_APC extends Cache
 		}
 	}
 }
-?>

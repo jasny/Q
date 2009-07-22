@@ -2,7 +2,7 @@
 namespace Q;
 
 require_once 'Q/DB.php';
-require_once 'Q/DB/MySQL/QuerySplitter.php';
+require_once 'Q/DB/MySQL/SQLSplitter.php';
 require_once 'Q/DB/SQLStatement.php';
 
 require_once 'Q/DB/MySQL/Result.php';
@@ -26,7 +26,7 @@ class DB_MySQL extends DB
 	 * @var string
 	 */
 	public static $classes = array( 
-	    'QuerySplitter'=>'Q\DB_MySQL_QuerySplitter',
+	    'SQLSplitter'=>'Q\DB_MySQL_SQLSplitter',
 	    'Statement'=>'Q\DB_SQLStatement',
 		'Result'=>'Q\DB_MySQL_Result',
 		'Result_Tree'=>'Q\DB_MySQL_Result_Tree',
@@ -87,10 +87,10 @@ class DB_MySQL extends DB
 	protected $native;
 
 	/**
-	 * A querysplitter object, holding functions to split a query.
-	 * @var DB_MySQL_QuerySplitter
+	 * An sqlSplitter object, holding functions to split a query statement.
+	 * @var DB_MySQL_SQLSplitter
 	 */
-	public $querySplitter;
+	public $sqlSplitter;
 
 	/**
 	 * Cached results: The primary keys per table
@@ -168,7 +168,7 @@ class DB_MySQL extends DB
 	/**
 	 * Close the db connection
 	 */
-	public function close()
+	public function closeConnection()
 	{
 		@$this->native->close();
 	}
@@ -184,8 +184,8 @@ class DB_MySQL extends DB
 	{
 		parent::__construct($native, $settings);
 		
-		$class = self::$classes['QuerySplitter'];
-		$this->querySplitter = new $class();
+		$class = self::$classes['SQLSplitter'];
+		$this->sqlSplitter = new $class();
 
 		if (isset($this->log)) $this->log->write(array('statement'=>"Connected to {$settings['host']}.", (isset($settings['database']) ? "Using database '{$settings['database']}'." : '')), 'db-connect');
 	}
@@ -249,6 +249,16 @@ class DB_MySQL extends DB
 		return $result;
 	}
 	
+	
+	/**
+	 * Retrieve the version of the DB server
+	 * @return string
+	 */
+	public function getServerVersion()
+	{
+		$this->native->server_info;
+	}
+	
 	/**
 	 * Get the database (schema) name.
 	 * 
@@ -286,7 +296,7 @@ class DB_MySQL extends DB
 	 */
 	public function getFieldNames($table)
 	{
-		$result = $this->nativeQuery('SHOW FIELDS FROM ' . $this->querySplitter->quoteIdentifier($table));
+		$result = $this->nativeQuery('SHOW FIELDS FROM ' . $this->sqlSplitter->quoteIdentifier($table));
 		if (!$result) throw new DB_QueryException("Show fields query for table '$table' failed: " . $this->native->error);
 		if ($result->num_rows == 0) return null;
 		
@@ -303,7 +313,7 @@ class DB_MySQL extends DB
 	 */
 	public function getTableInfo($table)
 	{
-		$result = $this->nativeQuery('SHOW TABLE STATUS LIKE ' . $this->querySplitter->quote($table));
+		$result = $this->nativeQuery('SHOW TABLE STATUS LIKE ' . $this->sqlSplitter->quote($table));
 		if (!$result) throw new DB_QueryException("Show table status query for table '$table' failed: " . $this->native->error);
 		if ($result->num_rows == 0) return null;
 		
@@ -319,7 +329,7 @@ class DB_MySQL extends DB
 	protected function fetchMetaData($table)
 	{
 	    // Get table information (only stuff that doesn't change on data change)
-		$result = $this->nativeQuery('SHOW TABLE STATUS LIKE ' . $this->querySplitter->quote($table));
+		$result = $this->nativeQuery('SHOW TABLE STATUS LIKE ' . $this->sqlSplitter->quote($table));
 		if (!$result) throw new DB_QueryException("Show table status query for table '$table' failed: " . $this->native->error);
 		if ($result->num_rows == 0) return null;
 		
@@ -332,7 +342,7 @@ class DB_MySQL extends DB
 		$tbl_props['collation'] = $row['Collation'];
 		
 		// Get basic field information using 'show fields' command
-		$result = $this->nativeQuery('SHOW FIELDS FROM ' . $this->querySplitter->quoteIdentifier($table));
+		$result = $this->nativeQuery('SHOW FIELDS FROM ' . $this->sqlSplitter->quoteIdentifier($table));
 		if (!$result) throw new DB_QueryException("Show fields query for table '$table' failed: " . $this->native->error);
 		
 		$properties = array();
@@ -372,9 +382,9 @@ class DB_MySQL extends DB
 		
 		// Get foreign key information using the information_schema (MySQL 5.0+ only)
 		if ($this->native->server_version >= 50000) {
-			list($db_name, $table_name) = $this->querySplitter->splitIdentifier($table);
+			list($db_name, $table_name) = $this->sqlSplitter->splitIdentifier($table);
 			
-			$result = $this->nativeQuery('SELECT `COLUMN_NAME`, IF(`REFERENCED_TABLE_SCHEMA` = DATABASE(), `REFERENCED_TABLE_NAME`, CONCAT(`REFERENCED_TABLE_SCHEMA`, ".", `REFERENCED_TABLE_NAME`)), `REFERENCED_COLUMN_NAME` FROM `INFORMATION_SCHEMA`.`KEY_COLUMN_USAGE` WHERE `TABLE_SCHEMA` = ' . (isset($db_name) ? $this->querySplitter->quote($db_name) : 'DATABASE()') . ' AND `TABLE_NAME` = ' . $this->querySplitter->quote($table_name) . ' AND `REFERENCED_COLUMN_NAME` IS NOT NULL');
+			$result = $this->nativeQuery('SELECT `COLUMN_NAME`, IF(`REFERENCED_TABLE_SCHEMA` = DATABASE(), `REFERENCED_TABLE_NAME`, CONCAT(`REFERENCED_TABLE_SCHEMA`, ".", `REFERENCED_TABLE_NAME`)), `REFERENCED_COLUMN_NAME` FROM `INFORMATION_SCHEMA`.`KEY_COLUMN_USAGE` WHERE `TABLE_SCHEMA` = ' . (isset($db_name) ? $this->sqlSplitter->quote($db_name) : 'DATABASE()') . ' AND `TABLE_NAME` = ' . $this->sqlSplitter->quote($table_name) . ' AND `REFERENCED_COLUMN_NAME` IS NOT NULL');
 			if (!$result) throw new DB_QueryException("Query in INFORMATION_SCHEMA.CONSTRAINTS for table '$table' failed: " . $this->error);
 			while(($row = $result->fetch_row())) {
 				$properties[$row[0]]['datatype'] = 'lookupkey';
@@ -405,7 +415,7 @@ class DB_MySQL extends DB
 		$key = ($autoIncrementOnly ? '+!!' : '') . $table;
 		
 		if (!array_key_exists($key, $this->primaryKeys)) {
-			$result = $this->nativeQuery('SHOW FIELDS FROM ' . $this->querySplitter->quoteIdentifier($table) . ' WHERE `key` = "PRI"' . ($autoIncrementOnly ? ' AND `extra`="auto_increment"' : ''));
+			$result = $this->nativeQuery('SHOW FIELDS FROM ' . $this->sqlSplitter->quoteIdentifier($table) . ' WHERE `key` = "PRI"' . ($autoIncrementOnly ? ' AND `extra`="auto_increment"' : ''));
 			if (!$result) throw new DB_QueryException("Show fields query for table '$table' failed: " . $this->native->error);
 
 			$this->primaryKeys[$key] = null;
@@ -419,7 +429,7 @@ class DB_MySQL extends DB
 		if (!$asIdentifier || empty($this->primaryKeys[$key])) return $this->primaryKeys[$key];
     
 		$fields = array();
-		foreach ((array)$this->primaryKeys[$key] as $field) $fields[] = $this->querySplitter->makeIdentifier($table, $field);
+		foreach ((array)$this->primaryKeys[$key] as $field) $fields[] = $this->sqlSplitter->makeIdentifier($table, $field);
 		
 		return $fields;
 	}
@@ -447,7 +457,7 @@ class DB_MySQL extends DB
 	 */
 	public function quote($value, $type=null, $empty='NULL')
 	{
-		return $this->querySplitter->quote($value, $empty);
+		return $this->sqlSplitter->quote($value, $empty);
 	}
 	
 	/**
@@ -461,7 +471,7 @@ class DB_MySQL extends DB
 	 */
 	public function quoteIdentifier($identifier)
 	{
-	    return $this->querySplitter->quoteIdentifier($identifier);
+	    return $this->sqlSplitter->quoteIdentifier($identifier);
 	}
 		
 	/**
@@ -474,7 +484,7 @@ class DB_MySQL extends DB
 	 */
 	public function validIdentifier($name, $withgroup=null, $withalias=false)
 	{	
-		return $this->querySplitter->validIdentifier($name, $withgroup, $withalias);
+		return $this->sqlSplitter->validIdentifier($name, $withgroup, $withalias);
 	}
 
 	/**
@@ -485,7 +495,7 @@ class DB_MySQL extends DB
 	 */
 	public function splitIdentifier($name)
 	{
-		return $this->querySplitter->splitIdentifier($name);
+		return $this->sqlSplitter->splitIdentifier($name);
 	}
 	
 	/**
@@ -498,7 +508,7 @@ class DB_MySQL extends DB
 	 */
 	public function makeIdentifier($group, $name, $alias=null)
 	{
-		return $this->querySplitter->makeIdentifier($group, $name, $alias);
+		return $this->sqlSplitter->makeIdentifier($group, $name, $alias);
 	}
 	
 	/**
@@ -510,7 +520,7 @@ class DB_MySQL extends DB
 	 */
 	public function parse($statement, $args)
 	{
-		return $this->querySplitter->parse($statement, $args);
+		return $this->sqlSplitter->parse($statement, $args);
 	}	
 	
 	/**
@@ -544,7 +554,7 @@ class DB_MySQL extends DB
 	 * @param string $where     Additional criteria as string
 	 * @return DB_SQLStatement
 	 */
-	public function prepareSelect($table, $fields=null, $criteria=null, $where=null)
+	public function prepareSelect($table=null, $fields=null, $criteria=null, $where=null)
 	{
 		$parent = $table instanceof DB_Table && $table->getLink() === $this ? $table : $this;
 		if ($table instanceof DB_Table) $table = $table->getTableName(); 
@@ -574,7 +584,7 @@ class DB_MySQL extends DB
 		}
 		
 		$class = self::$classes['Statement'];
-		return new $class($parent, $this->querySplitter->buildSelectStatement($table, $fields, $criteria, $where));
+		return new $class($parent, $this->sqlSplitter->buildSelectStatement($table, $fields, $criteria, $where));
 	}
 	
 	/**
@@ -587,7 +597,7 @@ class DB_MySQL extends DB
 	 * 
 	 * @throws Q\DB_Constraint_Exception when no rows are given.
 	 */
-	public function prepareStore($table, $values)
+	public function prepareStore($table=null, $values=null)
 	{
 		$parent = $table instanceof DB_Table && $table->getLink() === $this ? $table : $this;
 		if ($table instanceof DB_Table) $table = $table->getTableName(); 
@@ -615,7 +625,7 @@ class DB_MySQL extends DB
 		if ($fieldnames === null) $fieldnames = $this->getFieldNames($table);
 
 		$class = self::$classes['Statement'];
-		return new $class($parent, $this->querySplitter->buildStoreStatement($table, $pk, $fieldnames, $rows));
+		return new $class($parent, $this->sqlSplitter->buildStoreStatement($table, $pk, $fieldnames, $rows));
 	}
 	
 	/**
@@ -626,7 +636,7 @@ class DB_MySQL extends DB
 	 * @param array  $values  Assasioted array as (fielname=>value, ...) or ordered array (value, ...) with 1 value for each field
 	 * @return DB_SQLStatement
 	 */
-	public function prepareUpdate($table, $id, $values)
+	public function prepareUpdate($table=null, $id=null, $values=null)
 	{
 		$parent = $table instanceof DB_Table && $table->getLink() === $this ? $table : $this;
 		if ($table instanceof DB_Table) $table = $table->getTableName(); 
@@ -643,7 +653,7 @@ class DB_MySQL extends DB
 		}
 	    
 		$class = self::$classes['Statement'];
-		return new $class($parent, $this->querySplitter->buildUpdateStatement($table, $id, $values));
+		return new $class($parent, $this->sqlSplitter->buildUpdateStatement($table, $id, $values));
 	}
 
 	/**
@@ -653,13 +663,13 @@ class DB_MySQL extends DB
 	 * @param mixed  $id     The value for a primairy (or as array(value, ..) if multiple key fields) or array(field=>value, ...)
 	 * @return DB_SQLStatement
 	 */
-	public function prepareDelete($table, $id)
+	public function prepareDelete($table=null, $id=null)
 	{
 		$parent = $table instanceof DB_Table && $table->getLink() === $this ? $table : $this;
 		if ($table instanceof DB_Table) $table = $table->getTableName(); 
 
 		if (is_object($id) && !empty($id->{'#truncate'})) {
-		    $statement = $this->querySplitter->buildTruncateStatement($table);
+		    $statement = $this->sqlSplitter->buildTruncateStatement($table);
 		} else { 
             if (!is_array($id) || !is_string(key($id))) {
                 $id = (array)$id;
@@ -667,11 +677,36 @@ class DB_MySQL extends DB
                 if (count($id) != count($pk)) throw new Exception("Unable to create delete statement. Specified " . count($id) . " value(s) for primary key, while it consists of " . count($keys) . " field(s).");
                 $id = array_combine($pk, $id);
             }
-            $statement = $this->querySplitter->buildDeleteStatement($table, $id);
+            $statement = $this->sqlSplitter->buildDeleteStatement($table, $id);
 	    }
 		
 	    $class = self::$classes['Statement'];
 	    return new $class($parent, $statement);
+	}
+	
+	
+	/**
+	 * Start database transaction.
+	 */
+	public function beginTransaction()
+	{
+		$this->nativeQuery("START TRANSACTION");
+	}
+
+	/**
+	 * Commit changes made in the current transaction.
+	 */
+	public function commit()
+	{
+		$this->nativeQuery("COMMIT");
+	}
+
+	/**
+	 * Discard changes made in the current transaction.
+	 */
+	public function rollBack()
+	{
+		$this->nativeQuery("ROLLBACK");
 	}
 	
 	
@@ -699,11 +734,11 @@ class DB_MySQL extends DB
 		if (!empty($args)) $statement = $this->parse($statement, $args);
 		
 		// Extract (child) subqueries for cascading data
-		$tree = $this->querySplitter->extractTree($statement);
+		$tree = $this->sqlSplitter->extractTree($statement);
 
 		// Execute query statement
 		$result = $this->nativeQuery($tree[0]);
-		if (!$result) throw new DB_QueryException("Query failed: " . $this->native->error . "\nQuery: {$tree[0]}");
+		if (!$result) throw new DB_QueryException($this->native->error, $tree[0]);
 		
 		// Return value if query did not return a mysql_result object
 		if (!is_object($result)) return $this->native->insert_id ? $this->native->insert_id : $result;
@@ -717,6 +752,7 @@ class DB_MySQL extends DB
 		    }
 		}
 		
+		echo $class, "\n";
 		$ob = new $class(isset($source) ? $source : $this, $result, $statement);
 		
 		// If statement has any childqueries, create tree result
@@ -759,11 +795,11 @@ class DB_MySQL extends DB
 		$where = array();
 		$keys = is_array($id) && is_string(key($id)) ? array_keys($id) : (array)$this->getPrimaryKey($table);
 		$values = is_array($id) ? array_values($id) : array($id);
-		foreach ($keys as $i=>$key) $where[] = $this->querySplitter->quoteIdentifier($key) . ' = ' . $this->querySplitter->quote($values[$i]);
+		foreach ($keys as $i=>$key) $where[] = $this->sqlSplitter->quoteIdentifier($key) . ' = ' . $this->sqlSplitter->quote($values[$i]);
 
 		if ($fieldname{0} === '#') $fieldname = $this->getFieldProperty(array($table, $fieldname), 'name_db');
 
-		$statement = "SELECT $fieldname FROM " . $this->querySplitter->quoteIdentifier($table) . " WHERE " . join(' AND ', $where);
+		$statement = "SELECT $fieldname FROM " . $this->sqlSplitter->quoteIdentifier($table) . " WHERE " . join(' AND ', $where);
 		$result = $this->nativeQuery($statement);
 		
 		if (!$result) throw new DB_QueryException("Select on table `$table` failed: " . $this->native->error . "\nQuery: $statement");
@@ -787,10 +823,10 @@ class DB_MySQL extends DB
 			$where = array();
 			$keys = is_array($criteria) && is_string(key($criteria)) ? array_keys($criteria) : (array)$this->getPrimaryKey($table);
 			$values = is_array($criteria) ? array_values($criteria) : array($criteria);
-			foreach ($keys as $i=>$key) $where[] = $this->querySplitter->quoteIdentifier($key) . ' = ' . $this->querySplitter->quote($values[$i]);
+			foreach ($keys as $i=>$key) $where[] = $this->sqlSplitter->quoteIdentifier($key) . ' = ' . $this->sqlSplitter->quote($values[$i]);
 		}
 
-		$statement = "SELECT COUNT(*) FROM " . $this->querySplitter->quoteIdentifier($table) . (isset($where) ? " WHERE " . join(' AND ', $where) : "");
+		$statement = "SELECT COUNT(*) FROM " . $this->sqlSplitter->quoteIdentifier($table) . (isset($where) ? " WHERE " . join(' AND ', $where) : "");
 		
 		$result = $this->nativeQuery($statement);
 		if (!$result) throw new DB_QueryException("Select on table `$table` failed: " . $this->native->error . "\nQuery: $statement");
@@ -824,7 +860,7 @@ class DB_MySQL extends DB
     			$criteria = array_combine($keys, $criteria);
     		}
     		
-    		$statement = $this->querySplitter->buildSelectStatement($table, '*', $criteria);
+    		$statement = $this->sqlSplitter->buildSelectStatement($table, '*', $criteria);
 		}
 
         if ($resulttype == DB::FETCH_ORDERED || $resulttype == DB::FETCH_ASSOC || $resulttype == DB::FETCH_OBJECT || $resulttype == DB::FETCH_FULLARRAY) {
@@ -848,4 +884,3 @@ class DB_MySQL extends DB
 }
 
 if (class_exists('Q\ClassConfig')) ClassConfig::extractBin('Q\DB_MySQL');
-?>

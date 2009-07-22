@@ -98,4 +98,3 @@ class Config_Yaml extends Config_Files
         return preg_replace(array('/\n{3,}/', '/\n\n$/'), array("\n\n", "\n"), $yaml);
     }	
 }
-?>

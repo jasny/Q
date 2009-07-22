@@ -28,4 +28,3 @@ interface Log_Handler
 	public function setFilter($type, $action=LOG::FILTER_INCLUDE);
 }
 
-?>

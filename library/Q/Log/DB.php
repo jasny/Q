@@ -75,4 +75,3 @@ class Log_DB extends Log
 	}
 }
 
-?>

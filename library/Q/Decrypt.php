@@ -16,4 +16,3 @@ interface Decrypt
 	 */
     public function decrypt($value);
 }
-?>

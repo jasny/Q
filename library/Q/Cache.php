@@ -12,7 +12,7 @@ abstract class Cache
 {
 	/**
 	 * Registered instances
-	 * @var Q\Cache[]
+	 * @var Cache[]
 	 */
 	static protected $instances = array();
 	
@@ -210,12 +210,13 @@ abstract class Cache
 	/**
 	 * Remove data from cache
 	 * 
-	 * @param string $id  Cache id
+	 * @param string  $id       Cache id
+	 * @param boolean $cascade  Also remove from next in chain
 	 */
-	public function remove($id)
+	public function remove($id, $cascade=true)
 	{
 	    $this->doRemove($id);
-	    if (isset($this->chainNext)) $this->chainNext->remove($data);
+	    if ($cascade && isset($this->chainNext)) $this->chainNext->remove($id);
 	}
 	
 	/**
@@ -317,12 +318,12 @@ class Cache_Mock
      *
      * @param string $key
      * 
-     * @throws Q\Exception because this means that the instance is used, but does not exist.  
+     * @throws Exception because this means that the instance is used, but does not exist.  
      */
     public function __get($key)
     {
         $name = $this->_name;
-        if (Cache::$name()->exists()) trigger_error("Illigal of mock object 'Q\Cache::{$this->_name}()'.", E_USER_ERROR);
+        if (Cache::$name()->exists()) trigger_error("Illigal use of mock object 'Q\Cache::{$this->_name}()'.", E_USER_ERROR);
         throw new Exception("Cache interface '{$this->_name}' does not exist.");
     }
 
@@ -332,12 +333,12 @@ class Cache_Mock
      * @param string $key
      * @param mixed  $value
      * 
-     * @throws Q\Exception because this means that the instance is used, but does not exist.  
+     * @throws Exception because this means that the instance is used, but does not exist.  
      */
     public function __set($key, $value)
     {
         $name = $this->_name;
-        if (Cache::$name()->exists()) trigger_error("Illigal of mock object 'Q\Cache::{$this->_name}()'.", E_USER_ERROR);
+        if (Cache::$name()->exists()) trigger_error("Illigal use of mock object 'Q\Cache::{$this->_name}()'.", E_USER_ERROR);
         throw new Exception("Cache interface '{$this->_name}' does not exist.");
     }
     
@@ -347,16 +348,14 @@ class Cache_Mock
      * @param string $name
      * @param array  $args
      * 
-     * @throws Q\Exception because this means that the instance is used, but does not exist.  
+     * @throws Exception because this means that the instance is used, but does not exist.  
      */
     public function __call($function, $args)
     {
         $name = $this->_name;
-        if (Cache::$name()->exists()) trigger_error("Illigal of mock object 'Q\Cache::{$this->_name}()'.", E_USER_ERROR);
+        if (Cache::$name()->exists()) trigger_error("Illigal use of mock object 'Q\Cache::{$this->_name}()'.", E_USER_ERROR);
         throw new Exception("Cache interface '{$this->_name}' does not exist.");
     }
 }
 
 if (class_exists('Q\ClassConfig', false)) ClassConfig::applyToClass('Q\Cache');
-
-?>

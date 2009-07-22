@@ -615,4 +615,3 @@ class DB_Table implements \ArrayAccess
 	}
 }
 
-?>

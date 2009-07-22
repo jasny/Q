@@ -243,4 +243,3 @@ class Log_EventValues implements \Iterator, \ArrayAccess, \Countable
 
 Log_EventValues::initVars();
 
-?>

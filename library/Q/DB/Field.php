@@ -492,4 +492,3 @@ class DB_Field implements \ArrayAccess
 	}
 }
 
-?>

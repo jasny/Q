@@ -52,4 +52,3 @@ class Cache_Var extends Cache
 		if ($all) $this->cache = array();
 	}
 }
-?>

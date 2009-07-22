@@ -71,4 +71,3 @@ class Crypt_MCrypt extends Crypt implements Decrypt
     }
 }
 
-?>

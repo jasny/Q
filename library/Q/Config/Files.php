@@ -124,4 +124,3 @@ abstract class Config_Files extends Config
 	}
 }
 
-?>

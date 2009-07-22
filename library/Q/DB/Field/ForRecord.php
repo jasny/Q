@@ -91,4 +91,3 @@ class DB_Field_ForRecord extends DB_Field
 	}
 }
 
-?>

@@ -157,4 +157,3 @@ class Log_Container extends Log implements IteratorAggregate, ArrayAccess, Count
 	}
 }
 
-?>

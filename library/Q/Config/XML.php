@@ -142,4 +142,3 @@ class Config_XML extends Config_Files
         return $node->$item;
     }
 }
-?>

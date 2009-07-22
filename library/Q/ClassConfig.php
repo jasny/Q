@@ -57,7 +57,7 @@ class ClassConfig implements \ArrayAccess
 	    if (class_exists($class, false)) throw new Exception("Can't use class config for '$class': Class is already loaded.");
 		
 	    if (!isset(self::$_instances[$class])) self::$_instances[$class] = new self();
-        return self::$_instances[$key];		
+        return self::$_instances[$class];		
 	}
 	
 	/**
@@ -200,4 +200,3 @@ class ClassConfig implements \ArrayAccess
 	}
 }
 
-?>

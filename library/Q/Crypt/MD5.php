@@ -34,4 +34,3 @@ class Crypt_MD5 extends Crypt
 	}
 }
 
-?>

@@ -23,4 +23,3 @@ class Crypt_None extends Crypt
 	}
 }
 
-?>

@@ -245,4 +245,3 @@ class DB_MySQL_Result_NestedSet extends DB_MySQL_Result_Tree
 	}	
 }
 
-?>

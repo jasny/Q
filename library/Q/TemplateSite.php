@@ -184,4 +184,3 @@ class TemplateSite
 
 if (class_exists('Q\ClassConfig', false)) ClassConfig::applyToClass('Q\SiteTemplate');
 
-?>

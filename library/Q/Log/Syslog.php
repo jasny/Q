@@ -52,4 +52,3 @@ class Log_Sapi extends Log
     }
 }
 
-?>

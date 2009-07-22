@@ -44,4 +44,3 @@ class Crypt_CRC32 extends Crypt
 	}
 }
 
-?>

@@ -472,7 +472,7 @@ class DB_Record
 			if ($field->getValue()){
 				foreach ($field->getValue() as $val) $args[] = array($val_parent, $val);
 			}
-			$qs = $this->_link->getQuerySplitter();
+			$qs = $this->_link->getSQLSplitter();
 			if ($qs) $this->_link->prepare($qs->convertStatement($field['child_result']->getStatement(), 'DELETE'))->addCriteria($field['join_child'], $val_parent)->execute();
 			 else $this->_link->delete($curtbl, array($field['join_child']=>$val_parent), DB_MULTIPLE_ROWS);
 			
@@ -516,4 +516,3 @@ class DB_Record
 	    //if (!isset($this->_fieldIndex
 	}
 }
-?>

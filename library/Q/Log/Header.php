@@ -43,4 +43,3 @@ class Log_Header extends Log
 	}
 }
 
-?>

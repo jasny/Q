@@ -136,4 +136,3 @@ class VariableStream
 
 stream_register_wrapper('global', 'Q\VariableStream');
 
-?>

@@ -177,7 +177,7 @@ abstract class Log implements Log_Handler
 			$driver = 'container';
 			$args = $matches[0];
 			foreach ($args as $i=>$arg) {
-			    if (preg_match('/^\s*(filter\s*(?:\[(?>"(?:\\\\"|[^"])*")|(?>\'(?:\\\\\'|[^\'])*\'|[^\]]+)\]\s*)?)=(.*)$/', $opt, $matches)) {
+			    if (preg_match('/^\s*(filter\s*(?:\[("(?:\\\\"|[^"])*")|(\'(?:\\\\\'|[^\'])*\'|[^\]]+)\]\s*)?)=(.*)$/', $opt, $matches)) {
                     parse_str($key . '=' . $unquote ? unquote(trim($arg), $unquote) : trim($arg), $a);
                     $filters = array_replace_recursive($filters, $a);
                     unset($args[$i]);
@@ -577,7 +577,7 @@ class Log_Mock
     public function __get($key)
     {
         $name = $this->_name;
-        if (Log::$name()->exists()) trigger_error("Illigal of mock object 'Q\Log::{$this->_name}()'.", E_USER_ERROR);
+        if (Log::$name()->exists()) trigger_error("Illigal use of mock object 'Q\Log::{$this->_name}()'.", E_USER_ERROR);
         throw new Exception("Log interface '{$this->_name}' does not exist.");
     }
 
@@ -592,7 +592,7 @@ class Log_Mock
     public function __set($key, $value)
     {
         $name = $this->_name;
-        if (Log::$name()->exists()) trigger_error("Illigal of mock object 'Q\Log::{$this->_name}()'.", E_USER_ERROR);
+        if (Log::$name()->exists()) trigger_error("Illigal use of mock object 'Q\Log::{$this->_name}()'.", E_USER_ERROR);
         throw new Exception("Log interface '{$this->_name}' does not exist.");
     }
     
@@ -607,9 +607,8 @@ class Log_Mock
     public function __call($function, $args)
     {
         $name = $this->_name;
-        if (Log::$name()->exists()) trigger_error("Illigal of mock object 'Q\Log::{$this->_name}()'.", E_USER_ERROR);
+        if (Log::$name()->exists()) trigger_error("Illigal use of mock object 'Q\Log::{$this->_name}()'.", E_USER_ERROR);
         throw new Exception("Log interface '{$this->_name}' does not exist.");
     }
 }
 
-?>

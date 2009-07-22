@@ -83,7 +83,7 @@ class DB_MySQL_Result_Tree extends DB_MySQL_Result
 	 * @param int $resulttype  A DB::FETCH_% constant
 	 * @return array
 	 */
-	public function fetchRow($resulttype=DB::FETCH_ORDERED)
+	public function fetch($resulttype=DB::FETCH_ORDERED)
 	{
 	    $opt = $resulttype & ~0xFF;
 	    
@@ -275,4 +275,3 @@ class DB_MySQL_Result_Tree extends DB_MySQL_Result
 	}
 }
 
-?>

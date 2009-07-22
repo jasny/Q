@@ -53,4 +53,3 @@ class Config_Json extends Config_Files
 		return $settings;
 	}
 }
-?>

@@ -272,7 +272,7 @@ class DB_MySQL_Result extends DB_Result
 	 * @param  int   $resulttype  A DB::FETCH_% constant
 	 * @return array
 	 */
-	public function fetchRow($resulttype=DB::FETCH_ORDERED)
+	public function fetch($resulttype=DB::FETCH_ORDERED)
 	{
 		switch ($resulttype & 0xFF) {
 			case DB::FETCH_ORDERED:   return $this->native->fetch_row();
@@ -524,4 +524,3 @@ class DB_MySQL_Result extends DB_Result
 
 }
 
-?>

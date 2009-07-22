@@ -58,7 +58,7 @@ class Lock
         $this->info = array('timestamp'=>strftime('%Y-%m-%d %T'), 'check'=>$key);
         if (class_exists('Q\Authenticate', false) && Authenticate::i()->isLoggedIn()) $this->info['user'] = Authenticate::i()->user->getInfo();
 
-        if (!($this->cache instanceof Cache)) $this->cache = Cache::with($cache);
+        if (!($this->cache instanceof Cache)) $this->cache = Cache::with($this->cache);
         $this->cache->save('lock:' . $this->name, $this->info, $this->timeout);
         
         return true;
@@ -106,8 +106,8 @@ class Lock
     public function asXml()
     {
         return "<lock name=\"{$this->name}\" timeout=\"{$this->timeout}\">" .
-          (isset($info['user_fullname']) ? '<user>' . htmlspecialchars($info['user_fullname'], ENT_COMPAT, 'UTF-8') . '</user>' : null) .
-          "<timestamp>{$info['timestamp']}</timestamp>" .
+          (isset($this->info['user_fullname']) ? '<user>' . htmlspecialchars($this->info['user_fullname'], ENT_COMPAT, 'UTF-8') . '</user>' : null) .
+          "<timestamp>{$this->info['timestamp']}</timestamp>" .
           '</lock>';        
     }
     
@@ -122,4 +122,3 @@ class Lock
         return $this->name . ($key ? ":$key" : '');
     }
 }
-?>

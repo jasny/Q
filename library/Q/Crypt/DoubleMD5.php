@@ -28,4 +28,3 @@ class Crypt_DoubleMD5 extends Crypt_MD5
 	}
 }
 
-?>

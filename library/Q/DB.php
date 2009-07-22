@@ -230,6 +230,12 @@ abstract class DB
 	 */
 	protected $tables=array();
 	
+	/**
+	 * Fetch mode
+	 * @var int
+	 */
+	protected $fetchMode=self::FETCH_ASSOC;
+	
 	
 	/**
 	 * Log queries and other actions.
@@ -278,7 +284,7 @@ abstract class DB
 		if (!isset(self::$drivers[$driver])) throw new Exception("Unable to connect to database: Unknown driver '$driver'");
 	    
 		$class = self::$drivers[$driver];
-		if (!load_class($class)) throw new Exception("Unable to create $class object: Class does not exist.");
+		if (!load_class($class)) throw new Exception("Unable to create $class object: Class for driver '$driver' does not exist.");
 		
 		$args = func_get_args();
 		if ($args[0] == $driver) array_shift($args);
@@ -342,7 +348,6 @@ abstract class DB
 	{
 	    self::$instances[$name] = $this;
 	}
-	
 	
 	// -----
 	
@@ -519,6 +524,7 @@ abstract class DB
 		    if (isset($inherit['#role:id'])) {
 		        unset($inherit['#role:id']['role'][array_search('id', $inherit['#role:id']['role'])], $inherit['#role:id']['is_primary'], $inherit['#role:id']);
 		    } else {
+		        $props = null;
 		        foreach ($inherit as &$props) {
 		            if (isset($props['is_primary'])) unset($props['is_primary']);
 		        }
@@ -743,6 +749,7 @@ abstract class DB
 			      else trigger_error(ucfirst($mp). " is defined for field '" . $properties["#$mp"]['name'] . "' as well as '$index'. Should be unique. Please change config file.", E_USER_NOTICE);
 				  
 			} elseif (!is_array($props[$mp])) {
+			    $mv = $props[$mp];
 			    if (empty($props["auto:$mp:$mv"]) && !empty($properties["#$mp:$mv"]["auto:$mp:$mv"])) {
 			        unset($properties["#$mp:$mv"][$mp]);
 			        unset($properties["#$mp:$mv"]);
@@ -829,8 +836,8 @@ abstract class DB
 	 * @return mixed
 	 */
 	abstract public function parse($statement, $args);
-				
 
+	
 	/**
 	 * Prepare a statement for execution.
 	 * @internal 1st argument might be the source (Q\Table), in that case the 2nd argument is the statement.
@@ -841,16 +848,6 @@ abstract class DB
 	abstract public function prepare($statement);
 
 	/**
-	 * Select data from a table.
-	 *
-	 * @return DB_Statement
-	 */
-	public function select()
-	{
-	    return $this->prepare('SELECT');
-	}
-	
-	/**
 	 * Build a select query statement.
 	 * @internal If $fields is an array, $fields[0] may be a SELECT statement and the other elements are additional fields
 	 *
@@ -860,7 +857,21 @@ abstract class DB
 	 * @param string $where     Additional criteria as string
 	 * @return DB_Statement
 	 */
-	abstract public function prepareSelect($table, $fields=null, $criteria=null, $where=null);
+	abstract public function prepareSelect($table=null, $fields=null, $criteria=null, $where=null);
+
+	/**
+	 * Alias of Q\DB_Statement::prepareSelect().
+	 *
+	 * @param string $table     Tablename
+	 * @param mixed  $fields    Array with fieldnames, fieldlist (string) or SELECT statement (string). NULL means all fields.
+	 * @param mixed  $criteria  The value for the primairy key (int/string or array(value, ...)) or array(field=>value, ...)
+	 * @param string $where     Additional criteria as string
+	 * @return DB_Statement
+	 */
+	final public function select($table=null, $fields=null, $criteria=null, $where=null)
+	{
+		return $this->prepareSelect($table, $fields, $criteria, $where);
+	}
 	
 	/**
 	 * Build an insert or insert/update query statement.
@@ -872,26 +883,26 @@ abstract class DB
 	 * 
 	 * @throws Q\DB_Constraint_Exception when no rows are given.
 	 */
-	abstract public function prepareStore($table, $values);
+	abstract public function prepareStore($table=null, $values=null);
 	
 	/**
-	 * Build a update query statement
+	 * Build a update query statement.
 	 *
 	 * @param string $table   Tablename
 	 * @param mixed  $id      The value for a primairy (or as array(value, ..) if multiple key fields) or array(field=>value, ...)
 	 * @param array  $values  Assasioted array as (fielname=>value, ...) or ordered array (value, ...) with 1 value for each field
 	 * @return DB_Statement
 	 */
-	abstract public function prepareUpdate($table, $id, $values);
+	abstract public function prepareUpdate($table=null, $id=null, $values=null);
 
 	/**
-	 * Build a delete query statement
+	 * Build a delete query statement.
 	 *
 	 * @param string $table  Tablename
 	 * @param mixed  $id     The value for a primairy (or as array(value, ..) if multiple key fields) or array(field=>value, ...)
 	 * @return DB_Statement
 	 */
-	abstract public function prepareDelete($table, $id);
+	abstract public function prepareDelete($table=null, $id=null);
 	
 	
 	/**
@@ -918,7 +929,7 @@ abstract class DB
 	 * @param array $args       Arguments to be parsed into the query on placeholders
 	 * @return DB_Result
 	 */
-	abstract public function query($statement, $args=array());
+	abstract public function query($statement, $args=null);
 	
 	/**
 	 * Gets the number of affected rows in a previous operation.
@@ -947,9 +958,135 @@ abstract class DB
 	 * @param mixed  $criteria  The value for a primairy (or as array(key, ..) if multiple key fields ) or array(field=>value, ...)
 	 * @return int
 	 */
-	abstract public function countRows($table, $criteria=null);	
+	abstract public function countRows($table, $criteria=null);
 
 	
+	/**
+	 * Set the result type for Q\DB::fetchAll() and Q\DB::fetchRow()  
+	 * 
+	 * @param int $resulttype
+	 */
+	public function setFetchMode($resulttype)
+	{
+		$this->fetchMode = $resulttype;
+	}
+	
+	/**
+	 * Query statement and return the result based on the set fetch type.
+	 * 
+	 * @param mixed $statement  String or query object
+	 * @param array $args       Parsed on placeholder
+	 * @return array
+	 */
+	public function fetchAll($statement, $args=null)
+	{
+		$ret = $this->query($statement, $args);
+		return $ret instanceof DB_Result ? $ret->fetchAll($this->fetchMode) : $ret;
+	}
+
+	/**
+	 * Query statement and return the result as ordered array
+	 * 
+	 * @param mixed $statement  String or query object
+	 * @param array $args       Parsed on placeholder
+	 * @return array
+	 */
+	public function fetchOrdered($statement, $args=null)
+	{
+		$ret = $this->query($statement, $args);
+		return $ret instanceof DB_Result ? $ret->fetchAll(self::FETCH_ORDERED) : $ret;
+	}
+	
+	/**
+	 * Query statement and return the result as associated array
+	 * 
+	 * @param mixed $statement  String or query object
+	 * @param array $args       Parsed on placeholder
+	 * @return array
+	 */
+	public function fetchAssoc($statement, $args=null)
+	{
+		$ret = $this->query($statement, $args);
+		return $ret instanceof DB_Result ? $ret->fetchAll(self::FETCH_ASSOC) : $ret;
+	}
+	
+	/**
+	 * Query statement and return the first column
+	 * 
+	 * @param mixed $statement  String or query object
+	 * @param array $args       Parsed on placeholder
+	 * @return array
+	 */
+	public function fetchColumn($statement, $args=null)
+	{
+		$ret = $this->query($statement, $args);
+		return $ret instanceof DB_Result ? $ret->fetchCol() : $ret;
+	}
+	
+	/**
+	 * Alias of Q\DB::fetchColum()
+	 * 
+	 * @param mixed $statement  String or query object
+	 * @param array $args       Parsed on placeholder
+	 * @return array
+	 */
+	final public function fetchCol($statement, $args=null)
+	{
+		return $this->fetchColumn($statement, $args);
+	}
+	
+	/**
+	 * Query statement and return the first column as key and the second as value
+	 * 
+	 * @param mixed $statement  String or query object
+	 * @param array $args       Parsed on placeholder
+	 * @return array
+	 */
+	public function fetchPairs($statement, $args=null)
+	{
+		$ret = $this->query($statement, $args);
+		return $ret instanceof DB_Result ? $ret->fetchColumn(1, 0) : $ret;
+	}
+
+	/**
+	 * Query statement and return the first row based on the set fetch type.
+	 * 
+	 * @param mixed $statement  String or query object
+	 * @param array $args       Parsed on placeholder
+	 * @return array
+	 */
+	public function fetchRow($statement, $args=null)
+	{
+		$ret = $this->query($statement, $args);
+		return $ret instanceof DB_Result ? $ret->fetch($this->fetchMode) : $ret;
+	}
+
+	/**
+	 * Query statement and return a single value
+	 * 
+	 * @param mixed $statement  String or query object
+	 * @param array $args       Parsed on placeholder
+	 * @return array
+	 */
+	public function fetchValue($statement, $args=null)
+	{
+		$ret = $this->query($statement, $args);
+		return $ret instanceof DB_Result ? $ret->fetchValue() : $ret;
+	}
+
+	/**
+ 	 * Alias of Q/DB::fetchValue()
+	 * 
+	 * @param mixed $statement  String or query object
+	 * @param array $args       Parsed on placeholder
+	 * @return array
+	 */
+	final public function fetchOne($statement, $args=null)
+	{
+		return $this->fetchValue($statement, $args);
+	}
+	
+
 	/**
 	 * Select a single record from a table.
 	 * 
@@ -1108,7 +1245,7 @@ class DB_Mock
     public function __get($key)
     {
         $name = $this->_name;
-        if (DB::$name()->exists()) trigger_error("Illigal of object 'Q\DB mock::{$this->_name}()'.", E_USER_ERROR);
+        if (DB::$name()->exists()) trigger_error("Illigal use of object 'Q\DB mock::{$this->_name}()'.", E_USER_ERROR);
         throw new Exception("DB interface '{$this->_name}' does not exist.");
     }
 
@@ -1123,7 +1260,7 @@ class DB_Mock
     public function __set($key, $value)
     {
         $name = $this->_name;
-        if (DB::$name()->exists()) trigger_error("Illigal of mock object 'Q\DB mock::{$this->_name}()'.", E_USER_ERROR);
+        if (DB::$name()->exists()) trigger_error("Illigal use of mock object 'Q\DB mock::{$this->_name}()'.", E_USER_ERROR);
         throw new Exception("DB interface '{$this->_name}' does not exist.");
     }
     
@@ -1138,7 +1275,7 @@ class DB_Mock
     public function __call($function, $args)
     {
         $name = $this->_name;
-        if (DB::$name()->exists()) trigger_error("Illigal of object 'Q\DB mock::{$this->_name}()'.", E_USER_ERROR);
+        if (DB::$name()->exists()) trigger_error("Illigal use of object 'Q\DB mock::{$this->_name}()'.", E_USER_ERROR);
         throw new Exception("DB interface '{$this->_name}' does not exist.");
     }
 }
@@ -1155,7 +1292,51 @@ class DB_Exception extends Exception {}
  * An execption when executing a query failed.
  * @package DB
  */
-class DB_QueryException extends DB_Exception {}
+class DB_QueryException extends DB_Exception
+{
+	/**
+	 * Error message
+	 * @var string
+	 */
+	protected $error;
+
+	/**
+	 * Query statement
+	 * @var string
+	 */
+	protected $statement;
+	
+	/**
+	 * Class constructor 
+	 * 
+	 * @param string $error      Error message
+	 * @param string $statement  Query statement
+	 */
+	public function __construct($error, $statement)
+	{
+		parent::construct("Query failed: $error\nQuery: $statement");
+	}
+	
+	/**
+	 * Get error message
+	 * 
+	 * @return string
+	 */
+	public function getErrorMessage()
+	{
+		return $this->error;
+	}
+	
+	/**
+	 * Get query statement
+	 * 
+	 * @return string
+	 */
+	public function getStatement()
+	{
+		return $this->statement;
+	}
+}
 
 /**
  * An execption for an assertion checking a result.
@@ -1166,4 +1347,3 @@ class DB_Constraint_Exception extends Exception {}
 
 if (class_exists('Q\ClassConfig', false)) ClassConfig::applyToClass('Q\DB');
 
-?>
