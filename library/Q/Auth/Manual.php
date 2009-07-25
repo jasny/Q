@@ -1,7 +1,8 @@
 <?php
 namespace Q;
 
-require_once "Q/Auth";
+require_once "Q/Auth.php";
+require_once "Q/Auth/SimpleUser.php";
 
 /**
  * Auth checking against manually set info.
@@ -19,54 +20,60 @@ class Auth_Manual extends Auth
 
 	/**
 	 * Fetch user based on username.
-	 * Returns authentication result
+	 * May return an Auth::UNKNOWN_USER or Auth::INCORRECT_PASSWORD (int) is login failed.
 	 *
 	 * @param string $username
      * @param string $password
-     * @param int    $code      Output: return code
-	 * @return Auth_User
+	 * @return Auth_SimpleUser
 	 */
-	public function authUser($username, $password, &$code)
+	public function authUser($username, $password)
 	{
-	    if (!($this->passwordCrypt instanceof Crypt)) $this->passwordCrypt = Crypt::with(!empty($this->passwordCrypt) ? $this->passwordCrypt : 'none');
-	    
-	    foreach ($this->users as $curusr) {
-	        if ($curusr->username == $username) {
-	            $user = new Auth_User($curusr);
-	            break;
-            }
-	    }
+	    $user = $this->doFetchUser('username', $username);
 
-	    if (!$user) $user = new Auth_User(array('username'=>$username, 'password'=>$this->passwordCrypt->encrypt($password)));
-	    $user->host = HTTP::clientIp();
-	    
-        if ($user->id === null) $code = self::UNKNOWN_USER;
-	      elseif ($user->password != $this->passwordCrypt->encrypt($password, $user->password)) $code = self::INCORRECT_PASSWORD;
-          elseif (!$user->active) $code = self::INACTIVE_USER;
-          elseif ($user->expire && $user->expire < time()) $code = self::PASSWORD_EXPIRED;
+	    if (!isset($user)) return Auth::UNKNOWN_USER;
+        if ($user->password != $this->encryptPassword($password, $user->password)) return Auth::INCORRECT_PASSWORD;
         
 	    return $user; 
     }
 	
-	/**
-	 * Fetch user based on id.
+    /**
+	 * Fetch user.
 	 *
-	 * @param int|string $uid
-	 * @return Auth_User
+	 * @param string $field  Criteria field
+	 * @param mixed  $value  Criteria value
+	 * @return Auth_SimpleUser
 	 */
-	public function fetchUser($uid)
-	{
+    protected function doFetchUser($field, $value)
+    {
 	    foreach ($this->users as $curusr) {
-	        if ($curusr->id == $uid) {
-	            $user = new Auth_User($curusr);
+	        if ($curusr->$field == $value) {
+	            $user = new Auth_SimpleUser($curusr);
 	            break;
             }
 	    }
 
-	    if (!isset($user)) return null;
-	    
-	    $user->host = HTTP::clientIp();
-	    return $user;
+	    return isset($user) ? $user : null;
+    }	
+    
+    /**
+	 * Fetch user based on id.
+	 *
+	 * @param int|string $uid
+	 * @return Auth_SimpleUser
+	 */
+	public function fetchUser($uid)
+	{
+	    return $this->doFetchUser('id', $uid);
 	}
+	
+	/**
+	 * Fetch user based on username.
+	 *
+	 * @param string $username
+	 * @return Auth_SimpleUser
+	 */
+	public function fetchUserByName($username)
+	{
+		return $this->doFetchUser('username', $username);
+	}	
 }
-

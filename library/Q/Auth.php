@@ -33,15 +33,15 @@ abstract class Auth
 	/** Result code: incorrect password */
 	const INCORRECT_PASSWORD = 4;
 	/** Result code: user is not active */
-	const INACTIVE_USER = 5;
+	const INACTIVE_USER = 16;
 	/** Result code: client ip is blocked */
-	const HOST_BLOCKED = 6;
+	const HOST_BLOCKED = 17;
 	/** Result code: password is expired */
-	const PASSWORD_EXPIRED = 7;
+	const PASSWORD_EXPIRED = 18;
 	/** Result code: session cecksum was not correct */
-	const INVALID_SESSION = 8;	
+	const INVALID_SESSION = 19;	
 	/** Result code: session is expired */
-	const SESSION_EXPIRED = 9;	
+	const SESSION_EXPIRED = 20;	
 	
 	
 	/**
@@ -55,8 +55,8 @@ abstract class Auth
 	 * @var array
 	 */
 	static public $drivers = array(
-	    'manual'=>'Auth_Manual',
-	    'db'=>'Auth_DB'
+	    'manual'=>'Q\Auth_Manual',
+	    'db'=>'Q\Auth_DB'
 	);
 	
 	
@@ -98,7 +98,7 @@ abstract class Auth
 
 	
 	/**
-	 * If login is required and no user is logged in, display login page.
+	 * If login is required and User is not logged in, display login page.
 	 * @var boolean
 	 */
 	public $loginRequired = false;
@@ -261,12 +261,10 @@ abstract class Auth
 	/**
 	 * Get current user
 	 *
-	 * @throws Auth_Session_Exception if no user is logged in
 	 * @return Auth_User
 	 */
 	public function user()
 	{
-		if (!isset($this->_user)) throw new Auth_Session_Exception("No user is logged in.");
 		return $this->_user;
 	}
 	
@@ -297,6 +295,19 @@ abstract class Auth
           else $this->storeAttemps->remove("AUTH-login_attempts:$host");
         
         return ($this->loginAttempts - $attempt) < 0;
+	}
+	
+	/**
+	 * Return the hash of a password
+	 * 
+	 * @param string $password
+	 * @param string $salt
+	 * @return string
+	 */
+	public function encryptPassword($password, $salt=null)
+	{
+	    if (!($this->passwordCrypt instanceof Crypt)) $this->passwordCrypt = Crypt::with(!empty($this->passwordCrypt) ? $this->passwordCrypt : 'none');
+        return $this->passwordCrypt->encrypt($password, $salt);
 	}
 	
 	/**
@@ -338,7 +349,7 @@ abstract class Auth
 	}
 
 	/**
-	 * Return if driver is able to store information
+	 * Return if driver is able to store information.
 	 * 
 	 * @return boolean
 	 */
@@ -421,10 +432,9 @@ abstract class Auth
 	 *
 	 * @param string $username
      * @param string $password
-     * @param int    $result      Output: return code
 	 * @return Auth_User
 	 */
-	abstract public function authUser($username, $password, &$result);
+	abstract public function authUser($username, $password);
 	
 	/**
 	 * Fetch user based on id.
@@ -521,7 +531,16 @@ abstract class Auth
         } elseif (!isset($password)) {
             $result = self::NO_PASSWORD;
         } else {
-            $this->_user = $this->authUser($username, $password, $result);
+            $result = $this->authUser($username, $password);
+        }
+        
+        if (is_object($result)) {
+            $this->_user = $result;
+            unset($result);
+            
+            if (!$this->_user->active) $result = self::INACTIVE_USER;
+              elseif ($this->_user->expire && $this->_user->expire < time()) $result = self::PASSWORD_EXPIRED;
+              else $result = self::OK;
         }
 
         $this->logEvent('login', $result);
@@ -557,12 +576,12 @@ abstract class Auth
     	if (!$this->canStoreInfo()) throw new Exception("Logging out through PHP is not supported with store option '{$this->store['driver']}'.");
     	
     	$this->logEvent('logout', $result);
-        
-        $username = $this->_user->username;
+
+    	if (isset($this->_user)) $username = $this->_user->username;
         
         $this->storeInfo(null);
 		$this->onLogout();
-        $this->_user = null;
+        if ($result < 16) $this->_user = null;
         
         if ($this->loginRequired) {
             if (!isset($this->loginPage)) throw new Auth_Session_Exception("Logout: " . $this->getMessage($result), $result);
@@ -598,11 +617,13 @@ abstract class Auth
      * @param string $group  Group name, multiple groups may be supplied as array
      * @param Multiple groups may be supplied as additional arguments
      * 
-     * @throws Auth_Session_Exception if no user is logged in
+     * @throws Auth_Session_Exception if user is not logged in
      * @throws Authz_Exception if the user is not in one of the groups
      */
     public function authz($group)
     {
+        if (!$this->loggedIn) throw new Auth_Session_Exception("User is not logged in.", self::NO_SESSION);
+        
     	$groups = is_array($group) ? $group : func_get_args();
     	$this->user()->authz($groups);
     }
@@ -749,7 +770,7 @@ class Auth_Mock
  * Base class for Auth exceptions
  * @package Auth
  */
-abstract class Auth_Exception extends \Exception implements \ExpectedException {}
+abstract class Auth_Exception extends Exception implements ExpectedException {}
 
 /**
  * Auth login exceptions

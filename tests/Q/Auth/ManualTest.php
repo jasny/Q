@@ -1,7 +1,8 @@
 <?php
 use Q\Auth;
 
-require_once 'Test/Auth/Main.php';
+require_once 'TestHelper.php';
+require_once 'Q/Auth/MainTest.php';
 
 /**
  * Auth_Manual test case.

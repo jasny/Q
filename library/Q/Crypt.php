@@ -2,7 +2,6 @@
 namespace Q;
 
 require_once 'Q/Exception.php';
-require_once 'Q/SecurityException.php';
 require_once 'Q/misc.php';
 
 /**

@@ -394,8 +394,10 @@ class HTTP
      * @param boolean $forwarded  Use X-Forwarded-For
      * @return string
      */
-    static public function clientIP($forwarded=self::ORIGINAL_CLIENT)
+    static public function clientIp($forwarded=self::ORIGINAL_CLIENT)
     {
+        if (empty($_SERVER['REMOTE_ADDR'])) return null;
+        
     	$addr = !$forwarded || empty($_SERVER['X-Forwarded-For']) ? $_SERVER['REMOTE_ADDR'] : trim(preg_replace('/,.*$/', '', $_SERVER['X-Forwarded-For']));
     	if (!preg_match('/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/', $addr)) $addr = gethostbyname($addr);
     	return $addr;
@@ -409,6 +411,8 @@ class HTTP
      */
     static public function clientHostname($forwarded=self::ORIGINAL_CLIENT)
     {
+        if (!isset($_SERVER['REMOTE_ADDR'])) return null;
+        
     	$addr = !$forwarded || empty($_SERVER['X-Forwarded-For']) ? $_SERVER['REMOTE_ADDR'] : trim(preg_replace('/,.*$/', '', $_SERVER['X-Forwarded-For']));
     	if (preg_match('/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/', $addr)) $addr = gethostbyaddr($addr);
     	return $addr;
@@ -421,7 +425,8 @@ class HTTP
      */
     static public function clientRoute()
     {
-    	return (!empty($_SERVER['X-Forwarded-For']) ? $_SERVER['X-Forwarded-For'] . ',' : '') . $_SERVER['REMOTE_ADDR'];
+    	if (!isset($_SERVER['REMOTE_ADDR'])) return null;
+        return (!empty($_SERVER['X-Forwarded-For']) ? $_SERVER['X-Forwarded-For'] . ',' : '') . $_SERVER['REMOTE_ADDR'];
     }
 
     

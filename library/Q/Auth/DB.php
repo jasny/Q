@@ -2,6 +2,7 @@
 namespace Q;
 
 require_once "Q/Auth.php";
+require_once "Q/Auth/SimpleUser.php";
 require_once "Q/DB.php";
 
 /**
@@ -111,7 +112,6 @@ class Auth_DB extends Auth
 	public function authUser($username, $password, &$code)
 	{
 		if (!$this->queryInit || !($this->query instanceof DB_Statement)) $this->initStatement(); 
-	    if (!($this->passwordCrypt instanceof Crypt)) $this->passwordCrypt = Crypt::with(!empty($this->passwordCrypt) ? $this->passwordCrypt : 'none');
 	    
 	    $this->query->addCriteria(2, $username);
 	    if (($ip = HTTP::clientIP())) $this->query->addCriteria(3, $ip, 'REVERSE LIKE');
@@ -119,13 +119,13 @@ class Auth_DB extends Auth
 	    $this->query->reset();
 	    
 	    $row = $result->fetchRow();
-	    $info = $row ? array_combine(array('id', 'fullname', 'username', 'host', 'password', 'groups', 'active', 'expire') + $result->getFieldNames(), $row) : array('username'=>$username, 'password'=>$this->passwordCrypt->encrypt($password));
+	    $info = $row ? array_combine(array('id', 'fullname', 'username', 'host', 'password', 'groups', 'active', 'expire') + $result->getFieldNames(), $row) : array('username'=>$username, 'password'=>$this->encryptPassword($password));
 	    
 	    $info['host'] = HTTP::clientIp();
         $user = new Auth_User($info);
 	    
         if ($user->id === null) $code = self::UNKNOWN_USER;
-	      elseif ($user->password != $this->passwordCrypt->encrypt($password, $user->password)) $code = self::INCORRECT_PASSWORD;
+	      elseif ($user->password != $this->encryptPassord($password, $user->password)) $code = self::INCORRECT_PASSWORD;
           elseif (!$user->active) $code = self::INACTIVE_USER;
           elseif ($user->expire && $user->expire < time()) $code = self::PASSWORD_EXPIRED;
         
