@@ -176,9 +176,10 @@ abstract class Log implements Log_Handler
 		    $a = null;
 			$driver = 'container';
 			$args = $matches[0];
+			$filters = null;
 			foreach ($args as $i=>$arg) {
-			    if (preg_match('/^\s*(filter\s*(?:\[("(?:\\\\"|[^"])*")|(\'(?:\\\\\'|[^\'])*\'|[^\]]+)\]\s*)?)=(.*)$/', $opt, $matches)) {
-                    parse_str($key . '=' . $unquote ? unquote(trim($arg), $unquote) : trim($arg), $a);
+			    if (preg_match('/^\s*(filter\s*(?:\[("(?:\\\\"|[^"])*")|(\'(?:\\\\\'|[^\'])*\'|[^\]]+)\]\s*)?)=(.*)$/', $arg, $filters)) {
+                    parse_str($filters[1] . '=' . unquote(trim($filters[2])), $a);
                     $filters = array_replace_recursive($filters, $a);
                     unset($args[$i]);
                 }
@@ -226,8 +227,8 @@ abstract class Log implements Log_Handler
 		list($driver, $dsn_args, $dsn_filters, $dsn_props) = self::extractDSN($dsn);
 
 		if ($driver == 'aliasof') {
-		    if (!isset($options[0])) throw new Exception("When using 'aliasof', it's required to specify which instance to use.");
-		    $instance = $options[0];
+		    if (!isset($props[0])) throw new Exception("When using 'aliasof', it's required to specify which instance to use.");
+		    $instance = $props[0];
 		    return $instance instanceof self ? $instance : self::$instance();
 		}
 		
@@ -550,7 +551,7 @@ class Log_Mock
 	 */
 	public function to($dsn, $filters=array(), $props=array())
 	{
-    	$instance = Log::to($dsn, $options);
+    	$instance = Log::to($dsn, $props);
 	    $instance->useFor($this->_name);
 	    
 	    return $instance;

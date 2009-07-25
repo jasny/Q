@@ -44,4 +44,3 @@ class View_PHP
 		include($__file);
 	}
 }
-?>

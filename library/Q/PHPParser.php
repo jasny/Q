@@ -129,6 +129,7 @@ class PHPParser
 	 */
 	protected function retriggerWarnings()
 	{
+	    $warning = null;
 		foreach ($this->warnings as &$warning) {
 			trigger_error(self::makeErrorMessage($warning), $warning[0] & (E_NOTICE | E_USER_NOTICE | E_STRICT) ? E_USER_NOTICE : E_USER_WARNING);
 		}

@@ -121,4 +121,3 @@ abstract class RPC_Server implements RPC_Server_Handler
 	}
 }
 
-?>

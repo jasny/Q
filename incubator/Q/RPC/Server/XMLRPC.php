@@ -124,4 +124,3 @@ class RPC_Server_XMLRPC extends RPC_Server
 	}
 }
 
-?>

@@ -51,4 +51,3 @@ class RPC_Client_SimpleInterface implements RPC_Client_Interface
 	}
 }
 
-?>

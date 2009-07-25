@@ -18,7 +18,7 @@ class HTTPd_DOMAttr extends \DOMAttr
 	 */
 	public function __toString()
 	{
-	    if (preg_match('/["\'\s\n]/', $this->nodeValue)) $quote = '"';
-		return $quote . str_replace("\n", "\\\n", addcslashes($this->nodeValue, '"')) . $quote;
+	    $value = str_replace("\n", "\\\n", $this->nodeValue);
+	    return preg_match('/["\'\s]/', $this->nodeValue) && !($value[0] == '[' && substr($value, -1, 1) == ']') ? '"' . addcslashes($this->nodeValue, '"') . '"' : $value;
 	}
 }

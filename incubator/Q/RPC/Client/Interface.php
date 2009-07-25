@@ -18,4 +18,3 @@ interface RPC_Client_Interface
 	function __getConnection();
 }
 
-?>

@@ -33,4 +33,3 @@ class DB_Field_Timestamp extends DB_Field_Info
 		return isset($this->_properties['type']) && $this->_properties['type'] == 'int' ? time() : strftime('%Y-%d-%m %H:%M:%S');
 	}
 }
-?>

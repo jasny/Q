@@ -39,4 +39,3 @@ class DB_Field_Authenticator extends DB_Field_Info
 	}
 }
 
-?>

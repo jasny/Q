@@ -329,10 +329,12 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 			$ret =& $main[0];
 		}
 		
+		$set = null;
 		foreach ($sets as &$set) {
 			if (is_array($set)) $set = $this->join($set);
 		} 
 		
+		$part = null;
 		foreach ($main as &$part) {
 			$count = -1;
 			while ($count && strpos($part, '#sub') !== false) {
@@ -817,7 +819,6 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 		  elseif ($compare === '=') $compare = 'IS NULL';
 
 		if ($compare === 'ANY' || ($compare === '=' && sizeof($value)>1)) $compare = 'IN';
-		if ($compare === 'ALL' && $options & DB::ADD_HAVING) throw new Exception("Unable to add 'ALL' criteria to HAVING section, due to language specific reasons of MySQL.");
 		 
 		// Only use the non-null values with between, autoconvert to >= or <=
 		if (($compare==="BETWEEN" || $compare==="NOT BETWEEN") && (isset($value[0]) xor isset($value[1]))) {
@@ -832,16 +833,6 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 			$compare = trim($compare, "%");
 		} elseif (isset($value)) {
 			foreach ($value as $key=>$val) $value[$key] = self::quote($val);
-		}
-
-		// Replace column numbers for column names
-		$columnNames = null;
-		foreach ($column as $key=>$col) {
-			if (is_int($col)) {
-				if (!isset($columnNames)) $columnNames = $object->getColumns($subset);
-				if (!isset($columnNames[$col])) throw new Exception("Unable to add criteria for column $col (1st col = 0): Statement only has " . sizeof($columnNames) . " columns. Statement: " . $object->getBaseStatement());
-				$column[$key] = $columnNames[$col];
-			}
 		}
 
 		// Apply reverse -> value LIKE column, instead of column LIKE value
@@ -926,7 +917,7 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 		}
 		
 		// If first field is a full SELECT query
-		if (isset($fiels)) {
+		if (isset($fields)) {
 			$main_field = is_array($fields) ? reset($fields) : $fields;
 			if (preg_match('/^\s*select\b/i', $main_field)) {
 				$parts = self::split($main_field);

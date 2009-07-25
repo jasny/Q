@@ -175,4 +175,3 @@ class MVC_Controller
 		
 	}
 }
-?>

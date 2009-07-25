@@ -28,6 +28,8 @@ class HTTPd_DOMDocument extends \DOMDocument
 		$this->registerNodeClass('DOMAttr', 'Q\HTTPd_DOMAttr');
 		$this->registerNodeClass('DOMElement', 'Q\HTTPd_DOMElement');
 		$this->registerNodeClass('DOMComment', 'Q\HTTPd_DOMComment');
+		
+		$this->appendChild($this->createSection('_'));
 	}
 
 	
@@ -97,7 +99,7 @@ class HTTPd_DOMDocument extends \DOMDocument
 	 */
 	protected function parseArguments(HTTPd_DOMElement $node, $arglist)
 	{
-		if (!preg_match_all('/[^"\'\s]++|"(?:[^"\\\\]++|\\\\.)*+"|\'(?:[^\'\\\\]++|\\\\.)*+\'/', str_replace("\\\n", "\n", $arglist), $matches, PREG_PATTERN_ORDER)) return;
+		if (!preg_match_all('/\\[(?:[^"\'\]]++|"(?:[^"\\\\]++|\\\\.)*+"|\'(?:[^\'\\\\]++|\\\\.)*+\')\\]|[^"\'\s]++|"(?:[^"\\\\]++|\\\\.)*+"|\'(?:[^\'\\\\]++|\\\\.)*+\'/s', str_replace("\\\n", "\n", $arglist), $matches, PREG_PATTERN_ORDER)) return;
 		
 		foreach ($matches[0] as $i=>$value) {
 		    $node->addArgument(unquote($value));
@@ -112,22 +114,22 @@ class HTTPd_DOMDocument extends \DOMDocument
 	 */
 	public function loadConfiguration($contents, $filename=null)
 	{
-	    if (isset($filename)) $of_file = " of $filename";
+	    $of_file = isset($filename) ? " of $filename" : null;
 	    
 	    // Remove existing document
-	    if ($this->documentElement !== null) {
-	        parent::removeChild($this->documentElement);
-	    }
-	    
+        parent::replaceChild($this->createSection('_'), $this->documentElement);
+
+        // Parse
 		$sets = array();
-		preg_match_all('%^(?P<indent>[ \t]*+)(?:(?P<comment>#(?:[^>\r\n\\\\]++|\\\\\r?\n?)++)|<[ \t]*(?P<section>\w++)(?P<section_args>(?:\\\\\r?\n|[ \t]++)(?:[^>\r\n\\\\]++|\\\\\r?\n?)++)>[ \t]*|</(?P<end_section>\w++)>[ \t]*|(?P<directive>\w++)(?P<directive_args>(?:[ \t]++|\\\\\r?\n)(?:[^>\r\n\\\\]++|\\\\\r?\n?)++)|(?P<syntaxerr>\S.*))(?P<blank>\r?\n\s*)*$%m', $contents, $sets, PREG_SET_ORDER);
+		if (!preg_match_all('%^(?P<indent>[ \t]*+)(?:(?P<comment>#(?:[^\r\n\\\\]++|\\\\\r?\n?)++)|<[ \t]*(?P<section>\w++)(?P<section_args>(?:\\\\\r?\n|[ \t]++)(?:[^>\'"\r\n\\\\]++|"(?:[^"\\\\]++|\\\\.)*+"|\'(?:[^\'\\\\]++|\\\\.)*+\'|\\\\\r?\n?)++)>[ \t]*|</(?P<end_section>\w++)>[ \t]*|(?P<directive>\w++)(?P<directive_args>(?:[ \t]++|\\\\\r?\n)(?:[^\r\n\\\\]++|\\\\\r?\n?)++)|(?P<syntaxerr>\S[^\n]*))(?P<blank>\r?\n\s*)*$%ms', $contents, $sets, PREG_SET_ORDER)) return;
 		
 		$matches = null;
 		$lineno = preg_match('/^([ \t\r]*\n)*/', $contents, $matches) ? substr_count($matches[0], "\n") : 0;
 		unset($contents);
 
+		// Create document
 		if (isset($filename)) $this->documentURI = $filename;
-		$section = $this->appendChild($this->createSection('_'));
+		$section = $this->documentElement;
 		
 		$set = null;
 		foreach ($sets as &$set) {
@@ -166,18 +168,18 @@ class HTTPd_DOMDocument extends \DOMDocument
 				throw new \DOMException("Syntax error on line {$lineno}{$of_file}: Invalid command '{$set['syntaxerr']}'.", DOM_SYNTAX_ERR);
 			}
 			
-			if (isset($node)) {
+			/*if (isset($node)) {
 			    $node->uriDocument = $filename;
 			    $node->_lineno = $lineno;
-			}
+			}*/
 			
-			if (!empty($set['blank'])) $section->appendChild($this->createTextNode($set['blank']));
+			if (!empty($set['blank'])) $section->appendChild($this->createTextNode(preg_replace('/^\r?\n(.*)$/', "$1\n", $set['blank'])));
 			$lineno += $extra_lines + (!empty($set['blank']) ? substr_count($set['blank'], "\n") : 0);
 			
             unset($node);
         }
 		
-		if ($section !== $this->firstChild) throw new \DOMException("Syntax error on line {$section->_lineno} of $filename: <{$section->nodeName}> was not closed.", DOM_SYNTAX_ERR);
+		if ($section !== $this->firstChild) throw new \DOMException("Syntax error: <{$section->nodeName}> was not closed.", DOM_SYNTAX_ERR);
 	}
 	
 	/**
@@ -224,13 +226,9 @@ class HTTPd_DOMDocument extends \DOMDocument
 	 */
 	public function save($filename=null, $options=0)
 	{
-	    if (!isset($filename)) {
-	        trigger_error("Saving back to original file is not implemented yet.", E_USER_WARNING);
-	        return null;
-	    }
-	    
-	    return parent::save($filename);
-	}
+	    if (!isset($filename)) $filename = $this->documentURI;
+	    return file_put_contents($filename, (string)$this->documentElement);
+    }
 
 	/**
 	 * Save specific section to file(s).
@@ -242,8 +240,12 @@ class HTTPd_DOMDocument extends \DOMDocument
 	 */
 	public function saveSection(HTTPd_DOMSection $node, $filename=null, $options=0)
 	{
-	    trigger_error("Not implemented yet.", E_USER_WARNING);
-	    return 0;
+	    if (!isset($filename)) {
+	        trigger_error("Saving a section back to original file is not implemented yet.", E_USER_WARNING);
+	        return 0;
+	    }
+	    
+	    return file_put_contents($filename, (string)$node);
 	}
 	
 	/**
@@ -253,9 +255,10 @@ class HTTPd_DOMDocument extends \DOMDocument
 	 * @param int     $options  Not used.
 	 * @return string
 	 */
-	public function saveString(\DOMNode $node, $options=0)
+	public function saveString(\DOMNode $node=null, $options=0)
 	{
-	    return parent::saveXML($node, $options);
+	    if (!isset($node)) $node = $this->documentElement;
+	    return (string)$node;
 	}
 	
 	/**
@@ -268,6 +271,17 @@ class HTTPd_DOMDocument extends \DOMDocument
 	    return $this->saveString();
 	}
 	
+	
+	/**
+	 * Validate configuration.
+	 * Not implemted; always returns true.
+	 * 
+	 * @return boolean
+	 */
+	public function validate()
+	{
+        return true; 
+	}
 	
 	// ====== Unsupported features =====
 	

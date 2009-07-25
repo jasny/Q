@@ -746,6 +746,12 @@ class Auth_Login_Exception extends Auth_Exception {}
  */
 class Auth_Session_Exception extends Auth_Exception {}
 
+/**
+ * Authorization exceptions
+ * @package Auth
+ */
+class Authz_Exception extends Auth_Exception {}
+
 
 /* --------------- ClassConfig ----------------- */
 if (class_exists('ClassConfig', false)) ClassConfig::applyToClass('Q\Auth');

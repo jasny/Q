@@ -54,4 +54,3 @@ interface StreamingConnection
 	public function about();
 }
 
-?>

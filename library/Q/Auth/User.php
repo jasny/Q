@@ -1,7 +1,7 @@
 <?php
 namespace Q;
 
-require_once 'Q/Auth.php'
+require_once 'Q/Auth.php';
 
 /**
  * Auth user info.
@@ -58,10 +58,9 @@ class Auth_User
      * @param string $group  Group name, multiple groups may be supplied
      * @throws Authorization_Exception if the user is not in one of the groups
      */
-    public function checkGroup($group)
+    public function authzFor($group)
     {
     	$missing = array_diff(func_get_args(), $this->info['groups']); 
     	if (!empty($missing)) throw new Auth_Exception("Not in group" . (count($missing) == 1 ? "" : "s") . " '" . join("', '", $missing));
     }
 }
-

@@ -74,4 +74,3 @@ class Stream_SSH extends SSH implements StreamingConnection
 	}
 }
 
-?>

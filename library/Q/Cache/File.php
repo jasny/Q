@@ -34,7 +34,7 @@ class Cache_File extends Cache
 	    $options['path'] = preg_replace('/\{\$(.*?)\}/e', "isset(\$_SERVER['\$1']) ? \$_SERVER['\$1'] : \$_ENV['\$1']", $options['path']);
 		if (!is_dir($options['path']) && (file_exists($options['path']) || !mkdir($options['path'], 0770, true))) throw new Exception("Unable to create Cache of type 'file'. Directory '{$this->options['cachedir']}' does not exists and could not be created.");
 		
-		if ($optionss['gc_probability'] >= 1 || mt_rand(1, 1 / $options['gc_probability']) == 1) $this->clean(); 
+		if ($options['gc_probability'] >= 1 || mt_rand(1, 1 / $options['gc_probability']) == 1) $this->clean(); 
 
 		parent::__construct($options);
 	}

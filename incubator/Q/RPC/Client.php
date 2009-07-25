@@ -152,4 +152,3 @@ abstract class RPC_Client implements RPC_Client_Handler
 	}
 }
 
-?>

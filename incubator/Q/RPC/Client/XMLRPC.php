@@ -214,4 +214,3 @@ class RPC_Client_XMLRPC extends RPC_Client
 	}	
 }
 
-?>

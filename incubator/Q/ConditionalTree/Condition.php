@@ -58,4 +58,3 @@ class ConditionalTree_Condition extends Validation::Compare
 	}
 }
 
-?>

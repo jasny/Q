@@ -41,19 +41,38 @@ class HTTPd_DOMElement extends \DOMElement
 	}
 	
 	/**
-	 * Cast object to string.
+	 * Cast node to string.
 	 * 
 	 * @return string
 	 */
 	public function __toString()
 	{
-	    if ($this->firstChild !== null) return parent::__toString() . "\n";
+	    $args = null;
+		foreach ($this->attributes as $node) $args .= ' ' . (string)$node;
 	    
-		$str = $this->nodeValue;
-		foreach ($this->childNodes as $node) {
-			$str .= ' ' . (string)$node;
+		// Directive
+		if ($this->firstChild === null) {
+		    return $this->nodeName .  $args;
 		}
-		return $str . "\n";
+
+	    $str = "<{$this->nodeName}$args>";
+	    $end = "</{$this->nodeName}>";
+	    $node = $this->firstChild;
+		
+	    // Document root
+	    if ($this->ownerDocument->documentElement === $this) {
+	        $str = null;
+	        $end = null;
+	        $node = $node->nextSibling;
+        }
+		
+		while ($node) {
+		    $str .= $node instanceof \DOMText ? $node->nodeValue : (string)$node . "\n";
+		    $node = $node->nextSibling;
+		}
+		
+		if ($end === null) $str = substr($str, 0, -1); // Remove last newline for document root
+		return $str . $end;
 	}
 
 
@@ -268,7 +287,7 @@ class HTTPd_DOMElement extends \DOMElement
 		if ($newnode instanceof \DOMAttr) throw new \DOMException("Don't call Q\\HTTPd_DOMElement::" . __FUNCTION__ . "() to add an attribute, use setAttributeNode() instead.", DOM_HIERARCHY_REQUEST_ERR);
 		if ($this->firstChild === null) throw new \DOMException("It's not possible to add children to {$this->nodeName} direcive.", DOM_HIERARCHY_REQUEST_ERR);
 		
-		if (!($newnode instanceof HTTPd_DOMElement) && !($newnode instanceof \DOMText)) throw new \DOMException("You may only add Q\\HTTPd_DOMElement nodes to a section.", DOM_HIERARCHY_REQUEST_ERR);
+		if (!($newnode instanceof HTTPd_DOMElement) && !($newnode instanceof HTTPd_DOMComment) && !($newnode instanceof \DOMText)) throw new \DOMException("You may only add Q\\HTTPd_DOMElement, Q\\HTTPd_DOMComment and DOMText nodes to a section, not a " . get_class($newnode) . ".", DOM_HIERARCHY_REQUEST_ERR);
 		return \DOMElement::appendChild($newnode);
 	}
 
@@ -284,7 +303,7 @@ class HTTPd_DOMElement extends \DOMElement
 		if ($newnode instanceof \DOMAttr) throw new DOMException("Don't call Q\\HTTPd_DOMElement::" . __FUNCTION__ . "() to add an attribute, use setAttributeNode() instead.", DOM_HIERARCHY_REQUEST_ERR);
 		if ($this->firstChild === null) throw new \DOMException("It's not possible to add children to {$this->nodeName} direcive.", DOM_HIERARCHY_REQUEST_ERR);
 		
-		if (!($newnode instanceof HTTPd_DOMElement) && !($newnode instanceof \DOMText)) throw new \DOMException("You may only add Q\\HTTPd_DOMElement nodes to a section.", DOM_HIERARCHY_REQUEST_ERR);
+		if (!($newnode instanceof HTTPd_DOMElement) && !($newnode instanceof HTTPd_DOMComment) && !($newnode instanceof \DOMText)) throw new \DOMException("You may only add Q\\HTTPd_DOMElement, Q\\HTTPd_DOMComment and DOMText nodes to a section, not a " . get_class($newnode) . ".", DOM_HIERARCHY_REQUEST_ERR);
 		return \DOMElement::insertBefore($newnode, $refnode);
 	}
 
@@ -312,7 +331,7 @@ class HTTPd_DOMElement extends \DOMElement
 		if ($newnode instanceof \DOMAttr || $oldnode instanceof \DOMAttr) throw new \DOMException("Don't call Q\\HTTPd_DOMElement::" . __FUNCTION__ . "() to replace an attribute, use setAttribute() or setAttributeNode() instead.", DOM_HIERARCHY_REQUEST_ERR);
 		if ($this->firstChild === null) throw new \DOMException("It's not possible to add children to {$this->nodeName} direcive.", DOM_HIERARCHY_REQUEST_ERR);
 		
-		if (!($newnode instanceof HTTPd_DOMElement) && !($newnode instanceof \DOMText)) throw new \DOMException("You may only add Q\\HTTPd_DOMElement nodes to a section.", DOM_HIERARCHY_REQUEST_ERR);
+		if (!($newnode instanceof HTTPd_DOMElement) && !($newnode instanceof HTTPd_DOMComment) && !($newnode instanceof \DOMText)) throw new \DOMException("You may only add Q\\HTTPd_DOMElement, Q\\HTTPd_DOMComment and DOMText nodes to a section, not a " . get_class($newnode) . ".", DOM_HIERARCHY_REQUEST_ERR);
 		return \DOMElement::replaceChild($newnode, $oldnode);
 	}
 }

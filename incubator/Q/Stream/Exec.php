@@ -166,4 +166,3 @@ class Stream_Exec implements StreamingConnection
 	}	
 }
 
-?>

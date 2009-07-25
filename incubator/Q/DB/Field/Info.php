@@ -62,4 +62,3 @@ abstract class DB_Field_Info extends DB_Field
 	abstract function generate($value=null);
 }
 
-?>

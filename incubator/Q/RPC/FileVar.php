@@ -34,4 +34,3 @@ class RPC_FileVar
 	}
 }
 
-?>

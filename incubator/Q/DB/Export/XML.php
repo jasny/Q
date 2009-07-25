@@ -396,4 +396,3 @@
 		$this->native->data_seek(0);
 		return $xml;
 	}	
-?>

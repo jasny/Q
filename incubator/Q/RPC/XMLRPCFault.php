@@ -75,4 +75,3 @@ class RPC_XMLRPCFault extends RPC_Fault
 	}
 }
 
-?>

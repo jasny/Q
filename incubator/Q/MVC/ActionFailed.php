@@ -8,4 +8,3 @@ require_once 'Q/ExpectedException.php';
  */
 class ActionFailed extends Exception implements ExpectedException {}
 
-?>

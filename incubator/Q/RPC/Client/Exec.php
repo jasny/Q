@@ -168,4 +168,3 @@ class RPC_Client_Exec extends RPC_Client
 	}
 }
 
-?>

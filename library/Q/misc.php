@@ -52,7 +52,7 @@ function load_class($class)
 function unquote($value, $charlist='\'"`')
 {
 	$matches = null;
-	return preg_match('/^([' . preg_quote($charlist, '/') . '])(.*)\\1$/', trim($value), $matches) ? stripcslashes($matches[2]) : $value;
+	return preg_match('/^([' . preg_quote($charlist, '/') . '])(.*)\\1$/s', trim($value), $matches) ? stripcslashes($matches[2]) : $value;
 }
 
 /**

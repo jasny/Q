@@ -296,4 +296,3 @@ class Ctl_Data
 $ctl = new NDB_Data();
 $ctl->execute();
 
-?>

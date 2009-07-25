@@ -36,4 +36,3 @@ class DB_Field_Configvar extends DB_Field_Info
 }
 
 if (class_exists('ClassConfig', false)) ClassConfig_extractBin('DB_Field_Configvar');
-?>

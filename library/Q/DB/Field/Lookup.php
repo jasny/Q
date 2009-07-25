@@ -71,7 +71,7 @@ class DB_Field_Lookup extends DB_Field
 		if ($value instanceof DB_Record) {
 		    if (isset($this->properties['foreign_table']) && (!$value->getBaseTable() || $value->getBaseTable()->getTableName() != $this->properties['foreign_table'])) throw new Exception("Can't use record for field '" . $this->getFullname() . "': The record should be based on table '" . $this->properties['foreign_table'] . "'" . ($value->getBaseTable() ? ", but is based on table '" . $value->getBaseTable()->getTableName . "'." : '.'));
 		    if (!$value->getField(empty($this->properties['foreign_field']) ? '#role:id' : $this->properties['foreign_field'])) throw new Exception("Can't use record for field '" . $this->getFullname() . "': The record does not hold " . (empty($this->properties['foreign_field']) ? "a field for the primary key." : "field '{$this->properties['foreign_field']}'."));
-		    $this->value = $record;
+		    $this->value = $value;
 		    return;
 		}
 

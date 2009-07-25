@@ -32,4 +32,3 @@ abstract class View
 	abstract public function show($view, $data);
 }
 
-?>

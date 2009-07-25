@@ -33,4 +33,3 @@ class FrontOffice_Normal extends FrontOffice {
 }
 
 if (class_exists('ClassConfig', false)) ClassConfig_extractBin('FrontOffice::Normal');
-?>

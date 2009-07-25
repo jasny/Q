@@ -141,4 +141,3 @@ class Test_RPC_Server_XMLRPC extends PHPUnit_Framework_TestCase
 }
 
 if (PHPUnit_MAIN_METHOD == 'Test_RPC_Server_XMLRPC::main') Test_RPC_Server_XMLRPC::main();
-?>

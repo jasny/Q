@@ -70,4 +70,3 @@ class RPC_Fault extends Exception
 	}
 }
 
-?>

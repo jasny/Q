@@ -24,4 +24,3 @@ abstract class ActionResult
 class ActionResult_Exception extends Exception {}
 class ActionResult_Unknown_Exception extends ActionResult_Exception {}
 class Illegal_ActionResult_Exception extends ActionResult_Exception {}
-?>

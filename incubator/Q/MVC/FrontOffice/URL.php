@@ -36,4 +36,3 @@ class FrontOffice_URL extends FrontOffice {
 }
 
 if (class_exists('ClassConfig', false)) ClassConfig_extractBin('FrontOffice::URL');
-?>

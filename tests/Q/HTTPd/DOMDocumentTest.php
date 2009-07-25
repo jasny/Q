@@ -28,16 +28,18 @@ class HTTPd_DOMDocumentTest extends PHPUnit_Framework_TestCase
      * @var string
      */
     protected $conf = <<<CONF
-ErrorDocument 403 "/not-welcome.html"
-<Location /status>
-  ServerStatus On
+ErrorDocument 403 "<h1>Not allowed<h1><p>You are not welcome</p>"
+<Location /data>
+  RewriteEngine On
+  RewriteRule ^(.*)$ http://localhost:5984/$1 [P, QSA]
   
   <Limit GET HEAD>
-    Allow from localhost
+    Require valid-user
   </Limit>
 </Location>
 
-ErrorLog '/var/log/apache2/error.log'
+# Default error log
+ErrorLog /var/log/apache2/error.log
 CONF;
     
     
@@ -57,10 +59,11 @@ CONF;
     {
         $this->dom = null;
         
+        // Clean up temp dir
         if (file_exists($this->tmpdir)) {
             foreach (scandir($this->tmpdir) as $file) {
                 if ($file == '.' || $file == '..') continue;
-                unlink($file);
+                unlink($this->tmpdir . '/' . $file);
             }
             rmdir($this->tmpdir);
         }
@@ -74,6 +77,44 @@ CONF;
     public function __construct()
     {
         $this->tmpdir = dirname(dirname(__DIR__)) . '/tmp/' . __CLASS__;
+    }
+    
+    /**
+     * Get path to file in temporary directory
+     * 
+     * @param string $filename
+     * @return string
+     */
+    protected function tmpfile($filename)
+    {
+        if (!file_exists($this->tmpdir)) mkdir($this->tmpdir);
+        return $this->tmpdir . '/' . $filename;
+    }
+    
+    
+    /**
+     * Tests HTTPd_DOMDocument constructor
+     */
+    public function test__construct()
+    {
+        $node = $this->dom->documentElement;
+        
+        $this->assertType('Q\HTTPd_DOMElement', $node);
+        $this->assertTrue($node->isSection(), 'is section');
+        $this->assertEquals($node->nodeName, '_');
+        $this->assertFalse($node->hasAttributes(), 'has attributes');
+    }
+    
+    
+    /**
+     * Tests HTTPd_DOMDocument->createComment()
+     */
+    public function testCreateComment()
+    {
+        $node = $this->dom->createComment("Very important comment");
+        
+        $this->assertType('Q\HTTPd_DOMComment', $node);
+        $this->assertEquals("Very important comment", $node->nodeValue);
     }
     
     /**
@@ -235,17 +276,6 @@ CONF;
         $this->assertEquals($node->getArgument(2), 'PUT');
     }
 
-    /**
-     * Tests HTTPd_DOMDocument->createComment()
-     */
-    public function testCreateComment()
-    {
-        $node = $this->dom->createComment("Very important comment");
-        
-        $this->assertType('Q\HTTPd_DOMComment', $node);
-        $this->assertEquals("Very important comment", $node->nodeValue);
-    }
-    
     
     /**
      * Tests HTTPd_DOMDocument->getElementsByTagName()
@@ -258,6 +288,187 @@ CONF;
     }
     
     
+    /**
+     * Tests HTTPd_HTTPd_DOMDocument->loadString() with an empty string
+     */
+    public function testLoadString_Empty()
+    {
+        $this->dom->loadString("");
+
+        $root = $this->dom->documentElement;
+        $this->assertType('Q\HTTPd_DOMElement', $root);
+        $this->assertEquals($root->nodeName, '_');
+        $this->assertTrue($root->isSection(), "root is section");
+
+        $node = $root->firstChild;
+        $this->assertType('DOMText', $node, 'root newline');
+        $this->assertEquals("\n", $node->nodeValue);
+        
+        $this->assertNull($node->nextSibling, "Child of root, after newline");
+    }
+
+    /**
+     * Tests HTTPd_HTTPd_DOMDocument->loadString() with a single comment
+     */
+    public function testLoadString_Comment()
+    {
+        $this->dom->loadString("# This is a test");
+
+        $node = $this->dom->documentElement->firstChild;
+        $this->assertType('DOMText', $node, 'root newline');
+        $this->assertEquals("\n", $node->nodeValue);
+
+        $node = $node->nextSibling;
+        $this->assertType('Q\\HTTPd_DOMComment', $node);
+        $this->assertEquals(' This is a test', $node->nodeValue);
+                        
+        $this->assertNull($node->nextSibling, "Child of root, after comment");
+    }
+    
+    /**
+     * Tests HTTPd_HTTPd_DOMDocument->loadString() with a single directive
+     */
+    public function testLoadString_Directive()
+    {
+        $this->dom->loadString("ErrorLog /var/log/apache2/error.log");
+
+        $node = $this->dom->documentElement->firstChild;
+        $this->assertType('DOMText', $node, 'root newline');
+        $this->assertEquals("\n", $node->nodeValue);
+
+        $node = $node->nextSibling;
+        $this->assertType('Q\\HTTPd_DOMElement', $node);
+        $this->assertEquals('ErrorLog', $node->nodeName);
+        $this->assertFalse($node->isSection(), "ErrorLog is section");
+        $this->assertEquals('/var/log/apache2/error.log', $node->getArgument(1));
+                        
+        $this->assertNull($node->nextSibling, "Child of root, after ErrorLog");
+    }
+    
+    /**
+     * Tests HTTPd_HTTPd_DOMDocument->loadString() with a single section
+     */
+    public function testLoadString_Section()
+    {
+        $this->dom->loadString("<Location /status>\n</Location>");
+
+        $node = $this->dom->documentElement->firstChild;
+        $this->assertType('DOMText', $node, 'root newline');
+        $this->assertEquals("\n", $node->nodeValue);
+
+        $node = $node->nextSibling;
+        $this->assertType('Q\\HTTPd_DOMElement', $node);
+        $this->assertEquals('Location', $node->nodeName);
+        $this->assertTrue($node->isSection(), "<Location> is section");
+        $this->assertEquals('/status', $node->getArgument(1));
+                
+        $this->assertNull($node->nextSibling, "Child of root, after newline");
+    }
+    
+    
+    /**
+     * Tests HTTPd_HTTPd_DOMDocument->loadString() with a comment spreading on multiple lines
+     */
+    public function testLoadString_Comment_Multiline()
+    {
+        $this->dom->loadString("# This is a test\\\nOn multiple lines");
+
+        $node = $this->dom->documentElement->firstChild;
+        $this->assertType('DOMText', $node, 'root newline');
+        $this->assertEquals("\n", $node->nodeValue);
+
+        $node = $node->nextSibling;
+        $this->assertType('Q\\HTTPd_DOMComment', $node);
+        $this->assertEquals(" This is a test\nOn multiple lines", $node->nodeValue);
+                        
+        $this->assertNull($node->nextSibling, "Child of root, after comment");
+    }
+    
+    /**
+     * Tests HTTPd_HTTPd_DOMDocument->loadString() with a directive spreading on multiple lines
+     */
+    public function testLoadString_Directive_Multiline()
+    {
+        $this->dom->loadString("Redirect \\\n302 /goolge\\\nhttp://www.google.com");
+
+        $node = $this->dom->documentElement->firstChild->nextSibling;
+        $this->assertType('Q\\HTTPd_DOMElement', $node);
+        $this->assertEquals('Redirect', $node->nodeName);
+        $this->assertEquals(302, $node->getArgument(1));
+        $this->assertEquals('/goolge', $node->getArgument(2));
+        $this->assertEquals('http://www.google.com', $node->getArgument(3));
+    }
+    
+    /**
+     * Tests HTTPd_HTTPd_DOMDocument->loadString() with a section spreading on multiple lines
+     */
+    public function testLoadString_Section_Multiline()
+    {
+        $this->dom->loadString("<Limit\\\nGET SET\\\nPUT>\n</Limit>");
+
+        $node = $this->dom->documentElement->firstChild->nextSibling;
+        $this->assertType('Q\\HTTPd_DOMElement', $node);
+        $this->assertEquals('Limit', $node->nodeName);
+        $this->assertEquals('GET', $node->getArgument(1));
+        $this->assertEquals('SET', $node->getArgument(2));
+        $this->assertEquals('PUT', $node->getArgument(3));
+        
+        $this->assertNull($node->nextSibling, "Child of root, after newline");
+    }
+
+    /**
+     * Tests HTTPd_HTTPd_DOMDocument->loadString() with an argument spreading on multiple lines
+     */
+    public function testLoadString_Argument_Multiline()
+    {
+        $this->dom->loadString("ErrorDocument 503 \"<h1>Unavailable</h1>\\\nSorry the site is down\"");
+
+        $node = $this->dom->documentElement->firstChild->nextSibling;
+        $this->assertType('Q\\HTTPd_DOMElement', $node);
+        $this->assertEquals('ErrorDocument', $node->nodeName);
+        $this->assertEquals(503, $node->getArgument(1));
+        $this->assertEquals("<h1>Unavailable</h1>\nSorry the site down", $node->getArgument(2));
+        
+        $this->assertNull($node->nextSibling, "Child of root, after comment");
+    }
+    
+    
+    /**
+     * Tests HTTPd_HTTPd_DOMDocument->loadString() with an incorrect close tag
+     */
+    public function testLoadString_IncorrectCloseTag()
+    {
+        $this->setExpectedException("DOMException", "Syntax error on line 2: Expected </Location> but saw </Typo>", DOM_SYNTAX_ERR);
+        $this->dom->loadString("<Location /status>\n</Typo>");
+    }
+
+    /**
+     * Tests HTTPd_HTTPd_DOMDocument->loadString() with an unexpected close tag
+     */
+    public function testLoadString_UnexpectedCloseTag()
+    {
+        $this->setExpectedException("DOMException", "Syntax error on line 1: </Location> without matching <Location> section", DOM_SYNTAX_ERR);
+        $this->dom->loadString("</Location>");
+    }
+    
+    /**
+     * Tests HTTPd_HTTPd_DOMDocument->loadString() with an unclosed section
+     */
+    public function testLoadString_NoCloseTag()
+    {
+        $this->setExpectedException("DOMException", "Syntax error: <Location> was not closed.", DOM_SYNTAX_ERR);
+        $this->dom->loadString("<Location /status>");
+    }
+
+    /**
+     * Tests HTTPd_HTTPd_DOMDocument->loadString() with a syntax error
+     */
+    public function testLoadString_SyntaxError()
+    {
+        $this->setExpectedException("DOMException", "Syntax error on line 1: Invalid command '<Location /status'.", DOM_SYNTAX_ERR);
+        $this->dom->loadString("<Location /status\n</Location>");
+    }
+
     /**
      * Test based on the test configuration.
      */
@@ -277,30 +488,41 @@ CONF;
         $this->assertEquals('ErrorDocument', $node->nodeName);
         $this->assertFalse($node->isSection(), "ErrorDocument is section");
         $this->assertEquals(403, $node->getArgument(1));
-        $this->assertEquals('/not-welcome.html', $node->getArgument(2));
+        $this->assertEquals('<h1>Not allowed<h1><p>You are not welcome</p>', $node->getArgument(2));
         
         $node = $node->nextSibling;
         $this->assertType('Q\\HTTPd_DOMElement', $node, '<Location>');
         $this->assertEquals('Location', $node->nodeName);
         $this->assertTrue($node->isSection(), "<Location> is section");
-        $this->assertEquals('/status', $node->getArgument(1));
+        $this->assertEquals('/data', $node->getArgument(1));
         
         $node = $node->firstChild;
         $this->assertType('DOMText', $node, '<Location> newline');
         $this->assertEquals("\n", $node->nodeValue);
         
         $node = $node->nextSibling;
-        $this->assertType('DOMText', $node, 'ServerStatus indent');
+        $this->assertType('DOMText', $node, 'RewriteEngine indent');
         $this->assertEquals("  ", $node->nodeValue);
         
         $node = $node->nextSibling;
-        $this->assertType('Q\\HTTPd_DOMElement', $node, 'ServerStatus');
-        $this->assertEquals('ServerStatus', $node->nodeName);
+        $this->assertType('Q\\HTTPd_DOMElement', $node, 'RewriteEngine');
+        $this->assertEquals('RewriteEngine', $node->nodeName);
         $this->assertEquals('On', $node->getArgument(1));
+
+        $node = $node->nextSibling;
+        $this->assertType('DOMText', $node, 'RewriteEngine indent');
+        $this->assertEquals("  ", $node->nodeValue);
         
         $node = $node->nextSibling;
-        $this->assertType('DOMText', $node, 'ServerStatus blank');
-        $this->assertEquals("\n  ", $node->nodeValue);
+        $this->assertType('Q\\HTTPd_DOMElement', $node, 'RewriteRule');
+        $this->assertEquals('RewriteRule', $node->nodeName);
+        $this->assertEquals('^(.*)$', $node->getArgument(1));
+        $this->assertEquals('http://localhost:5984/$1', $node->getArgument(2));
+        $this->assertEquals('[P, QSA]', $node->getArgument(3));
+        
+        $node = $node->nextSibling;
+        $this->assertType('DOMText', $node, 'RewriteRule blank');
+        $this->assertEquals("  \n", $node->nodeValue);
         
         $node = $node->nextSibling;
         $this->assertType('DOMText', $node, '<Limit> indent');
@@ -320,35 +542,37 @@ CONF;
         $this->assertEquals("    ", $node->nodeValue);
                 
         $node = $node->nextSibling;
-        $this->assertType('Q\\HTTPd_DOMElement', $node, 'Allow');
-        $this->assertEquals('Allow', $node->nodeName);
-        $this->assertEquals('from', $node->getArgument(1));
-        $this->assertEquals('localhost', $node->getArgument(2));
+        $this->assertType('Q\\HTTPd_DOMElement', $node, 'Require');
+        $this->assertEquals('Require', $node->nodeName);
+        $this->assertEquals('valid-user', $node->getArgument(1));
         
         $node = $node->nextSibling;
         $this->assertType('DOMText', $node, '</Limit> indent');
         $this->assertEquals("  ", $node->nodeValue);
 
-        $this->assertNull($node->nextSibling, "Next sibbling of <Limit>, after Allow");
+        $this->assertNull($node->nextSibling, "Next sibbling after Require in <Limit>");
 
         $node = $node->parentNode;
-        $this->assertNull($node->nextSibling, "Next sibbling of <Location>, after <Limit>");
+        $this->assertNull($node->nextSibling, "Next sibbling after <Limit> in <Location>");
         
         $node = $node->parentNode->nextSibling;
         $this->assertType('DOMText', $node, '</Location> blank');
         $this->assertEquals("\n", $node->nodeValue);
         
         $node = $node->nextSibling;
+        $this->assertType('Q\\HTTPd_DOMComment', $node);
+        $this->assertEquals(' Default error log', $node->nodeValue);
+        
+        $node = $node->nextSibling;
         $this->assertType('Q\\HTTPd_DOMElement', $node, 'ErrorLog');
         $this->assertEquals('ErrorLog', $node->nodeName);
         $this->assertEquals('/var/log/apache2/error.log', $node->getArgument(1));
 
-        $this->assertNull($node->nextSibling, "Next sibbling of document, after ErrorLog");
+        $this->assertNull($node->nextSibling, "Next sibbling after ErrorLog");
     }
     
-    
     /**
-     * Tests HTTPd_HTTPd_DOMDocument->loadString()
+     * Tests HTTPd_HTTPd_DOMDocument->loadString() with test configuration
      */
     public function testLoadString()
     {
@@ -357,11 +581,27 @@ CONF;
     }
     
     /**
-     * Tests HTTPd_HTTPd_DOMDocument->load()
+     * Tests HTTPd_HTTPd_DOMDocument->loadString() replacing the existing nodes
+     */
+    public function testLoadString_ReplaceExisting()
+    {
+        $this->dom->loadString("ErrorLog /var/log/apache2/error.log");
+        $node = $this->dom->documentElement->firstChild->nextSibling;
+        $this->assertEquals("ErrorLog", $node->nodeName);
+        $this->assertEquals("/var/log/apache2/error.log", $node->getArgument(1));
+        
+        $this->dom->loadString("RewriteEngine On");
+        $node = $this->dom->documentElement->firstChild->nextSibling;
+        $this->assertEquals("RewriteEngine", $node->nodeName);
+        $this->assertEquals("On", $node->getArgument(1));
+    }
+    
+    /**
+     * Tests HTTPd_HTTPd_DOMDocument->load() with test configuration
      */
     public function testLoad()
     {
-        $file = $this->tmpdir . "/" . __FUNCTION__ . ".conf";
+        $file = $this->tmpfile(__FUNCTION__ . ".conf");
         file_put_contents($file, $this->conf);
         
         $this->dom->load($file);
@@ -370,25 +610,40 @@ CONF;
     
     
     /**
-     * Tests HTTPd_DOMDocument->save()
-     */
-    public function testSave()
-    {
-        // TODO Auto-generated HTTPd_DOMDocumentTest->testSave()
-        $this->markTestIncomplete("save test not implemented");
-        $this->dom->save(/* parameters */);
-    }
-
-    /**
      * Tests HTTPd_DOMDocument->saveString()
      */
     public function testSaveString()
     {
-        // TODO Auto-generated HTTPd_DOMDocumentTest->testSave()
-        $this->markTestIncomplete("save test not implemented");
-        $this->dom->saveString(/* parameters */);
+        $this->dom->loadString($this->conf);
+        $conf = $this->dom->saveString();
+        $this->assertEquals($this->conf, $conf);
     }
 
+    /**
+     * Tests HTTPd_DOMDocument->save()
+     */
+    public function testSave()
+    {
+        $file = $this->tmpfile(__FUNCTION__ . ".conf");
+
+        $this->dom->loadString($this->conf);
+        $conf = $this->dom->save($file);
+        $this->assertEquals($this->conf, file_get_contents($file));
+    }
+
+    /**
+     * Tests HTTPd_DOMDocument->save(), saving back to original file
+     */
+    public function testSave_ToOriginal()
+    {
+        $file = $this->tmpfile(__FUNCTION__ . ".conf");
+        file_put_contents($file, $this->conf);
+        
+        $this->dom->load($file);
+        $conf = $this->dom->save();
+        $this->assertEquals($this->conf, file_get_contents($file));
+    }
+    
     
     /**
      * Tests HTTPd_DOMDocument->createDocumentFragment()
@@ -400,16 +655,6 @@ CONF;
         $this->dom->validate(/* parameters */);
     }
     
-    /**
-     * Tests HTTPd_DOMDocument->validate()
-     */
-    public function testValidate()
-    {
-        // TODO Auto-generated HTTPd_DOMDocumentTest->testValidate()
-        $this->markTestIncomplete("validate test not implemented");
-        $this->dom->validate(/* parameters */);
-    }
-
     
     // ===== Test cases for inherited methods =====
 
@@ -594,6 +839,14 @@ CONF;
     {
         $this->setExpectedException('DOMException', null, DOM_NOT_SUPPORTED_ERR);
         $this->dom->relaxNGValidateSource("Relax");
+    }
+
+    /**
+     * Tests HTTPd_DOMDocument->validate()
+     */
+    public function testValidate()
+    {
+        $this->assertTrue($this->dom->validate());
     }
 
     /**

@@ -99,4 +99,3 @@ class Action_Detail extends Action {
 		
 }
 
-?>

@@ -49,4 +49,3 @@ interface RPC_Client_Handler
 	public function about();	
 }
 
-?>

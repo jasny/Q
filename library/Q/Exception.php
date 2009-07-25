@@ -3,6 +3,8 @@ namespace Q;
 
 /**
  * Base exception class for the Q framework.
+ * 
+ * @package Exception
  */
 class Exception extends \Exception 
 {
@@ -219,3 +221,9 @@ class Exception extends \Exception
     }   
 }
 
+
+/**
+ * Exception for a possible hack attempt
+ */
+class SecurityException extends Exception
+{}

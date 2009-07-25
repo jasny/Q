@@ -156,4 +156,3 @@ class ConditionalTree_Iterator implements IteratorAggregate
 	}
 }
 
-?>

@@ -147,4 +147,3 @@ class Test_RPC_Client_Exec extends PHPUnit_Framework_TestCase
 }
    
 if (PHPUnit_MAIN_METHOD == 'Test_RPC_Client_Exec::main') Test_RPC_Client_Exec::main();
-?>

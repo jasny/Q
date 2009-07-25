@@ -63,4 +63,3 @@
     	$this->assertEquals($expect, self::cleanXML($xml));
     }
 
-?>

@@ -57,4 +57,3 @@ interface RPC_Server_Handler
 	public function putExtraInfo($type, $value);
 }
 
-?>

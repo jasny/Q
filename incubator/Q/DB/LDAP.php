@@ -2,7 +2,7 @@
 namespace Q;
 
 require_once 'Q/DB.php';
-require_once 'Q/DB/MySQL/QuerySplitter.php';
+require_once 'Q/DB/MySQL/sqlSplitter.php';
 require_once 'Q/DB/SQLStatement.php';
 
 require_once 'Q/DB/MySQL/Result.php';
@@ -89,8 +89,8 @@ class DB_LDAP extends DB
 	{
 		parent::__construct($native, $settings);
 		
-		$class = self::$classes['QuerySplitter'];
-		$this->querySplitter = new $class();
+		$class = self::$classes['sqlSplitter'];
+		$this->sqlSplitter = new $class();
 
 		if (isset($this->log)) $this->log->write(array('statement'=>"Connected to {$settings['host']}.", (isset($settings['database']) ? "Using database '{$settings['database']}'." : '')), 'db-connect');
 	}
@@ -154,4 +154,3 @@ class DB_LDAP extends DB
 	}
 }
 
-?>
