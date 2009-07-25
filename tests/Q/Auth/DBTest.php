@@ -1,5 +1,5 @@
 <?php
-namespace Q;
+use Q\Auth, DB;
 
 require_once 'Test/Auth/Main.php';
 require_once 'Q/Auth/DB.php';
@@ -12,7 +12,7 @@ class Auth_DBTest extends Auth_MainTest
 	/**
 	 * DB connection object
 	 *
-	 * @var Q\DB
+	 * @var DB
 	 */
 	protected $conn;
 	
@@ -51,7 +51,7 @@ class Auth_DBTest extends Auth_MainTest
 	public function setUp()
 	{
 		try {
-		    $this->conn = Q\DB::connect('mysql', "localhost", "qtest");
+		    $this->conn = DB::connect('mysql', "localhost", "qtest");
 		} catch (Exception $e) {
 			$this->markTestSkipped("Failed to connect to database. Please create a user 'qtest' with all privileges to database 'qtest'. " . $e->getMessage());
 		}

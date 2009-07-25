@@ -1,5 +1,5 @@
 <?php
-namespace Q;
+use Q\Auth;
 
 require_once 'TestHelper.php';
 require_once 'PHPUnit/Framework/TestCase.php';
@@ -8,7 +8,7 @@ require_once 'Q/Auth.php';
 /**
  * Auth test case.
  */
-class Auth_MainTest extends \PHPUnit_Framework_TestCase
+class Auth_MainTest extends PHPUnit_Framework_TestCase
 {
     /**
      * Q\Auth object
@@ -187,7 +187,7 @@ class Auth_MainTest extends \PHPUnit_Framework_TestCase
     public function testLogin ()
     {
         $this->Auth->login('monkey', 'mark');
-        $user = $this->Auth->user;
+        $user = $this->Auth->user();
         
         $this->assertTrue($this->Auth->isLoggedIn());
         $this->assertNotNull($user, 'user');
@@ -207,9 +207,9 @@ class Auth_MainTest extends \PHPUnit_Framework_TestCase
         $this->Auth->login('wolf', 'willem');
         
         $this->assertFalse($this->Auth->isLoggedIn());
-        $this->assertNotNull($this->Auth->user, 'user');
-        $this->assertNull($this->Auth->user->id, 'id');
-        $this->assertEquals('wolf', $this->Auth->user->username);
+        $this->assertNotNull($this->Auth->user(), 'user');
+        $this->assertNull($this->Auth->user()->id, 'id');
+        $this->assertEquals('wolf', $this->Auth->user()->username);
     }
     
 	/**
@@ -221,9 +221,9 @@ class Auth_MainTest extends \PHPUnit_Framework_TestCase
         $this->Auth->login('monkey', 'rudolf');
         
         $this->assertFalse($this->Auth->isLoggedIn());
-        $this->assertNotNull($this->Auth->user, 'user');
-        $this->assertEquals(1, (int)$this->Auth->user->id, 'id');
-        $this->assertNull($this->Auth->user->username, 'monkey');
+        $this->assertNotNull($this->Auth->user(), 'user');
+        $this->assertEquals(1, (int)$this->Auth->user()->id, 'id');
+        $this->assertNull($this->Auth->user()->username, 'monkey');
     }
 
 	/**
@@ -235,8 +235,8 @@ class Auth_MainTest extends \PHPUnit_Framework_TestCase
         $this->Auth->login('baboon', 'ben');
         
         $this->assertFalse($this->Auth->isLoggedIn());
-        $this->assertNotNull($this->Auth->user, 'user');
-        $this->assertEquals(2, (int)$this->Auth->user->id, 'id');
+        $this->assertNotNull($this->Auth->user(), 'user');
+        $this->assertEquals(2, (int)$this->Auth->user()->id, 'id');
     }    
 
 	/**
@@ -248,8 +248,8 @@ class Auth_MainTest extends \PHPUnit_Framework_TestCase
         $this->Auth->login('gorilla', 'george');
         
         $this->assertFalse($this->Auth->isLoggedIn());
-        $this->assertNotNull($this->Auth->user, 'user');
-        $this->assertEquals(3, (int)$this->Auth->user->id, 'id');
+        $this->assertNotNull($this->Auth->user(), 'user');
+        $this->assertEquals(3, (int)$this->Auth->user()->id, 'id');
     }
     
     
@@ -260,14 +260,14 @@ class Auth_MainTest extends \PHPUnit_Framework_TestCase
     {
         $this->Auth->login('monkey', 'mark');
         $this->assertTrue($this->Auth->isLoggedIn());
-        $this->assertEquals(1, $this->Auth->user->id, 'id');
+        $this->assertEquals(1, $this->Auth->user()->id, 'id');
 
         $this->setExpectedException('Q\Auth_Session_Exception');
         $this->Auth->logout();
         
         $this->assertFalse($this->Auth->isLoggedIn());
-        $this->assertNotNull($this->Auth->user, 'user');
-        $this->assertEquals(1, (int)$this->Auth->user->id, 'id');
+        $this->assertNotNull($this->Auth->user(), 'user');
+        $this->assertEquals(1, (int)$this->Auth->user()->id, 'id');
     }
 
     
@@ -284,7 +284,7 @@ class Auth_MainTest extends \PHPUnit_Framework_TestCase
         $this->Auth->start();
         $this->assertTrue($this->Auth->isLoggedIn());
         
-        $user = $this->Auth->user;
+        $user = $this->Auth->user();
         $this->assertNotNull($user, 'user');
         $this->assertEquals(1, (int)$user->id, 'id');
         $this->assertEquals('Mark Monkey', $user->fullname);
@@ -302,7 +302,7 @@ class Auth_MainTest extends \PHPUnit_Framework_TestCase
         $this->Auth->start();
         
         $this->assertFalse($this->Auth->isLoggedIn());
-        $this->assertNull($this->Auth->user, 'user');
+        $this->assertNull($this->Auth->user(), 'user');
     }
 
     /**
@@ -315,7 +315,7 @@ class Auth_MainTest extends \PHPUnit_Framework_TestCase
         
         $this->assertEquals(Auth::NO_SESSION, $result, 'result code');
         $this->assertFalse($this->Auth->isLoggedIn());
-        $this->assertNull($this->Auth->user, 'user');
+        $this->assertNull($this->Auth->user(), 'user');
     }
     
     /**
@@ -329,7 +329,7 @@ class Auth_MainTest extends \PHPUnit_Framework_TestCase
         $this->Auth->start();
         
         $this->assertFalse($this->Auth->isLoggedIn());
-        $this->assertNull($this->Auth->user, 'user');
+        $this->assertNull($this->Auth->user(), 'user');
     }
     
 	/**
@@ -344,9 +344,9 @@ class Auth_MainTest extends \PHPUnit_Framework_TestCase
         $this->Auth->start();
         
         $this->assertFalse($this->Auth->isLoggedIn());
-        $this->assertNotNull($this->Auth->user, 'user');
-        $this->assertEquals(2, (int)$this->Auth->user->id, 'id');
-        $this->assertFalse((bool)$this->Auth->user->active, 'active');
+        $this->assertNotNull($this->Auth->user(), 'user');
+        $this->assertEquals(2, (int)$this->Auth->user()->id, 'id');
+        $this->assertFalse((bool)$this->Auth->user()->active, 'active');
     }    
 
     /**
@@ -362,8 +362,8 @@ class Auth_MainTest extends \PHPUnit_Framework_TestCase
         
         $this->assertEquals(Auth::INACTIVE_USER, $result, 'result code');
         $this->assertFalse($this->Auth->isLoggedIn());
-        $this->assertNotNull($this->Auth->user, 'user');
-        $this->assertEquals(2, (int)$this->Auth->user->id, 'id');
+        $this->assertNotNull($this->Auth->user(), 'user');
+        $this->assertEquals(2, (int)$this->Auth->user()->id, 'id');
     }
     
     /**
@@ -378,8 +378,8 @@ class Auth_MainTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals(Auth::OK, $result, 'result code');
         $this->assertTrue($this->Auth->isLoggedIn());
-        $this->assertNotNull($this->Auth->user, 'user');
-        $this->assertEquals(3, (int)$this->Auth->user->id, 'id');
+        $this->assertNotNull($this->Auth->user(), 'user');
+        $this->assertEquals(3, (int)$this->Auth->user()->id, 'id');
     }
         
     /**
@@ -394,8 +394,8 @@ class Auth_MainTest extends \PHPUnit_Framework_TestCase
         $this->Auth->start();
         
         $this->assertFalse($this->Auth->isLoggedIn());
-        $this->assertNotNull($this->Auth->user, 'user');
-        $this->assertEquals(1, (int)$this->Auth->user->id, 'id');
+        $this->assertNotNull($this->Auth->user(), 'user');
+        $this->assertEquals(1, (int)$this->Auth->user()->id, 'id');
     }
 
     /**
@@ -409,8 +409,8 @@ class Auth_MainTest extends \PHPUnit_Framework_TestCase
         $this->Auth->start();
         
         $this->assertFalse($this->Auth->isLoggedIn());
-        $this->assertNotNull($this->Auth->user, 'user');
-        $this->assertEquals(1, $this->Auth->user->id, 'id');
+        $this->assertNotNull($this->Auth->user(), 'user');
+        $this->assertEquals(1, $this->Auth->user()->id, 'id');
     }
     
     
@@ -448,6 +448,47 @@ class Auth_MainTest extends \PHPUnit_Framework_TestCase
 
         $this->setExpectedException('Q\Auth_Login_Exception', null, Auth::HOST_BLOCKED);
         $this->Auth->login('monkey', 'mark');
-    }    
+    }
+    
+    
+    /**
+     * Tests Auth->authz()
+     */
+    public function testAuthz()
+    {
+        $this->Auth->login('monkey', 'mark');
+        $this->Auth->autz('primate');
+    }
+    
+    /**
+     * Tests Auth->authz() where authorization fails
+     */
+    public function testAuthz_Fail()
+    {
+        $this->setExpectedException('Q\Authz_Exception', "User 'monkey' is not in group 'ape'.");
+        
+        $this->Auth->login('monkey', 'mark');
+        $this->Auth->autz('ape');
+    }
+
+    /**
+     * Tests Auth->authz() with multiple groups where authorization fails
+     */
+    public function testAuthz_FailMultiple()
+    {
+        $this->setExpectedException('Q\Authz_Exception', "User 'monkey' is not in groups 'ape', 'pretty'.");
+        
+        $this->Auth->login('monkey', 'mark');
+        $this->Auth->autz('primate', 'ape', 'pretty');
+    }
+    
+    /**
+     * Tests Auth->authz() whith no session
+     */
+    public function testAuthz_NoSession()
+    {
+        $this->setExpectedException('Q\Auth_Session_Exception', "No user is logged in.", Auth::NO_SESSION);
+        $this->Auth->autz('primate');
+    }
 }
 

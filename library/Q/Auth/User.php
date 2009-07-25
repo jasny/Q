@@ -52,15 +52,19 @@ class Auth_User
         return $this->info;
     }
 
+    
     /**
      * Check if user is in specific group(s)
      * 
-     * @param string $group  Group name, multiple groups may be supplied
-     * @throws Authorization_Exception if the user is not in one of the groups
+     * @param string $group  Group name, multiple groups may be supplied as array
+     * @param Multiple groups may be supplied as additional arguments
+     * 
+     * @throws Authz_Exception if the user is not in one of the groups
      */
-    public function authzFor($group)
+    public function authz($group)
     {
-    	$missing = array_diff(func_get_args(), $this->info['groups']); 
-    	if (!empty($missing)) throw new Auth_Exception("Not in group" . (count($missing) == 1 ? "" : "s") . " '" . join("', '", $missing));
+        $groups = is_array($group) ? $group : func_get_args();
+    	$missing = array_diff($groups, $this->info['groups']); 
+    	if (!empty($missing)) throw new Authz_Exception("User '{$this->info['username']}' is not in group" . (count($missing) == 1 ? "" : "s") . " '" . join("', '", $missing) . "'.");
     }
 }

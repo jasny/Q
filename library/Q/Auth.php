@@ -4,7 +4,7 @@ namespace Q;
 require_once "Q/Crypt.php";
 require_once "Q/Cache.php";
 require_once "Q/HTTP.php";
-require_once "Q/Exception.php";
+require_once "Q/ExpectedException.php";
 require_once "Q/Auth/User.php";
 
 /**
@@ -261,14 +261,15 @@ abstract class Auth
 	/**
 	 * Get current user
 	 *
+	 * @throws Auth_Session_Exception if no user is logged in
 	 * @return Auth_User
 	 */
-	public function curUser()
+	public function user()
 	{
-		if (!isset($this->_user)) throw new Auth_Session_Exception("User is logged in.");
+		if (!isset($this->_user)) throw new Auth_Session_Exception("No user is logged in.");
 		return $this->_user;
 	}
-		
+	
 	/**
 	 * Check if host is blocked.
 	 * Returns 0 if unblockable.
@@ -489,7 +490,7 @@ abstract class Auth
             $this->logout($result);
         } else {
             $this->loggedIn = true;
-            $this->onLogin();
+            $this->onStart();
         }
         
         return $result;
@@ -589,6 +590,22 @@ abstract class Auth
      * To be overwritten by subclass.
      */
     protected function onLogout() { }
+
+    
+    /**
+     * Check if the current user is in specific group(s)
+     * 
+     * @param string $group  Group name, multiple groups may be supplied as array
+     * @param Multiple groups may be supplied as additional arguments
+     * 
+     * @throws Auth_Session_Exception if no user is logged in
+     * @throws Authz_Exception if the user is not in one of the groups
+     */
+    public function authz($group)
+    {
+    	$groups = is_array($group) ? $group : func_get_args();
+    	$this->user()->authz($groups);
+    }
     
     
     /**
@@ -732,7 +749,7 @@ class Auth_Mock
  * Base class for Auth exceptions
  * @package Auth
  */
-abstract class Auth_Exception extends \Exception {}
+abstract class Auth_Exception extends \Exception implements \ExpectedException {}
 
 /**
  * Auth login exceptions
@@ -747,7 +764,7 @@ class Auth_Login_Exception extends Auth_Exception {}
 class Auth_Session_Exception extends Auth_Exception {}
 
 /**
- * Authorization exceptions
+ * Authorization exception
  * @package Auth
  */
 class Authz_Exception extends Auth_Exception {}

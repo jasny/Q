@@ -1,5 +1,5 @@
 <?php
-namespace Q;
+use Q\Auth;
 
 require_once 'Test/Auth/Main.php';
 
