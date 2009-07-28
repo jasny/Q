@@ -6,7 +6,11 @@ require_once "Q/Auth/SimpleUser.php";
 
 /**
  * Auth checking against manually set info.
- *  
+ * 
+ * The users aren't indexed, so this interface will be slow if you use it for a very large list of
+ * users. Also this will be a waste of memory. In such a case, write an interface yourself that
+ * gets the user directly from the source. (You can do it, it's easy, go extend! :p)
+ * 
  * @package Auth
  */
 class Auth_Manual extends Auth 

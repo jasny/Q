@@ -1,10 +1,12 @@
 <?php
 namespace Q;
 
+require_once "Q/ExpectedException.php";
+require_once "Q/CommonException.php";
+
 require_once "Q/Crypt.php";
 require_once "Q/Cache.php";
 require_once "Q/HTTP.php";
-require_once "Q/ExpectedException.php";
 require_once "Q/Auth/User.php";
 
 /**
@@ -20,27 +22,27 @@ require_once "Q/Auth/User.php";
  */
 abstract class Auth
 {
-	/** Result code: no session exists */
+	/** Status code: no session exists */
 	const NO_SESSION = -1;
-	/** Result code: no error */
+	/** Status code: no error */
 	const OK = 0;
-	/** Result code: no username provided */
+	/** Status code: no username provided */
 	const NO_USERNAME = 1;
-	/** Result code: no password provided */
+	/** Status code: no password provided */
 	const NO_PASSWORD = 2;
-	/** Result code: user not found */
+	/** Status code: user not found */
 	const UNKNOWN_USER = 3;
-	/** Result code: incorrect password */
+	/** Status code: incorrect password */
 	const INCORRECT_PASSWORD = 4;
-	/** Result code: user is not active */
+	/** Status code: user is not active */
 	const INACTIVE_USER = 16;
-	/** Result code: client ip is blocked */
+	/** Status code: client ip is blocked */
 	const HOST_BLOCKED = 17;
-	/** Result code: password is expired */
+	/** Status code: password is expired */
 	const PASSWORD_EXPIRED = 18;
-	/** Result code: session cecksum was not correct */
-	const INVALID_SESSION = 19;	
-	/** Result code: session is expired */
+	/** Status code: session cecksum was not correct */
+	const INVALID_CHECKSUM = 19;	
+	/** Status code: session is expired */
 	const SESSION_EXPIRED = 20;	
 	
 	
@@ -48,7 +50,7 @@ abstract class Auth
 	 * Named Auth instances
 	 * @var Auth[]
 	 */
-	protected static $instances;
+	private static $instances;
 
 	/**
 	 * Drivers with classname or as array(classname, arg, ...).
@@ -88,17 +90,28 @@ abstract class Auth
 	 * 
 	 * @var Crypt
 	 */
-	public $hashCrypt = 'md5';
+	public $checksumCrypt = 'md5';
+
+	/**
+	 * Add the password to the checksum; enabling this requires fetching the user on each request.
+	 * @var boolean
+	 */
+	public $checksumPassword = true;
 	
+	/**
+	 * Add the client IP to the checksum to defend against session hijacking.
+	 * @var boolean
+	 */
+	public $checksumClientIp = false;
+
 	/**
 	 * Encryption method used to encrypt passwords.
 	 * @var Crypt
 	 */
 	public $passwordCrypt;
-
 	
 	/**
-	 * If login is required and User is not logged in, display login page.
+	 * If login is required and user is not logged in, display login page.
 	 * @var boolean
 	 */
 	public $loginRequired = false;
@@ -115,6 +128,14 @@ abstract class Auth
 	 */
 	public $expiredPage;
 
+	/**
+	 * Validate the status of the user on each request.
+	 * If you only require authentication, we will use lazy load if this is set to false.
+	 * 
+	 * @var boolean
+	 */
+	public $validateOnStart = true;
+	
 	/**
 	 * Login from any page using $loginRequestVar as GET var or request method.
 	 * Uses request var username and password if they exist, otherwise will take the value of the login var.
@@ -150,17 +171,23 @@ abstract class Auth
 	
 	
 	/**
-	 * Flag to state user is logged in
-	 * @var boolean
+	 * Flag to indicate the user is succesfully logged in.
+	 * @boolean
 	 */
 	protected $loggedIn = false;
-		
+	
 	/**
-	 * Current user information
+	 * Current user session information
+	 * @var array
+	 */
+	protected $info;
+
+	/**
+	 * Current user
 	 * @var Auth_User
 	 */
-	protected $_user;
-
+	protected $user;	
+	
 	
 	/**
 	 * Set the options.
@@ -209,7 +236,7 @@ abstract class Auth
 	 *
 	 * @param string $name
 	 * @param string $args
-	 * @return Config
+	 * @return Auth
 	 */
 	static public function __callstatic($name, $args)
 	{
@@ -219,6 +246,17 @@ abstract class Auth
 		}
 	    	    
         return self::$instances[$name];
+    }
+    
+    /**
+     * Get specific named interface.
+     * 
+     * @param string $name
+     * @return Auth
+     */
+    static public function getInterface($name)
+    {
+        return self::__callstatic($name, null);
     }
 	
 	/**
@@ -246,10 +284,12 @@ abstract class Auth
 	/**
 	 * Class constructor
 	 */
-	public function __construct() {}
+	public function __construct()
+	{}
+	
 	
 	/**
-	 * Check if a user is loggin in.
+	 * Check if user is logged in.
 	 * 
 	 * @return boolean
 	 */
@@ -259,13 +299,31 @@ abstract class Auth
 	}
 
 	/**
-	 * Get current user
+	 * Get session info.
+	 * 
+	 * @return object
+	 */
+	public function info()
+	{
+	    return (object)$this->info;
+	}
+	
+	/**
+	 * Get the current user.
 	 *
 	 * @return Auth_User
 	 */
 	public function user()
 	{
-		return $this->_user;
+	    if (!isset($this->user)) {
+	        if (isset($this->info['uid'])) {
+            	$this->user = $this->fetchUser($this->info['uid']);
+            } elseif (isset($info['username'])) {
+        	    $this->user = $this->fetchUserByName($this->info['username']);
+            }
+        }
+        
+		return $this->user;
 	}
 	
 	/**
@@ -280,7 +338,7 @@ abstract class Auth
 	{
 	    if (empty($this->loginAttempts)) return 0;
 	    
-        if (!isset($host)) $host = HTTP::clientIP(HTTP::CONNECTED_CLIENT);
+        if (!isset($host)) $host = HTTP::getClientIP(HTTP::CONNECTED_CLIENT);
         if (empty($host) || in_array($host, $this->unblockableHosts, true)) return 0;
         
         if (!isset($this->storeAttemps)) {
@@ -296,6 +354,7 @@ abstract class Auth
         
         return ($this->loginAttempts - $attempt) < 0;
 	}
+	
 	
 	/**
 	 * Return the hash of a password
@@ -316,36 +375,40 @@ abstract class Auth
 	 * @param string $salt
 	 * @return string
 	 */
-	public function hash($salt=null)
+	public function checksum($salt=null)
 	{
-	    if (is_string($this->store)) $this->store = extract_dsn($this->store);
-	    if (!($this->hashCrypt instanceof Crypt)) $this->hashCrypt = Crypt::with($this->hashCrypt);
+	    if (!isset($this->info)) return null;
 	    
-	    return $this->hashCrypt->encrypt($this->_user->id . $this->_user->password . HTTP::clientRoute() . ($this->store['driver'] == 'session' ? session_id() : null), $salt);
+	    if (is_string($this->store)) $this->store = extract_dsn($this->store);
+	    if (!($this->checksumCrypt instanceof Crypt)) $this->checksumCrypt = Crypt::with($this->checksumCrypt);
+	    if (empty($this->checksumCrypt->secret) && !$this->passwordCrypt) throw new Exception("To create a checksum, either the password needs to be included or a secret key needs to be used.");
+	    
+	    return $this->checksumCrypt->encrypt((isset($this->info['uid']) ? $this->info['uid'] : $this->info['username']) . ($this->checksumPassword ? $this->user()->getPassword() : null) . ($this->checksumClientIp ? HTTP::getClientRoute() : null) . ($this->store['driver'] == 'session' ? session_id() : null), $salt);
 	}
+	
 	
 	/**
 	 * Get AUTH info from session data.
-	 * 
-	 * @return array
 	 */
-	protected function getInfo()
+	protected function initInfo()
 	{
+	    if (isset($this->info)) return (object)$this->info;
+	    
 	    if (is_string($this->store)) $this->store = extract_dsn($this->store);
 	    
 	    switch ($this->store['driver']) {
-	    	case 'none':			return null;
+	    	case 'none':			$this->info = null; break;
 	        case 'session': 		session_start();
-									return isset($_SESSION['AUTH']) ? $_SESSION['AUTH'] : null;
-	        case 'cookie':  		return array_chunk_assoc($_COOKIE, 'AUTH', '__');
-	        case 'request': 		return isset($_REQUEST['AUTH']) ? $_REQUEST['AUTH'] : null;
-	        case 'env':				return array_chunk_assoc($_ENV, 'Q_AUTH', '__');
-	        case 'http':			return array('username'=>$_ENV['REMOTE_USER']);
-	        case 'posix':			return array('uid'=>posix_getuid());
-	        case 'posix_username':	return array('username'=>posix_getlogin());
+									$this->info = isset($_SESSION['AUTH']) ? $_SESSION['AUTH'] : null; break;
+	        case 'cookie':  		$this->info = array_chunk_assoc($_COOKIE, 'AUTH', '__'); break;
+	        case 'request': 		$this->info = isset($_REQUEST['AUTH']) ? $_REQUEST['AUTH'] : null; break;
+	        case 'env':				$this->info = array_chunk_assoc($_ENV, 'Q_AUTH', '__'); break;
+	        case 'http':			$this->info = isset($_ENV['REMOTE_USER']) ? array('username'=>$_ENV['REMOTE_USER']) : null; break;
+	        case 'posix':			$this->info = array('uid'=>posix_getuid()); break;
+	        case 'posix_username':	$this->info = array('username'=>posix_getlogin()); break;
 	        default: throw new Exception("Invalid option '{$this->store['driver']}' specified for retrieving info.");
 	    }
-	    return null;
+	    return (object)$this->info;
 	}
 
 	/**
@@ -358,7 +421,7 @@ abstract class Auth
 	    if (is_string($this->store)) $this->store = extract_dsn($this->store);
 	    
 	    switch ($this->store['driver']) {
-	    	case 'none':	return true;
+	    	case 'none':	return true; // Black hole; act like we can store data
 	        case 'session': return true;
 	        case 'cookie':  return true;
 	        case 'request': return true;
@@ -377,6 +440,8 @@ abstract class Auth
 	 */
 	protected function storeInfo($info)
 	{
+	    $this->info = $info;
+	    
 	    $matches = null;
 	    if (is_string($this->store)) $this->store = extract_dsn($this->store);
 	    
@@ -405,7 +470,7 @@ abstract class Auth
 	            break;
 	            
 	        case 'request':
-	            HTTP::output_add_rewrite_var('AUTH', $info);
+	            HTTP::addUrlRewriteVar('AUTH', $info);
 	            $_REQUEST['AUTH'] = $info;
 	            break;
 	            
@@ -471,39 +536,38 @@ abstract class Auth
 			
             return $this->login($username, $password);
         }
-				
+
+        $this->initInfo();
+        
         if (isset($this->logoutRequestVar) && (isset($_GET[$this->logoutRequestVar]) || $_SERVER['REQUEST_METHOD'] == $this->logoutRequestVar)) {
             $this->logout();
             return self::NO_SESSION;
         }
-		
-        $info = $this->getInfo();
-
-        if (isset($info['uid'])) {
-        	$this->_user = $this->fetchUser($info['uid']);
-        } elseif (isset($info['username'])) {
-        	$this->_user = $this->fetchUserByName($info['username']);
-        } elseif (!isset($info['uid'])) {
+		        
+        if (!isset($this->info)) {
             if ($this->loginRequired) {
                 if (!isset($this->loginPage)) throw new Auth_Session_Exception("Login required", self::NO_SESSION);
                 HTTP::redirect($this->loginPage);
             }
             return self::NO_SESSION;
         }
+
+        $result = self::OK;
+        if ($this->canStoreInfo() && (!isset($this->info['hash']) || $this->checksum($this->info['hash']) !== $this->info['hash'])) $result = self::INVALID_CHECKSUM;
         
-        if (!$this->_user) $result = self::UNKNOWN_USER;
-          elseif ($this->canStoreInfo() && (!isset($info['hash']) || $this->hash($info['hash']) !== $info['hash'])) $result = self::INVALID_SESSION;
-          elseif (!$this->_user->active) $result = self::INACTIVE_USER;
-          else $result = self::OK;
+        if ($this->validateOnStart) {
+            if (!$this->user()) $result = self::UNKNOWN_USER;
+              elseif (!$this->user()->isActive()) $result = self::INACTIVE_USER;
+        }
         
         if ($result != self::OK) {
             $this->logout($result);
-        } else {
-            $this->loggedIn = true;
-            $this->onStart();
+            return $result;
         }
         
-        return $result;
+        $this->onStart();
+        $this->loggedIn = true;
+        return self::OK;
 	}
 
     /**
@@ -521,7 +585,7 @@ abstract class Auth
     	if (!$this->canStoreInfo()) throw new Exception("Logging in through PHP is not supported with store option '{$this->store['driver']}'.");
     	
         $this->loggedIn = false;
-        $this->_user = null;
+        $this->user = null;
         $this->storeInfo(null);
         
         if ($this->isBlocked(null, true)) {
@@ -535,11 +599,11 @@ abstract class Auth
         }
         
         if (is_object($result)) {
-            $this->_user = $result;
+            $this->user = $result;
             unset($result);
             
-            if (!$this->_user->active) $result = self::INACTIVE_USER;
-              elseif ($this->_user->expire && $this->_user->expire < time()) $result = self::PASSWORD_EXPIRED;
+            if (!$this->user->isActive()) $result = self::INACTIVE_USER;
+              elseif ($this->user->getExpires() < time()) $result = self::PASSWORD_EXPIRED;
               else $result = self::OK;
         }
 
@@ -557,7 +621,7 @@ abstract class Auth
             return $result;
         }
 
-        $this->storeInfo(array('uid'=>$this->_user->id, 'hash'=>$this->hash()));
+        $this->storeInfo(array('uid'=>$this->user->getId(), 'hash'=>$this->checksum()));
         $this->isBlocked(null, 0);
         
         $this->loggedIn = true;
@@ -571,17 +635,19 @@ abstract class Auth
 	 * 
 	 * @param int $result
 	 */
-    public function logout($result=0)
+    public function logout($result=self::OK)
     {
     	if (!$this->canStoreInfo()) throw new Exception("Logging out through PHP is not supported with store option '{$this->store['driver']}'.");
     	
+    	$this->loggedIn=false;
     	$this->logEvent('logout', $result);
-
-    	if (isset($this->_user)) $username = $this->_user->username;
+    	if ($this->info() && isset($this->info['username'])) $username = $this->info['username'];
         
-        $this->storeInfo(null);
 		$this->onLogout();
-        if ($result < 16) $this->_user = null;
+        if ($result != 0 && $result < 16) {
+            $this->storeInfo(null);
+            $this->user = null;
+        }
         
         if ($this->loginRequired) {
             if (!isset($this->loginPage)) throw new Auth_Session_Exception("Logout: " . $this->getMessage($result), $result);
@@ -596,19 +662,22 @@ abstract class Auth
      * Actions to perform on successfull session start.
      * To be overwritten by subclass.
      */
-    protected function onStart() { }
+    protected function onStart()
+    {}
     
     /**
      * Actions to perform on login.
      * To be overwritten by subclass.
      */
-    protected function onLogin() { }
+    protected function onLogin()
+    {}
     
     /**
      * Actions to perform on logout.
      * To be overwritten by subclass.
      */
-    protected function onLogout() { }
+    protected function onLogout()
+    {}
 
     
     /**
@@ -622,7 +691,7 @@ abstract class Auth
      */
     public function authz($group)
     {
-        if (!$this->loggedIn) throw new Auth_Session_Exception("User is not logged in.", self::NO_SESSION);
+        if (!$this->isLoggedIn()) throw new Auth_Session_Exception("User is not logged in.", self::NO_SESSION);
         
     	$groups = is_array($group) ? $group : func_get_args();
     	$this->user()->authz($groups);
@@ -633,27 +702,27 @@ abstract class Auth
      * Store event and result in log.
      *
      * @param string $event 
-     * @param int    $result   Result code
+     * @param int    $result   Status code
      */
-    protected function logEvent($event, $result=0)
+    protected function logEvent($event, $code=0)
     {
         if (!isset($this->log)) return;
         
         if (!($this->log instanceof Log_Handler)) $this->log = Log::to($this->log);
         
         $msg = ucfirst($event) . ($result == 0 ? ' success' : ' failed: ' . $this->getMessage($result));
-        $this->log->write(array('username'=>$this->_user->username, 'host'=>HTTP::clientRoute(), 'message'=>$msg), $event);  
+        $this->log->write(array('username'=>$this->user->username, 'host'=>HTTP::clientRoute(), 'message'=>$msg), $event);  
     }
     
     /**
-     * Get message for result code.
+     * Get message for status code.
      *
-     * @param int $result  Result code
+     * @param int $code  Status code
      * @return string
      */
-    public function getMessage($result)
+    public function getMessage($code)
     {
-        switch ($result) {
+        switch ($code) {
             case self::NO_SESSION:         return "No session";
             case self::OK:                 return "Success";
             case self::NO_USERNAME:        return "No username";
@@ -662,7 +731,7 @@ abstract class Auth
             case self::INCORRECT_PASSWORD: return "Incorrect password";
             case self::INACTIVE_USER:      return "User inactive";
             case self::HOST_BLOCKED:       return "Host blocked";
-	        case self::INVALID_SESSION:    return "Invalid session";	
+	        case self::INVALID_CHECKSUM:   return "Invalid checksum hash";	
         	case self::SESSION_EXPIRED:    return "Session expired";
         }
         
@@ -770,30 +839,55 @@ class Auth_Mock
  * Base class for Auth exceptions
  * @package Auth
  */
-abstract class Auth_Exception extends Exception implements ExpectedException {}
+abstract class Auth_Exception extends Exception implements CommonException, ExpectedException
+{
+    /**
+     * Class constructor
+     * 
+     * @param string $message
+     * @param int $code
+     */
+    public function __construct($message, $code=403)
+    {
+        parent::__construct($message, $code);
+    }
+}
 
 /**
  * Auth login exceptions
  * @package Auth
  */
-class Auth_Login_Exception extends Auth_Exception {}
+class Auth_Login_Exception extends Auth_Exception
+{}
 
 /**
  * Auth session exceptions
  * @package Auth
  */
-class Auth_Session_Exception extends Auth_Exception {}
+class Auth_Session_Exception extends Auth_Exception
+{}
 
 /**
  * Authorization exception
  * @package Auth
  */
-class Authz_Exception extends Auth_Exception {}
+class Authz_Exception extends Auth_Exception
+{
+    /**
+     * Class constructor
+     * 
+     * @param string $message
+     * @param int $code
+     */
+    public function __construct($message, $code=401)
+    {
+        parent::__construct($message, $code);
+    }
+}
 
 
 /* --------------- ClassConfig ----------------- */
-if (class_exists('ClassConfig', false)) ClassConfig::applyToClass('Q\Auth');
+if (class_exists('Q\ClassConfig', false)) ClassConfig::applyToClass('Q\Auth');
 
-/* --------------- Auto start ----------------- */
-if (!defined('AUTH_NO_START') && Auth::i()->exists()) Auth::i()->start();
-
+/* --------------- Auto start ------------------ */
+if ((!isset($_ENV['Q_AUTH']) || ($_ENV['Q_AUTH'] && strtolower($_ENV['Q_AUTH']) != 'off')) && Auth::i()->exists()) Auth::i()->start();

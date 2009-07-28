@@ -32,13 +32,11 @@ abstract class Config
 
 	/**
 	 * Drivers with classname.
-	 * 
 	 * @var array
 	 */
 	static public $drivers = array(
 	  'none'=>'Q\Config_None',
 	  'ini'=>'Q\Config_Ini',
-	  'advini'=>'Q\Config_AdvIni',
       'xml'=>'Q\Config_XML',
 	  'json'=>'Q\Config_Json',
 	  'yaml'=>'Q\Config_Yaml',

@@ -129,7 +129,7 @@ class Log_FirePHP extends Log
      */
     public static function setProcessorUrl($url)
     {
-        HTTP::header("X-FirePHP-ProcessorURL: $url");
+        HTTP::setHeader("X-FirePHP-ProcessorURL", $url);
     }
     
     /**
@@ -139,7 +139,7 @@ class Log_FirePHP extends Log
      */
     public static function setRendererUrl($url)
     {
-        HTTP::header("X-FirePHP-RendererURL: $url");
+        HTTP::setHeader("X-FirePHP-RendererURL", $url);
     }
 
     /**
@@ -162,6 +162,7 @@ class Log_FirePHP extends Log
      */
     protected static function escapeTrace($trace)
     {
+        $call = null;
         foreach ($trace as &$call) {
             $call['file'] = preg_replace('/\\\\+/','\\', $call['file']);
         }

@@ -114,14 +114,14 @@ class Auth_DB extends Auth
 		if (!$this->queryInit || !($this->query instanceof DB_Statement)) $this->initStatement(); 
 	    
 	    $this->query->addCriteria(2, $username);
-	    if (($ip = HTTP::clientIP())) $this->query->addCriteria(3, $ip, 'REVERSE LIKE');
+	    if (($ip = HTTP::getClientIP())) $this->query->addCriteria(3, $ip, 'REVERSE LIKE');
 	    $result = $this->query->execute();
 	    $this->query->reset();
 	    
 	    $row = $result->fetchRow();
 	    $info = $row ? array_combine(array('id', 'fullname', 'username', 'host', 'password', 'groups', 'active', 'expire') + $result->getFieldNames(), $row) : array('username'=>$username, 'password'=>$this->encryptPassword($password));
 	    
-	    $info['host'] = HTTP::clientIp();
+	    $info['host'] = HTTP::getClientIP();
         $user = new Auth_User($info);
 	    
         if ($user->id === null) $code = self::UNKNOWN_USER;
@@ -150,7 +150,7 @@ class Auth_DB extends Auth
 	    if (!$result->countRows()) return null;
 	    
 	    $info = array_combine(array('id', 'fullname', 'username', 'host', 'password', 'groups', 'active', 'expire') + $result->getFieldNames(), $result->fetchOrdered());
-	    $info['host'] = HTTP::clientIp();
+	    $info['host'] = HTTP::getClientIP();
 	    return new Auth_User($info);    	
     }
     

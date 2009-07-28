@@ -7,6 +7,8 @@ require_once 'Q/Auth.php';
 
 /**
  * Auth test case.
+ * 
+ * @todo Test with different checksum options.
  */
 class Auth_MainTest extends PHPUnit_Framework_TestCase
 {
@@ -32,7 +34,10 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
         if (isset($_SERVER['REMOTE_ADDR'])) $this->remote_addr = $_SERVER['REMOTE_ADDR'];
         
         $this->Auth->loginRequired = true;
+        $this->Auth->checksumPassword = true;
+        $this->Auth->checksumClientIp = true;
         $this->Auth->passwordCrypt = 'md5';
+        $this->Auth->checksumCrypt = 'md5:secret=s3cret';
         $this->Auth->store = 'env';
         $this->Auth->storeAttemps = 'var';
     }
@@ -63,10 +68,9 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
     public function testAuthUser()
     {
         $code = 0;
-        $user = $this->Auth->authUser('monkey', 'mark', $code);
+        $user = $this->Auth->authUser('monkey', 'mark');
         
-        $this->assertEquals($code, Auth::OK);
-        $this->assertNotNull($user, 'user');
+        $this->assertType('Q\Auth_SimpleUser', $user);
         $this->assertEquals(1, $user->id, 'id');
         $this->assertEquals('Mark Monkey', $user->fullname);
         $this->assertEquals('monkey', $user->username);
@@ -102,7 +106,7 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
     {
         $user = $this->Auth->fetchUser(1);
         
-        $this->assertNotNull($user, 'user');
+        $this->assertType('Q\Auth_SimpleUser', $user);
         $this->assertEquals(1, $user->id, 'id');
         $this->assertEquals('Mark Monkey', $user->fullname);
         $this->assertEquals('monkey', $user->username);
@@ -126,7 +130,7 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
     {
         $user = $this->Auth->fetchUser(2);
         
-        $this->assertNotNull($user, 'user');
+        $this->assertType('Q\Auth_SimpleUser', $user);
         $this->assertEquals(2, $user->id, 'id');
         $this->assertEquals('Ben Baboon', $user->fullname);
         $this->assertEquals('baboon', $user->username);
@@ -145,7 +149,7 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
         $user = $this->Auth->user();
         
         $this->assertTrue($this->Auth->isLoggedIn());
-        $this->assertNotNull($user, 'user');
+        $this->assertType('Q\Auth_SimpleUser', $user);
         $this->assertEquals(1, $user->id, 'id');
         $this->assertEquals('Mark Monkey', $user->fullname);
         $this->assertEquals('monkey', $user->username);
@@ -232,7 +236,7 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
     public function testStart()
     {
         $_ENV['Q_AUTH__uid'] = 1;
-        $_ENV['Q_AUTH__hash'] = md5(1 . md5('mark'));
+        $_ENV['Q_AUTH__hash'] = md5(1 . md5('mark') . 's3cret');
         
         $this->Auth->loginRequired = true;
         
@@ -240,7 +244,7 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
         $this->assertTrue($this->Auth->isLoggedIn());
         
         $user = $this->Auth->user();
-        $this->assertNotNull($user, 'user');
+        $this->assertType('Q\Auth_SimpleUser', $user);
         $this->assertEquals(1, $user->id, 'id');
         $this->assertEquals('Mark Monkey', $user->fullname);
         $this->assertEquals('monkey', $user->username);
@@ -279,6 +283,9 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
     public function testStart_UNKNOWN_USER()
     {
         $_ENV['Q_AUTH__uid'] = 7;
+        $_ENV['Q_AUTH__hash'] = md5(7 . 's3cret');
+
+        $this->Auth->checksumPassword = false;
         
         $this->setExpectedException('Q\Auth_Session_Exception', null, Auth::UNKNOWN_USER);
         $this->Auth->start();
@@ -293,7 +300,7 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
     public function testStart_INACTIVE_USER()
     {
         $_ENV['Q_AUTH__uid'] = 2;
-        $_ENV['Q_AUTH__hash'] = md5(2 . md5('ben'));
+        $_ENV['Q_AUTH__hash'] = md5(2 . md5('ben') . 's3cret');
         
         $this->setExpectedException('Q\Auth_Session_Exception', null, Auth::INACTIVE_USER);
         $this->Auth->start();
@@ -310,7 +317,7 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
     public function testStart_NoLoginRequired_INACTIVE_USER()
     {
         $_ENV['Q_AUTH__uid'] = 2;
-        $_ENV['Q_AUTH__hash'] = md5(2 . md5('ben'));
+        $_ENV['Q_AUTH__hash'] = md5(2 . md5('ben') . 's3cret');
         
         $this->Auth->loginRequired = false;
         $result = $this->Auth->start();
@@ -327,7 +334,7 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
     public function testStart_PASSWORD_EXPIRED()
     {
         $_ENV['Q_AUTH__uid'] = 3;
-        $_ENV['Q_AUTH__hash'] = md5(3 . md5('george'));
+        $_ENV['Q_AUTH__hash'] = md5(3 . md5('george') . 's3cret');
         
         $result = $this->Auth->start();
         
@@ -345,7 +352,7 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
         $_ENV['Q_AUTH__uid'] = 1;
         $_ENV['Q_AUTH__hash'] = "abc";
         
-        $this->setExpectedException('Q\Auth_Session_Exception', null, Auth::INVALID_SESSION);
+        $this->setExpectedException('Q\Auth_Session_Exception', null, Auth::INVALID_CHECKSUM);
         $this->Auth->start();
         
         $this->assertFalse($this->Auth->isLoggedIn());
@@ -360,7 +367,7 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
     {
         $_ENV['Q_AUTH__uid'] = 1;
         
-        $this->setExpectedException('Q\Auth_Session_Exception', null, Auth::INVALID_SESSION);
+        $this->setExpectedException('Q\Auth_Session_Exception', null, Auth::INVALID_CHECKSUM);
         $this->Auth->start();
         
         $this->assertFalse($this->Auth->isLoggedIn());

@@ -6,7 +6,8 @@ namespace Q;
  * 
  * @package PHPParser
  * 
- * @todo Change to general process class, that supports syntax Process::with('php')->load($file) 
+ * @todo Change to Transform_PHP class, that supports syntax Transform::with("myfile.php")->process($data)
+ * @todo Throw an exception if an error occurs 
  */
 class PHPParser
 {

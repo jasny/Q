@@ -6,7 +6,15 @@ require_once 'Q/Exception.php';
 /**
  * Place content in a template using the output handler.
  * 
+ * Using this turns on output buffering; you may explicitly flush the data with ob_flush.
+ * 
+ * ob_end_clean will stop the site template; the data will not be used.
+ * ob_end_flush will stop the site template, after output all the output data to the client.
+ * 
  * @package SiteTemplate
+ * 
+ * @todo Split into this with Transform_Output and Transform_HTML class; used as Transform::output()->with("template.html");
+ * @todo Enable implicit flush since you're using output buffering anyway.
  */
 class TemplateSite
 {

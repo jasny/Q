@@ -1,8 +1,12 @@
 <?php
 namespace Q;
 
+require_once 'Q/Exception.php';
+require_once 'Q/CommonException.php';
+require_once 'Q/ExpectedException.php';
+
 /**
- * A lock may be used to provide exclusive access to resource.
+ * A lock may be used for pessimistic locking of a resource.
  * 
  * @package Lock
  */
@@ -36,12 +40,16 @@ class Lock
      * Class constructor.
      *
      * @param string $name
-     * @param Cache  $cache  Cache object or DSN string   
+     * @param array  $options  Lock properties   
      */
-    public function __construct($name, $cache='file')
+    public function __construct($name, $options=array())
     {
         $this->name = $name;
-        $this->cache = $cache;
+        
+        $value = null;
+        foreach ($options as $key=>&$value) {
+            $this->$key = $value;
+        }
     }
     
     /**
@@ -56,7 +64,10 @@ class Lock
 
         if (!isset($key)) $key = md5(microtime());
         $this->info = array('timestamp'=>strftime('%Y-%m-%d %T'), 'check'=>$key);
-        if (class_exists('Q\Authenticate', false) && Authenticate::i()->isLoggedIn()) $this->info['user'] = Authenticate::i()->user->getInfo();
+        if (class_exists('Q\Auth', false) && Auth::i()->isLoggedIn()) {
+            $this->info['user'] = Auth::i()->user()->username;
+            $this->info['user_fullname'] = Auth::i()->user()->fullname;
+        }
 
         if (!($this->cache instanceof Cache)) $this->cache = Cache::with($this->cache);
         $this->cache->save('lock:' . $this->name, $this->info, $this->timeout);
@@ -121,4 +132,24 @@ class Lock
         $key = $this->getKey();
         return $this->name . ($key ? ":$key" : '');
     }
+}
+
+
+/**
+ * Exception than can be thrown when the requested item is locked. 
+ * 
+ * @package Exception
+ */
+class Lock_Exception extends Exception implements CommonException, ExpectedException
+{
+    /**
+     * Class constructor
+     * 
+     * @param string $message
+     * @param int    $code     HTTP status code
+     */
+    public function __construct($message="Requested item is locked", $code=423)
+    {
+        parent::__construct($message, $code);
+    }    
 }

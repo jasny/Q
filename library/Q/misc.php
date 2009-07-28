@@ -112,6 +112,8 @@ function split_set($string, $seperator=";", $unquote=true)
 	if (!$unquote) return $parts;
 
 	if ($unquote === true) $unquote = '\'"';
+	
+	$value = null;
 	foreach ($parts as &$value) $value = unquote($value, $unquote);
 	return $parts;
 }
@@ -435,6 +437,7 @@ function implode_assoc($glue, $array, $format=array('%2$s', '%3$s=%2$s'), $group
  */
 function array_map_recursive($callback, array $array)
 {
+    $value = null;
     foreach ($array as &$value) {
         $value = is_array($value) ? array_map_recursive($callback, $value) : call_user_func($callback, $value);
     }
@@ -485,6 +488,7 @@ function var_give($expression, $return=false, $objects=true)
 function serialize_trace($trace, $unset_first=0)
 {
 	if (is_array($unset_first)) {
+	    $step = null;
 	    do {
             $step = array_shift($trace);
         } while ($step && (!isset($step['file']) || !isset($step['line']) || $step['file'] != $unset_first['file'] || $step['line'] != $unset_first['line']));

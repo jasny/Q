@@ -1,8 +1,19 @@
 <?php
 namespace Q;
 
+require_once 'Q/SecurityException.php';
+
 /**
  * Base exception class for the Q framework.
+ * 
+ * Supported signatures:
+ *  Exception(string $message);
+ *  Exception(string $message, int $code);
+ *  Exception(string $message, Exception $cause);
+ *  Exception(string $message, Exception $cause, int $code);
+ *  Exception(string $message, array $causes);
+ *  Exception(string $message, array $causes, int $code);
+ * 
  * 
  * @package Exception
  */
@@ -10,25 +21,18 @@ class Exception extends \Exception
 {
 	/**
 	 * The exception that caused this exception to be thrown
-	 *
 	 * @var Exception
 	 */
     protected $cause;
 
     /**
-     * Supported signatures:
-     * Exception(string $message);
-     * Exception(string $message, int $code);
-     * Exception(string $message, Exception $cause);
-     * Exception(string $message, Exception $cause, int $code);
-     * Exception(string $message, array $causes);
-     * Exception(string $message, array $causes, int $code);
+     * Class constructor
      * 
      * @param  string  $message
      * @param  mixed   $p2
      * @param  mixed   $p3
      */
-    public function __construct($message, $p2 = null, $p3 = null)
+    public function __construct($message, $p2=null, $p3=null)
     {
         if (is_int($p2)) {
             $code = $p2;
@@ -220,10 +224,3 @@ class Exception extends \Exception
         return $this->toText();
     }   
 }
-
-
-/**
- * Exception for a possible hack attempt
- */
-class SecurityException extends Exception
-{}
