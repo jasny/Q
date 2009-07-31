@@ -1,4 +1,4 @@
-<?
+<?php
 namespace Q;
 
 require_once 'TestHelper.php';

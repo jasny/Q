@@ -9,7 +9,7 @@ require_once 'Q/Log/Handler.php';
 require_once 'Q/Log/EventValues.php';
 
 /**
- * Log debug messages.
+ * Base class for interfaces that log messages or notify users. 
  * 
  * DSN: 'driver:arg1;arg2;filter=!warning,!notice;alias[sql]=info'
  * 
