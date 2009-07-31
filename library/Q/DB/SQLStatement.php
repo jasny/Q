@@ -46,7 +46,7 @@ class DB_SQLStatement implements DB_Statement
 	 * The type of the query (for each subset)
 	 * @var array
 	 */
-	protected $queryType = array();
+	protected $queryType;
 	
 	
 	/**
@@ -59,7 +59,7 @@ class DB_SQLStatement implements DB_Statement
 	 * The column names ot the base statement.
 	 * @var array
 	 */
-	protected $baseColumns=array();
+	protected $baseColumns;
 
 	
 	/**
@@ -97,7 +97,7 @@ class DB_SQLStatement implements DB_Statement
 	 * The column names of the statement.
 	 * @var array
 	 */
-	protected $cachedColumns=array();
+	protected $cachedColumns;
 
 	/**
 	 * The values of an INSERT statement.

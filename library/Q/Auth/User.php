@@ -25,7 +25,20 @@ interface Auth_User
      * @return string
      */
     public function getPassword();
+
+    /**
+     * Get the full name of the user
+     * @return string
+     */
+    public function getFullname();
     
+    /**
+     * Get e-mail address of user.
+     * 
+     * @return string
+     */
+    public function getEmail();
+
     /**
      * Check if user is still active
      * @return boolean
@@ -39,29 +52,29 @@ interface Auth_User
     public function getExpires();
     
     /**
-     * Get all the groups the user is in
+     * Get all the roles the user is in
      * @return array
      */
-    public function getGroups();
+    public function getRoles();
     
     
     /**
-     * Check if user is in specific group(s)
+     * Check if user is in specific role(s)
      * 
-     * @param string $group  Group name, multiple groups may be supplied as array
-     * @param Multiple groups may be supplied as additional arguments
+     * @param string $role  Role name, multiple roles may be supplied as array
+     * @param Multiple roles may be supplied as additional arguments
      * 
-     * @throws Authz_Exception if the user is not in one of the groups
+     * @throws Authz_Exception if the user is not in one of the roles
      */
-    public function authz($group);
+    public function authz($role);
 
     /**
-     * Check if user has one of the specified groups
+     * Check if user has one of the specified roles
      * 
-     * @param string $groups  group; multiple groups may be supplied as array
-     * @param Multiple groups may be supplied as additional arguments
+     * @param string $roles  role; multiple roles may be supplied as array
+     * @param Multiple roles may be supplied as additional arguments
      * 
-     * @throws Authz_Exception if the user is not in any of the $groups
+     * @throws Authz_Exception if the user is not in any of the $roles
      */
-    public function authzAny($group);
+    public function authzAny($role);
 }

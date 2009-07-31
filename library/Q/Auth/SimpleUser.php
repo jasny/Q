@@ -36,6 +36,12 @@ class Auth_SimpleUser implements Auth_User
     public $fullname;
     
     /**
+     * Full name of the user
+     * @var string
+     */
+    public $email;
+    
+    /**
      * Active state
      * @var boolean
      */
@@ -45,13 +51,13 @@ class Auth_SimpleUser implements Auth_User
      * Timestamp when password expires (and user need to submit a new one).
      * @var int
      */
-    public $expires = PHP_INT_MAX;
+    public $expires;
     
     /**
-     * Groups to which the user is a member of.
+     * Roles to which the user is a member of.
      * @var array
      */
-    public $groups=array();
+    public $roles;
     
     
     /**
@@ -65,7 +71,6 @@ class Auth_SimpleUser implements Auth_User
             $this->$prop = $value;
         }
         
-        if (!is_array($this->groups)) $this->groups = (array)$this->groups;
         if (!isset($this->expires)) $this->expires = PHP_INT_MAX;
     }
     
@@ -98,6 +103,24 @@ class Auth_SimpleUser implements Auth_User
     }
     
     /**
+     * Get the username
+     * @return string
+     */
+    public function getFullname()
+    {
+        return $this->fullname;
+    }
+
+    /**
+     * Get the username
+     * @return string
+     */
+    public function getEmail()
+    {
+        return $this->email;
+    }
+
+    /**
      * Check if user is still active
      * @return boolean
      */
@@ -119,39 +142,39 @@ class Auth_SimpleUser implements Auth_User
      * Get date when password expires
      * @return int
      */
-    public function getGroups()
+    public function getRoles()
     {
-        return (array)$this->groups;
+        return (array)$this->roles;
     }
     
     
     /**
-     * Check if user is in specific group(s)
+     * Check if user is in specific role(s)
      * 
-     * @param string $group  Group name, multiple groups may be supplied as array
-     * @param Multiple groups may be supplied as additional arguments
+     * @param string $role  Role name, multiple roles may be supplied as array
+     * @param Multiple roles may be supplied as additional arguments
      * 
-     * @throws Authz_Exception if the user is not in one of the groups
+     * @throws Authz_Exception if the user is not in one of the roles
      */
-    public function authz($group)
+    public function authz($role)
     {
-        $groups = is_array($group) ? $group : func_get_args();
-    	$missing = array_diff($groups, $this->groups); 
-    	if (!empty($missing)) throw new Authz_Exception("User '{$this->username}' is not in group" . (count($missing) == 1 ? "" : "s") . " '" . join("', '", $missing) . "'.");
+        $roles = is_array($role) ? $role : func_get_args();
+    	$missing = array_diff($roles, (array)$this->roles); 
+    	if (!empty($missing)) throw new Authz_Exception("User '{$this->username}' is not in role" . (count($missing) == 1 ? "" : "s") . " '" . join("', '", $missing) . "'.");
     }
     
     /**
-     * Check if user has one of the specified groups
+     * Check if user has one of the specified roles
      * 
-     * @param string $groups  group; multiple groups may be supplied as array
-     * @param Multiple groups may be supplied as additional arguments
+     * @param string $roles  role; multiple roles may be supplied as array
+     * @param Multiple roles may be supplied as additional arguments
      * 
-     * @throws Authz_Exception if the user is not in any of the $groups
+     * @throws Authz_Exception if the user is not in any of the $roles
      */
-    public function authzAny($group)
+    public function authzAny($role)
     {
-        $groups = is_array($groups) ? $groups : func_get_args();
-    	$found = array_intersect($groups, $this->getgroups()); 
-    	if (empty($found)) throw new Authz_Exception("User '{$this->username}' does not have any of the groups '" . join("', '", $groups) . "'.");
+        $roles = is_array($roles) ? $roles : func_get_args();
+    	$found = array_intersect($roles, $this->getroles()); 
+    	if (empty($found)) throw new Authz_Exception("User '{$this->username}' does not have any of the roles '" . join("', '", $roles) . "'.");
     }    
 }

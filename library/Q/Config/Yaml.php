@@ -50,10 +50,7 @@ class Config_Yaml extends Config_Files
 		$file = isset($group) ? "$path/" . $this->groupName($group) . "." . $this->_ext : $path;
 		
 		if (is_file($file)) {
-    		if (!empty($this->_options['php'])) $yaml = PHPParser::load($file, $this->preparseParams);
-    		  else $yaml = file_get_contents($file);
-    
-    		return (array)syck_load($yaml);
+    		return (array)syck_load(file_get_contents($file));
 		} elseif (!empty($this->_options['recursive']) && is_dir("$path/$group")) {
 			return $this->loadDir("$path/$group");
 		}

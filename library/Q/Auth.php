@@ -13,8 +13,12 @@ require_once "Q/Auth/User.php";
  * Perform authentication.
  * Beware! User information stays set, even when user is not logged in. 
  *
- * Will autostart the default interface if configured and AUTH_NO_START is not defined.
- * 
+ * Will autostart the default interface if configured.
+ * Auto start behaviour can be controller with environment var 'Q_AUTH':
+ *   On       : Start Auth::i() on load (default)
+ *   Off      : No auto start
+ *   Required : Start Auth::i() on load and set loginRequired to true
+ *   
  * @package Auth
  * 
  * @todo Implement session expire (not using session lifetime)
@@ -241,8 +245,8 @@ abstract class Auth
 	static public function __callstatic($name, $args)
 	{
 		if (!isset(self::$instances[$name])) {
-		    if (!class_exists('Config') || !Config::i()->exists() || !($dsn = Config::i()->get('cache' . (isset($name) ? ".{$name}" : '')))) return new Auth_Mock($name);
-	        self::$instances[$name] = self::with($dsn);
+		    if (!class_exists('Q\Config') || !Config::i()->exists() || !($dsn = Config::i()->get('auth' . ($name != 'i' ? ".{$name}" : '')))) return new Auth_Mock($name);
+	        Auth::$instances[$name] = Auth::with($dsn);
 		}
 	    	    
         return self::$instances[$name];
@@ -681,20 +685,20 @@ abstract class Auth
 
     
     /**
-     * Check if the current user is in specific group(s)
+     * Check if the current user is in specific role(s)
      * 
-     * @param string $group  Group name, multiple groups may be supplied as array
-     * @param Multiple groups may be supplied as additional arguments
+     * @param string $role  Role name, multiple roles may be supplied as array
+     * @param Multiple roles may be supplied as additional arguments
      * 
      * @throws Auth_Session_Exception if user is not logged in
-     * @throws Authz_Exception if the user is not in one of the groups
+     * @throws Authz_Exception if the user is not in one of the roles
      */
-    public function authz($group)
+    public function authz($role)
     {
         if (!$this->isLoggedIn()) throw new Auth_Session_Exception("User is not logged in.", self::NO_SESSION);
         
-    	$groups = is_array($group) ? $group : func_get_args();
-    	$this->user()->authz($groups);
+    	$roles = is_array($role) ? $role : func_get_args();
+    	$this->user()->authz($roles);
     }
     
     
@@ -885,9 +889,12 @@ class Authz_Exception extends Auth_Exception
     }
 }
 
+if (!empty($_ENV['Q_ONLOAD']) && !in_array(strtolower($_ENV['Q_ONLOAD']), array('off', 'no', 'false'), true)) @include 'Q.Auth.onload.php';
 
-/* --------------- ClassConfig ----------------- */
-if (class_exists('Q\ClassConfig', false)) ClassConfig::applyToClass('Q\Auth');
 
 /* --------------- Auto start ------------------ */
-if ((!isset($_ENV['Q_AUTH']) || ($_ENV['Q_AUTH'] && strtolower($_ENV['Q_AUTH']) != 'off')) && Auth::i()->exists()) Auth::i()->start();
+
+if ((!isset($_ENV['Q_AUTH']) || (!empty($_ENV['Q_AUTH']) && !in_array(strtolower($_ENV['Q_AUTH']), array('off', 'no', 'false'), true))) && Auth::i()->exists()) {
+    if (isset($_ENV['Q_AUTH']) && strtolower($_ENV['Q_AUTH']) == 'required') Auth::i()->loginRequired = true;
+    Auth::i()->start();
+}

@@ -5,6 +5,9 @@ require_once 'Q/Config/Files.php';
 
 /**
  * Load and parse XML config files.
+ *
+ * XML doesn't map well to the PHP data structure. This makes it relatively slow and a bit quirky  I recommend using
+ *  Yaml or Json instead.
  * 
  * Options:
  *   caching       Enable caching: 'off', 'on' (Cache) or 'mem' (memory only). Default is 'mem'.

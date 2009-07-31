@@ -389,7 +389,7 @@ class Config_Mock
     public function __get($key)
     {
         $name = $this->_name;
-        if (Config::$name()->exists()) trigger_error("Illigal use of mock object 'Q\Config::{$this->_name}()'.", E_USER_ERROR);
+        if (Config::$name()->exists()) trigger_error("Incorrect use of mock object 'Q\Config::{$this->_name}()'.", E_USER_ERROR);
         throw new Exception("Config interface '{$this->_name}' does not exist.");
     }
 
@@ -404,7 +404,7 @@ class Config_Mock
     public function __set($key, $value)
     {
         $name = $this->_name;
-        if (Config::$name()->exists()) trigger_error("Illigal use of mock object 'Q\Config::{$this->_name}()'.", E_USER_ERROR);
+        if (Config::$name()->exists()) trigger_error("Incorrect use of mock object 'Q\Config::{$this->_name}()'.", E_USER_ERROR);
         throw new Exception("Config interface '{$this->_name}' does not exist.");
     }
     
@@ -419,7 +419,7 @@ class Config_Mock
     public function __call($function, $args)
     {
         $name = $this->_name;
-        if (Config::$name()->exists()) trigger_error("Illigal use of mock object 'Q\Config::{$this->_name}()'.", E_USER_ERROR);
+        if (Config::$name()->exists()) trigger_error("Incorrect use of mock object 'Q\Config::{$this->_name}()'.", E_USER_ERROR);
         throw new Exception("Config interface '{$this->_name}' does not exist.");
     }
 }

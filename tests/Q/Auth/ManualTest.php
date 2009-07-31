@@ -17,9 +17,9 @@ class Auth_ManualTest extends Auth_MainTest
         $this->Auth = Auth::with('manual');
         
         $this->Auth->users = array(
-            (object)array('id'=>1, 'fullname'=>"Mark Monkey", 'username'=>'monkey', 'password'=>md5('mark'), 'groups'=>'primate', 'active'=>true, 'expires'=>null),
-            (object)array('id'=>2, 'fullname'=>"Ben Baboon", 'username'=>'baboon', 'password'=>md5('ben'), 'groups'=>array('ape', 'primate'), 'active'=>false, 'expires'=>null),
-            (object)array('id'=>3, 'fullname'=>"George Gorilla", 'username'=>'gorilla', 'password'=>md5('george'), 'groups'=>array('ape', 'primate'), 'active'=>true, 'expires'=>1)
+            (object)array('id'=>1, 'fullname'=>"Mark Monkey", 'username'=>'monkey', 'password'=>md5('mark'), 'roles'=>'primate', 'active'=>true, 'expires'=>null),
+            (object)array('id'=>2, 'fullname'=>"Ben Baboon", 'username'=>'baboon', 'password'=>md5('ben'), 'roles'=>array('ape', 'primate'), 'active'=>false, 'expires'=>null),
+            (object)array('id'=>3, 'fullname'=>"George Gorilla", 'username'=>'gorilla', 'password'=>md5('george'), 'roles'=>array('ape', 'primate'), 'active'=>true, 'expires'=>1)
         );        
 
         parent::setUp();

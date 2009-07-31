@@ -107,7 +107,6 @@ class HTTP extends \HttpResponse
 		  else self::setHeader("Last-Modified", $modified);
 	}
 	
-	
 	/**
 	 * This function adds another name/value pair to the URL rewrite mechanism.
 	 * 

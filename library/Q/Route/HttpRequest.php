@@ -6,13 +6,12 @@ require_once 'Q/Exception.php';
 require_once 'Q/CommonException.php';
 
 /**
- * Route HTTP request to controller or command.
+ * Route HTTP request to controller or command; This is basically the FrontController pattern.
+ * 
  * 
  * @package Route
- * 
- * @todo Add mapping support for Route_HttpRequest.
  */
-class Route_HttpRequest extends Route
+class HandleRequest_Router extends HandleRequest
 {
     /** No automatic authorization */
     const AUTHZ_NONE = 0;

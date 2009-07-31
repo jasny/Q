@@ -447,6 +447,14 @@ function array_map_recursive($callback, array $array)
 // -------- PHP --------
 
 /**
+ * Check if this is the main script and isn't included.
+ */
+function running_main()
+{
+    return sizeof(debug_backtrace(false)) == 2; // main + this func call = 2
+}
+
+/**
  * Same as var_export, except that an object will not be serialized but cast to a string instead.
  * 
  * @param mixed   $expression

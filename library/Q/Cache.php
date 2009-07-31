@@ -45,7 +45,7 @@ abstract class Cache
 	 * Configuration options
 	 * @var array
 	 */
-	public $options = array();
+	public $options;
 
 	/**
 	 * Flag that this cache object is used as session handler
@@ -358,4 +358,4 @@ class Cache_Mock
     }
 }
 
-if (class_exists('Q\ClassConfig', false)) ClassConfig::applyToClass('Q\Cache');
+if (!empty($_ENV['Q_ONLOAD']) && !in_array(strtolower($_ENV['Q_ONLOAD']), array('off', 'no', 'false'), true)) @include 'Q.Cache.onload.php';
