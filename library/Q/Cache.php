@@ -67,7 +67,7 @@ abstract class Cache
 	 * @param array        $options  Configuration options (which do not appear in DSN)
 	 * @return Cache
 	 */
-	public function with($dsn, $options=array())
+	static public function with($dsn, $options=array())
 	{
 	    if (isset($this) && $this instanceof self) throw new Exception("Cache instance is already created.");
 	    

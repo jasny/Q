@@ -200,10 +200,8 @@ abstract class Auth
 	 * @param 
 	 * @return Auth
 	 */
-	public function with($dsn, $options=array())
+	static public function with($dsn, $options=array())
 	{
-	    if (isset($this) && $this instanceof self) throw new Exception("Auth instance is already created.");
-	    
 	    $options = (!is_string($dsn) ? $dsn : extract_dsn($dsn)) + $options;
 	    $driver = $options['driver'];
 	    

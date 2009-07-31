@@ -82,7 +82,7 @@ abstract class Config
 	 * @param array        $options  Other options (will be overwriten by DSN)
 	 * @return Config
 	 */
-	public function with($dsn, $options=array())
+	static public function with($dsn, $options=array())
 	{
 	    if (isset($this) && $this instanceof self) throw new Exception("Config instance is already created.");
 	    

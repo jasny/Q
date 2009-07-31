@@ -54,7 +54,7 @@ class HTTP extends \HttpResponse
 	 * @param string $file  Output: The file name where the output started.
 	 * @param int    $line  Output: The line number where the output started.
 	 */
-	public function isSent(&$file, &$line)
+	static public function isSent(&$file, &$line)
 	{
 	    return headers_sent($file, $line);
 	}
