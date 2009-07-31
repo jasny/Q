@@ -69,8 +69,6 @@ abstract class Cache
 	 */
 	static public function with($dsn, $options=array())
 	{
-	    if (isset($this) && $this instanceof self) throw new Exception("Cache instance is already created.");
-	    
 		$dsn_options = is_string($dsn) ? extract_dsn($dsn) : $dsn;
 		$options = (array)$dsn_options + (array)$options + self::$defaultOptions;
 		

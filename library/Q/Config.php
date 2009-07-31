@@ -84,8 +84,6 @@ abstract class Config
 	 */
 	static public function with($dsn, $options=array())
 	{
-	    if (isset($this) && $this instanceof self) throw new Exception("Config instance is already created.");
-	    
 		$options = (is_scalar($dsn) ? extract_dsn($dsn) : (array)$dsn) + (array)$options + self::$defaultOptions;
 		$driver = $options['driver'];
 		
