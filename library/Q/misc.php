@@ -454,7 +454,7 @@ function array_map_recursive($callback, array $array)
  */
 function running_main()
 {
-    return sizeof(debug_backtrace(false)) == 2; // main + this func call = 2
+    return sizeof(debug_backtrace(false)) == 1; // Don't count this call
 }
 
 /**

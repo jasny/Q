@@ -134,7 +134,7 @@ abstract class Config
      */
     static public function i()
     {
-        return isset(self::$instances['i']) ? self::$instances['i'] : $this->getInstance('i');
+        return isset(self::$instances['i']) ? self::$instances['i'] : self::getInstance('i');
     }
 
 	/**
@@ -146,7 +146,7 @@ abstract class Config
 	 */
 	static public function __callstatic($name, $args)
 	{
-	    return isset(self::$instances[$name]) ? self::$instances[$name] : $this->getInstance($name);
+	    return isset(self::$instances[$name]) ? self::$instances[$name] : self::getInstance($name);
 	}
 	
 	/**

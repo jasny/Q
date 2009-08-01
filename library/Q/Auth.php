@@ -236,7 +236,7 @@ abstract class Auth
      */
     static public function i()
     {
-        return isset(self::$instances['i']) ? self::$instances['i'] : $this->getInterface('i');
+        return isset(self::$instances['i']) ? self::$instances['i'] : self::getInterface('i');
     }
     
 	/**
@@ -248,7 +248,7 @@ abstract class Auth
 	 */
 	static public function __callstatic($name, $args)
 	{
-        return isset(self::$instances[$name]) ? self::$instances[$name] : $this->getInterface($name);
+        return isset(self::$instances[$name]) ? self::$instances[$name] : self::getInterface($name);
     }
     
     /**
