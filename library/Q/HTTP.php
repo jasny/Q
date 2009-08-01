@@ -1,6 +1,10 @@
 <?php
 namespace Q;
 
+/*.
+    require_module 'http';
+.*/
+
 /**
  * Yet another static class with HTTP functions.
  * 

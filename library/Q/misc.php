@@ -161,6 +161,8 @@ function split_set_assoc($string, $seperator=";", $unquote=true)
  */
 function extract_dsn($dsn)
 {
+    if (empty($dsn)) return array();
+    
 	$matches = null;
 	if (!preg_match('/^([\w-]+)\:(.*)$/', $dsn, $matches)) return array('driver'=>$dsn);
 	return array('driver'=>$matches[1]) + split_set_assoc($matches[2], ';');
@@ -398,6 +400,7 @@ function implode_recursive($glue, $array, $group_prefix='(', $group_suffix=')')
 
 /**
  * Join array elements as key=value with a glue string.
+ * This is the reverse of split_set_assoc.
  *
  * @param string $glue
  * @param array  $array

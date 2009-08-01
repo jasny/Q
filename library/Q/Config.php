@@ -118,9 +118,9 @@ abstract class Config
     	    if ($name != 'i' && self::i()->exists()) $dsn = self::i()->get('config' . ($name != 'i' ? ".{$name}" : ''));
     
     	    if (empty($dsn)) {
-    	        $env = 'Q_CONFIG' . (isset($name) ? strtoupper("_{$name}") : ''); 
-                if (!isset($_ENV[$env])) return new Config_Mock($name);
-                $dsn = $_ENV[$env];
+    	        $const = 'CONFIG' . ($name != 'i' ? strtoupper("_{$name}") : ''); 
+                if (!defined($const)) return new Config_Mock($name);
+                $dsn = constant($const);
     	    }
     	    
             self::$instances[$name] = self::with($dsn);
@@ -128,7 +128,17 @@ abstract class Config
 	    
         return self::$instances[$name];
     }
-	
+
+    /**
+     * Get default instance
+     * 
+     * @return Config
+     */
+    static public function i()
+    {
+        
+    }
+    
 	/**
 	 * Check is singeton object exists
 	 * 
@@ -421,6 +431,3 @@ class Config_Mock
         throw new Exception("Config interface '{$this->_name}' does not exist.");
     }
 }
-
-if (class_exists('Q\ClassConfig', false)) ClassConfig::applyToClass('Q\Config');
-

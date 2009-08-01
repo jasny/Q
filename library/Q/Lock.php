@@ -28,7 +28,7 @@ class Lock
      * Cache object that hold key
      * @var Cache
      */
-    public $cache = 'file';
+    public $store = 'file';
     
     /**
      * Cached info
@@ -69,8 +69,8 @@ class Lock
             $this->info['user_fullname'] = Auth::i()->user()->fullname;
         }
 
-        if (!($this->cache instanceof Cache)) $this->cache = Cache::with($this->cache);
-        $this->cache->save('lock:' . $this->name, $this->info, $this->timeout);
+        if (!($this->store instanceof Cache)) $this->store = Cache::with($this->store);
+        $this->store->save('lock:' . $this->name, $this->info, $this->timeout);
         
         return true;
     }
@@ -84,7 +84,7 @@ class Lock
     public function release($key)
     {
         if ($key != $this->getKey()) return false;
-        if (!empty($this->info)) $this->cache->remove('lock:' . $this->name);
+        if (!empty($this->info)) $this->store->remove('lock:' . $this->name);
     }
 
     /**
@@ -104,7 +104,7 @@ class Lock
      */
     public function getKey()
     {
-        if (!isset($this->info)) $this->info = (array)$this->cache->get("lock:" . $this->name);
+        if (!isset($this->info)) $this->info = (array)$this->store->get("lock:" . $this->name);
         return isset($this->info['key']) ? $this->info['key'] : null;  
     }
     

@@ -50,6 +50,8 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
         $this->Auth = null;
         
         $_SERVER['REMOTE_ADDR'] = $this->remote_addr;
+        putenv('AUTH=');
+        
         parent::tearDown();
     }
 
@@ -71,7 +73,7 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
         $user = $this->Auth->authUser('monkey', 'mark');
         
         $this->assertType('Q\Auth_SimpleUser', $user);
-        $this->assertEquals(1, $user->getId(), 'getId()');
+        $this->assertEquals(1, $user->getId(), 'id');
         $this->assertEquals('Mark Monkey', $user->getFullname());
         $this->assertEquals('monkey', $user->getUsername());
         $this->assertEquals(md5('mark'), $user->getPassword());
@@ -107,7 +109,7 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
         $user = $this->Auth->fetchUser(1);
         
         $this->assertType('Q\Auth_SimpleUser', $user);
-        $this->assertEquals(1, $user->getId(), 'getId()');
+        $this->assertEquals(1, $user->getId(), 'id');
         $this->assertEquals('Mark Monkey', $user->getFullname());
         $this->assertEquals('monkey', $user->getUsername());
         $this->assertEquals(md5('mark'), $user->getPassword());
@@ -131,7 +133,7 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
         $user = $this->Auth->fetchUser(2);
         
         $this->assertType('Q\Auth_SimpleUser', $user);
-        $this->assertEquals(2, $user->getId(), 'getId()');
+        $this->assertEquals(2, $user->getId(), 'id');
         $this->assertEquals('Ben Baboon', $user->getFullname());
         $this->assertEquals('baboon', $user->getUsername());
         $this->assertEquals(md5('ben'), $user->getPassword());
@@ -148,9 +150,10 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
         $this->Auth->login('monkey', 'mark');
         $user = $this->Auth->user();
         
+        $this->assertEquals(Auth::OK, $this->Auth->getStatus(), 'status');
         $this->assertTrue($this->Auth->isLoggedIn());
         $this->assertType('Q\Auth_SimpleUser', $user);
-        $this->assertEquals(1, $user->getId(), 'getId()');
+        $this->assertEquals(1, $user->getId(), 'id');
         $this->assertEquals('Mark Monkey', $user->getFullname());
         $this->assertEquals('monkey', $user->getUsername());
         $this->assertEquals(md5('mark'), $user->getPassword());
@@ -162,12 +165,13 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
      */
     public function testLogin_UNKNOWN_USER()
     {
-        $this->setExpectedException('Q\Auth_Login_Exception', null, Auth::UNKNOWN_USER);
+        $this->setExpectedException('Q\Auth_Login_Exception', "Unknown user");
         $this->Auth->login('wolf', 'willem');
         
+        $this->assertEquals(Auth::UNKNOWN_USER, $this->Auth->getStatus(), 'status');
         $this->assertFalse($this->Auth->isLoggedIn());
         $this->assertNotNull($this->Auth->user(), 'user');
-        $this->assertNull($this->Auth->user()->getId(), 'getId()');
+        $this->assertNull($this->Auth->user()->getId(), 'id');
         $this->assertEquals('wolf', $this->Auth->user()->getUsername());
     }
 
@@ -176,12 +180,13 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
      */
     public function testLogin_INCORRECT_PASSWORD()
     {
-        $this->setExpectedException('Q\Auth_Login_Exception', null, Auth::UNKNOWN_USER);
+        $this->setExpectedException('Q\Auth_Login_Exception', "Unknown user");
         $this->Auth->login('monkey', 'rudolf');
         
         $this->assertFalse($this->Auth->isLoggedIn());
+        $this->assertEquals(Auth::INCORRECT_PASSWORD, $this->Auth->getStatus(), 'status');
         $this->assertNotNull($this->Auth->user(), 'user');
-        $this->assertEquals(1, $this->Auth->user()->getId(), 'getId()');
+        $this->assertEquals(1, $this->Auth->user()->getId(), 'id');
         $this->assertNull($this->Auth->user()->getUsername(), 'monkey');
     }
 
@@ -190,25 +195,27 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
      */
     public function testLogin_INACTIVE_USER()
     {
-        $this->setExpectedException('Q\Auth_Login_Exception', null, Auth::INACTIVE_USER);
+        $this->setExpectedException('Q\Auth_Login_Exception', "Inactive user");
         $this->Auth->login('baboon', 'ben');
         
         $this->assertFalse($this->Auth->isLoggedIn());
+        $this->assertEquals(Auth::INACTIVE_USER, $this->Auth->getStatus(), 'status');
         $this->assertNotNull($this->Auth->user(), 'user');
-        $this->assertEquals(2, $this->Auth->user()->getId(), 'getId()');
+        $this->assertEquals(2, $this->Auth->user()->getId(), 'id');
     }
 
     /**
-     * Tests Auth->authUser() for result getPassword()_EXPIRED
+     * Tests Auth->authUser() for result PASSWORD_EXPIRED
      */
     public function testLogin_PASSWORD_EXPIRED()
     {
-        $this->setExpectedException('Q\Auth_Login_Exception', null, Auth::PASSWORD_EXPIRED);
+        $this->setExpectedException('Q\Auth_PasswordExpired_Exception', "Password expired");
         $this->Auth->login('gorilla', 'george');
         
         $this->assertFalse($this->Auth->isLoggedIn());
+        $this->assertEquals(Auth::PASSWORD_EXPIRED, $this->Auth->getStatus(), 'status');
         $this->assertNotNull($this->Auth->user(), 'user');
-        $this->assertEquals(3, $this->Auth->user()->getId(), 'getId()');
+        $this->assertEquals(3, $this->Auth->user()->getId(), 'id');
     }
 
     
@@ -219,33 +226,33 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
     {
         $this->Auth->login('monkey', 'mark');
         $this->assertTrue($this->Auth->isLoggedIn());
-        $this->assertEquals(1, $this->Auth->user()->getId(), 'getId()');
+        $this->assertEquals(1, $this->Auth->user()->getId(), 'id');
         
-        $this->setExpectedException('Q\Auth_Session_Exception');
         $this->Auth->logout();
         
         $this->assertFalse($this->Auth->isLoggedIn());
         $this->assertNotNull($this->Auth->user(), 'user');
-        $this->assertEquals(1, $this->Auth->user()->getId(), 'getId()');
+        $this->assertEquals(1, $this->Auth->user()->getId(), 'id');
+        
+        $this->setExpectedException('Q\Auth_Session_Exception', 'No session');
+        $this->Auth->authz();
     }
 
     
     /**
-     * Tests Auth->start() for result OK
+     * Tests Auth->authz() for result OK
      */
-    public function testStart()
+    public function testAuthz()
     {
-        $_ENV['Q_AUTH__uid'] = 1;
-        $_ENV['Q_AUTH__hash'] = md5(1 . md5('mark') . 's3cret');
-        
-        $this->Auth->loginRequired = true;
-        
-        $this->Auth->start();
+        putenv('AUTH=' . escapeshellarg(Q\implode_assoc(";", array('uid'=>1, 'checksum'=>md5(1 . md5('mark') . 's3cret')))));
+                
+        $this->Auth->authz();
+        $this->assertEquals(Auth::OK, $this->Auth->getStatus(), 'status code');
         $this->assertTrue($this->Auth->isLoggedIn());
         
         $user = $this->Auth->user();
         $this->assertType('Q\Auth_SimpleUser', $user);
-        $this->assertEquals(1, $user->getId(), 'getId()');
+        $this->assertEquals(1, $user->getId(), 'id');
         $this->assertEquals('Mark Monkey', $user->getFullname());
         $this->assertEquals('monkey', $user->getUsername());
         $this->assertEquals(md5('mark'), $user->getPassword());
@@ -253,126 +260,91 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * Tests Auth->start() with no session
+     * Tests Auth->authz() with no session
      */
-    public function testStart_NoSession()
+    public function testAuthz_NO_SESSION()
     {
         $this->setExpectedException('Q\Auth_Session_Exception');
-        $this->Auth->start();
+        $this->Auth->authz();
         
-        $this->assertFalse($this->Auth->isLoggedIn());
+        $this->assertEquals(Auth::UNKNOWN_USER, $this->Auth->getStatus(), 'status code');
         $this->assertNull($this->Auth->user(), 'user');
     }
 
     /**
-     * Tests Auth->start() without required login
+     * Tests Auth->authz() for result UNKNOWN_USER
      */
-    public function testStart_NoLoginRequired()
+    public function testAuthz_UNKNOWN_USER()
     {
-        $this->Auth->loginRequired = false;
-        $result = $this->Auth->start();
-        
-        $this->assertEquals(Auth::NO_SESSION, $result, 'result code');
-        $this->assertFalse($this->Auth->isLoggedIn());
-        $this->assertNull($this->Auth->user(), 'user');
-    }
-
-    /**
-     * Tests Auth->start() for result OK
-     */
-    public function testStart_UNKNOWN_USER()
-    {
-        $_ENV['Q_AUTH__uid'] = 7;
-        $_ENV['Q_AUTH__hash'] = md5(7 . 's3cret');
-
+        putenv('AUTH=' . escapeshellarg(Q\implode_assoc(";", array('uid'=>7, 'checksum'=>md5(7 . 's3cret')))));
         $this->Auth->checksumPassword = false;
         
-        $this->setExpectedException('Q\Auth_Session_Exception', null, Auth::UNKNOWN_USER);
-        $this->Auth->start();
+        $this->setExpectedException('Q\Auth_Session_Exception', "Unknown user");
+        $this->Auth->authz();
         
-        $this->assertFalse($this->Auth->isLoggedIn());
+        $this->assertEquals(Auth::UNKNOWN_USER, $this->Auth->getStatus(), 'status code');
         $this->assertNull($this->Auth->user(), 'user');
     }
 
     /**
-     * Tests Auth->start() for result INACTIVE_USER
+     * Tests Auth->authz() for result INACTIVE_USER
      */
-    public function testStart_INACTIVE_USER()
+    public function testAuthz_INACTIVE_USER()
     {
-        $_ENV['Q_AUTH__uid'] = 2;
-        $_ENV['Q_AUTH__hash'] = md5(2 . md5('ben') . 's3cret');
+        putenv('AUTH=' . escapeshellarg(Q\implode_assoc(";", array('uid'=>2, 'checksum'=>md5(2 . md5('ben') . 's3cret')))));
         
-        $this->setExpectedException('Q\Auth_Session_Exception', null, Auth::INACTIVE_USER);
-        $this->Auth->start();
+        $this->setExpectedException('Q\Auth_Session_Exception', "Inactive user");
+        $this->Auth->authz();
         
-        $this->assertFalse($this->Auth->isLoggedIn());
+        $this->assertEquals(Auth::INACTIVE_USER, $this->Auth->getStatus(), 'status code');
         $this->assertNotNull($this->Auth->user(), 'user');
-        $this->assertEquals(2, $this->Auth->user()->getId(), 'getId()');
+        $this->assertEquals(2, $this->Auth->user()->getId(), 'id');
         $this->assertFalse((bool) $this->Auth->user()->active, 'active');
     }
 
     /**
-     * Tests Auth->start() for result INACTIVE_USER
+     * Tests Auth->authz() for result PASSWORD_EXPIRED
      */
-    public function testStart_NoLoginRequired_INACTIVE_USER()
+    public function testAuthz_PASSWORD_EXPIRED()
     {
-        $_ENV['Q_AUTH__uid'] = 2;
-        $_ENV['Q_AUTH__hash'] = md5(2 . md5('ben') . 's3cret');
-        
-        $this->Auth->loginRequired = false;
-        $result = $this->Auth->start();
-        
-        $this->assertEquals(Auth::INACTIVE_USER, $result, 'result code');
-        $this->assertFalse($this->Auth->isLoggedIn());
-        $this->assertNotNull($this->Auth->user(), 'user');
-        $this->assertEquals(2, $this->Auth->user()->getId(), 'getId()');
-    }
+        putenv('AUTH=' . escapeshellarg(Q\implode_assoc(";", array('uid'=>3, 'checksum'=>md5(3 . md5('george') . 's3cret')))));
 
-    /**
-     * Tests Auth->start() without required login for result getPassword()_EXPIRED
-     */
-    public function testStart_PASSWORD_EXPIRED()
-    {
-        $_ENV['Q_AUTH__uid'] = 3;
-        $_ENV['Q_AUTH__hash'] = md5(3 . md5('george') . 's3cret');
+        $this->Auth->authz();
         
-        $result = $this->Auth->start();
-        
-        $this->assertEquals(Auth::OK, $result, 'result code');
+        $this->assertEquals(Auth::PASSWORD_EXPIRED, $this->Auth->getStatus(), 'status code');
         $this->assertTrue($this->Auth->isLoggedIn());
         $this->assertNotNull($this->Auth->user(), 'user');
-        $this->assertEquals(3, $this->Auth->user()->getId(), 'getId()');
+        $this->assertEquals(3, $this->Auth->user()->getId(), 'id');
     }
 
     /**
-     * Tests Auth->start() with an incorrect hash
+     * Tests Auth->authz() with an incorrect hash
      */
-    public function testStart_INVALID_SESSION()
+    public function testAuthz_INVALID_SESSION()
     {
-        $_ENV['Q_AUTH__uid'] = 1;
-        $_ENV['Q_AUTH__hash'] = "abc";
+        putenv('AUTH=' . escapeshellarg(Q\implode_assoc(";", array('uid'=>1, 'checksum'=>md5(1 . md5('abc') . 's3cret')))));
         
-        $this->setExpectedException('Q\Auth_Session_Exception', null, Auth::INVALID_CHECKSUM);
-        $this->Auth->start();
+        $this->setExpectedException('Q\Auth_Session_Exception', "Invalid session checksum");
+        $this->Auth->authz();
         
-        $this->assertFalse($this->Auth->isLoggedIn());
+        $this->assertEquals(Auth::INVALID_CHECKSUM, $this->Auth->getStatus(), 'status code');
         $this->assertNotNull($this->Auth->user(), 'user');
-        $this->assertEquals(1, $this->Auth->user()->getId(), 'getId()');
+        $this->assertEquals(1, $this->Auth->user()->getId(), 'id');
     }
 
     /**
-     * Tests Auth->start() with an incorrect hash
+     * Tests Auth->authz() with no hash
      */
-    public function testStart_INVALID_SESSION_NoHash()
+    public function testAuthz_INVALID_SESSION_NoChecksum()
     {
-        $_ENV['Q_AUTH__uid'] = 1;
+        putenv('AUTH=' . escapeshellarg(Q\implode_assoc(";", array('uid'=>1))));
+                
+        $this->setExpectedException('Q\Auth_Session_Exception', "Invalid session checksum");
+        $this->Auth->authz();
         
-        $this->setExpectedException('Q\Auth_Session_Exception', null, Auth::INVALID_CHECKSUM);
-        $this->Auth->start();
-        
-        $this->assertFalse($this->Auth->isLoggedIn());
+        $this->assertEquals(Auth::INVALID_CHECKSUM, $this->Auth->getStatus(), 'status code');
         $this->assertNotNull($this->Auth->user(), 'user');
-        $this->assertEquals(1, $this->Auth->user()->getId(), 'getId()');
+        $this->assertEquals(1, $this->Auth->user()->getId(), 'id');
     }
 
     
@@ -408,7 +380,7 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
         $this->Auth->loginAttempts = 1;
         $this->Auth->isBlocked('10.0.0.1', 5);
         
-        $this->setExpectedException('Q\Auth_Login_Exception', null, Auth::HOST_BLOCKED);
+        $this->setExpectedException('Q\Auth_Login_Exception', "Host blocked");
         $this->Auth->login('monkey', 'mark');
     }
 
@@ -416,7 +388,7 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
     /**
      * Tests Auth->authz()
      */
-    public function testAuthz()
+    public function testAuthz_Roles()
     {
         $this->Auth->login('monkey', 'mark');
         $this->Auth->authz('primate');
@@ -425,7 +397,7 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
     /**
      * Tests Auth->authz() where authorization fails
      */
-    public function testAuthz_Fail()
+    public function testAuthz_Roles_Fail()
     {
         $this->Auth->login('monkey', 'mark');
         
@@ -436,34 +408,12 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
     /**
      * Tests Auth->authz() with multiple getRoles() where authorization fails
      */
-    public function testAuthz_FailMultiple()
+    public function testAuthz_Roles_FailMultiple()
     {
         $this->Auth->login('monkey', 'mark');
         
         $this->setExpectedException('Q\Authz_Exception', "User 'monkey' is not in roles 'ape', 'pretty'.");
         $this->Auth->authz('primate', 'ape', 'pretty');
     }
-
-    /**
-     * Tests Auth->authz() whith no session
-     */
-    public function testAuthz_NoSession()
-    {
-        $this->setExpectedException('Q\Auth_Session_Exception', "User is not logged in.", Auth::NO_SESSION);
-        $this->Auth->authz('primate');
-    }
-    
-    /**
-     * Tests Auth->authz() whith no session
-     */
-    public function testAuthz_INACTIVE_USER()
-    {
-        try {
-            $this->Auth->login('baboon', 'ben');
-        } catch (Q\Auth_Login_Exception $e) {}
-        
-        $this->setExpectedException('Q\Auth_Session_Exception', "User is not logged in.", Auth::NO_SESSION);
-        $this->Auth->authz('primate');
-    }    
 }
 

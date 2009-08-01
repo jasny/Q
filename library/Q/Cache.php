@@ -4,7 +4,7 @@ namespace Q;
 require_once 'Q/misc.php';
 
 /**
- * Base class for cache interfaces.
+ * Cache objects can be used for saving otherwise persistant data.
  * 
  * @package Cache
  */
@@ -355,5 +355,3 @@ class Cache_Mock
         throw new Exception("Cache interface '{$this->_name}' does not exist.");
     }
 }
-
-if (!empty($_ENV['Q_ONLOAD']) && !in_array(strtolower($_ENV['Q_ONLOAD']), array('off', 'no', 'false'), true)) @include 'Q.Cache.onload.php';
