@@ -109,23 +109,21 @@ abstract class Config
 	 * Magic method to retun specific instance
 	 *
 	 * @param string $name
-	 * @param string $args
 	 * @return Config
 	 */
-	static public function __callstatic($name, $args)
+	static public function getInstance($name)
 	{
-	    if (!isset(self::$instances[$name])) {
-    	    if ($name != 'i' && self::i()->exists()) $dsn = self::i()->get('config' . ($name != 'i' ? ".{$name}" : ''));
-    
-    	    if (empty($dsn)) {
-    	        $const = 'CONFIG' . ($name != 'i' ? strtoupper("_{$name}") : ''); 
-                if (!defined($const)) return new Config_Mock($name);
-                $dsn = constant($const);
-    	    }
-    	    
-            self::$instances[$name] = self::with($dsn);
+	    if (isset(self::$instances[$name])) return self::$instances[$name];
+
+	    if ($name != 'i' && self::i()->exists()) $dsn = self::i()->get('config' . ($name != 'i' ? ".{$name}" : ''));
+
+	    if (empty($dsn)) {
+	        $const = 'CONFIG' . ($name != 'i' ? strtoupper("_{$name}") : ''); 
+            if (!defined($const)) return new Config_Mock($name);
+            $dsn = constant($const);
 	    }
 	    
+        self::$instances[$name] = self::with($dsn);
         return self::$instances[$name];
     }
 
@@ -136,9 +134,21 @@ abstract class Config
      */
     static public function i()
     {
-        
+        return isset(self::$instances['i']) ? self::$instances['i'] : $this->getInstance('i');
     }
-    
+
+	/**
+	 * Magic method to retun specific instance
+	 *
+	 * @param string $name
+	 * @param string $args
+	 * @return Config
+	 */
+	static public function __callstatic($name, $args)
+	{
+	    return isset(self::$instances[$name]) ? self::$instances[$name] : $this->getInstance($name);
+	}
+	
 	/**
 	 * Check is singeton object exists
 	 * 
