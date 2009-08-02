@@ -513,6 +513,30 @@ abstract class DB
 		
 		if (empty($properties) && empty($props_cfg)) return null;
     	
+		$this->mergeTableProperties($properties, $props_cfg);
+		$this->mergeFieldProperties($properties, $props_cfg);
+        $this->setImplicitProperties($properties);
+
+		$this->metaData->set($table, $properties);
+		return $properties;
+	}
+	
+	/**
+	 * Clear cached metadata.
+	 */
+	public function clearMetaDataCache($table=null)
+	{
+	    $this->metaData->clearCache($table);
+	}
+	
+	/**
+	 * Merge table properties from database with those from the config and the default props
+	 * 
+	 * @param array $properties
+	 * @param array $props_cfg
+	 */
+	protected function mergeTableProperties(&$properties, &$props_cfg)
+	{	
 		// Set properties for table
         $props_cfg['#table']['name'] = $table;
         $properties['#table'] = $props_cfg['#table'] + (isset($properties['#table']) ? $properties['#table'] : array());
@@ -532,9 +556,18 @@ abstract class DB
 		     
 		    $properties['#table'] += $inherit['#table'];
 		}
-		
-		$is_junction = true;
-		
+	}
+	
+	/**
+	 * Merge field properties from database with those from the config and the default props
+	 * 
+	 * @param array $properties
+	 * @param array $props_cfg
+	 * 
+	 * @todo Solve $is_junction differently
+	 */
+	protected function mergeFieldProperties(&$properties, &$props_cfg)
+	{
 		// Merge field properties
 		foreach (array_unique(array_merge(array_keys($properties), array_keys($props_cfg))) as $index) {
 		    if ($index == '#table') continue;
@@ -568,7 +601,15 @@ abstract class DB
 			
 			$is_junction = $is_junction && ($props['is_primary'] || $props['ignore'] || $props['readonly']);
 		}
-		
+    }
+
+    /**
+     * Set properties that implicitly follow out of other properties.
+     * 
+     * @param array $properties
+     */
+    public function setImplicitProperties(&$properties)
+    {
 		// Set additional properties for table based on field
 		if (!isset($properties['#table']['role']) && !isset($properties['#role:id']) && $is_junction) {
 		    if (isset($properties['#role:parentkey'])) {
@@ -597,19 +638,8 @@ abstract class DB
 		if (empty($properties['#table']['view'])) $properties['#table']['view'] = '*';
 		if (empty($properties['#table']['overview']) && isset($properties["#role:id"]) && isset($properties["#role:description"])) $properties['#table']['overview'] = $this->makeIdentifier($dbtable, $properties["#role:id"]['name']) . ', ' . $this->makeIdentifier($dbtable, $properties["#role:description"]['name']);
 		if (empty($properties['#table']['descview']) && isset($properties["#role:id"]) && isset($properties["#role:description"])) $properties['#table']['descview'] = $this->makeIdentifier($dbtable, $properties["#role:id"]['name']) . ', ' . $this->makeIdentifier($dbtable, $properties["#role:description"]['name']) . ', ' . (isset($properties["#role:active"]) ? $this->makeIdentifier($dbtable, $properties["#role:active"]['name'], 'role:active') : $this->quote(1) . $this->makeIdentifier(null, null, 'role:active'));
-
-		$this->metaData->set($table, $properties);
-		return $properties;
-	}
-	
-	/**
-	 * Clear cached metadata.
-	 */
-	public function clearMetaDataCache($table=null)
-	{
-	    $this->metaData->clearCache($table);
-	}
-	
+    }
+    
 	/**
 	 * Apply defaults to table properties.
 	 * (Don't call this outside of Q\DB classes)
@@ -1345,5 +1375,4 @@ class DB_QueryException extends DB_Exception
 class DB_Constraint_Exception extends Exception {}
 
 
-if (class_exists('Q\ClassConfig', false)) ClassConfig::applyToClass('Q\DB');
-
+if (defined('Q_DB_ONLOAD')) include Q_DB_ONLOAD;

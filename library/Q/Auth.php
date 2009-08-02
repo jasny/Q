@@ -591,7 +591,7 @@ abstract class Auth
      * 
      * @throws Auth_Login_Exception if login fails
      */
-    public function login($username, $password)
+    public function login($username=null, $password=null)
     {
     	if (!$this->canStoreInfo()) throw new Exception("Logging in through PHP is not supported with store option '{$this->store['driver']}'.");
     	

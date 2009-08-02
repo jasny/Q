@@ -6,7 +6,7 @@ require_once 'Q/CommonException.php';
 require_once 'Q/ExpectedException.php';
 
 /**
- * Exception for invalid user data
+ * Exception for invalid user data.
  */
 class InputException extends Exception implements CommonException, ExpectedException
 {
