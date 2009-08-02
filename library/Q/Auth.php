@@ -236,7 +236,7 @@ abstract class Auth
      */
     static public function i()
     {
-        return isset(self::$instances['i']) ? self::$instances['i'] : $this->getInterface('i');
+        return isset(self::$instances['i']) ? self::$instances['i'] : self::getInterface('i');
     }
     
 	/**
@@ -248,7 +248,7 @@ abstract class Auth
 	 */
 	static public function __callstatic($name, $args)
 	{
-        return isset(self::$instances[$name]) ? self::$instances[$name] : $this->getInterface($name);
+        return isset(self::$instances[$name]) ? self::$instances[$name] : self::getInterface($name);
     }
     
     /**
@@ -591,7 +591,7 @@ abstract class Auth
      * 
      * @throws Auth_Login_Exception if login fails
      */
-    public function login($username, $password)
+    public function login($username=null, $password=null)
     {
     	if (!$this->canStoreInfo()) throw new Exception("Logging in through PHP is not supported with store option '{$this->store['driver']}'.");
     	

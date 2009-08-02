@@ -233,7 +233,7 @@ class HTTP extends \HttpResponse
     {
         if (isset(self::$data)) return self::$data;
         
-        if (isset($_POST)) {
+        if (!empty($_POST)) {
             self::$data =& $_POST;
             return self::$data;
         }

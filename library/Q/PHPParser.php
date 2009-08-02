@@ -54,8 +54,7 @@ class PHPParser
 	 * Class constructor
 	 */	
 	protected function __construct()
-	{
-	}
+	{}
 	
 	/**
 	 * Execute a PHP file and return the output
@@ -70,7 +69,10 @@ class PHPParser
 		$_variables = $variables;
 		unset($filename, $variables);
 		if (isset($_variables)) extract($_variables);
-	
+
+	    $_short_open_tag = ini_get('short_open_tag');
+	    ini_set('short_open_tag', 1);
+		
 		$this->startErrorHandler();
 	
 		try {
@@ -82,6 +84,7 @@ class PHPParser
 		
 		ob_end_clean();
 		$this->stopErrorHandler();
+		ini_set('short_open_tag', $_short_open_tag);
 	
 		if (isset($_exception)) {
 			trigger_error("Could not parse file '$_filename'. Uncaught " . get_class($_exception) . ": " . $_exception->getMessage(), E_USER_WARNING);
@@ -132,7 +135,7 @@ class PHPParser
 	{
 	    $warning = null;
 		foreach ($this->warnings as &$warning) {
-			trigger_error(self::makeErrorMessage($warning), $warning[0] & (E_NOTICE | E_USER_NOTICE | E_STRICT) ? E_USER_NOTICE : E_USER_WARNING);
+			trigger_error(self::makeErrorMessage($warning[0], $warning[1], $warning[2], $warning[3]), $warning[0] & (E_NOTICE | E_USER_NOTICE | E_STRICT) ? E_USER_NOTICE : E_USER_WARNING);
 		}
 	}
 
