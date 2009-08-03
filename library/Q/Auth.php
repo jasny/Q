@@ -405,7 +405,7 @@ abstract class Auth
 	    
 	    if (is_string($this->store)) $this->store = extract_dsn($this->store);
 	    if (!($this->checksumCrypt instanceof Crypt)) $this->checksumCrypt = Crypt::with($this->checksumCrypt);
-	    if (empty($this->checksumCrypt->secret) && !$this->passwordCrypt) throw new Exception("To create a checksum, either the password needs to be included or a secret key needs to be used.");
+	    if (empty($this->checksumCrypt->secret) && !$this->checksumPassword) throw new Exception("To create a checksum, either the password needs to be included or a secret key needs to be used.");
 	    
 	    return $this->checksumCrypt->encrypt((isset($this->info['uid']) ? $this->info['uid'] : $this->info['username']) . ($this->checksumPassword ? $this->user()->getPassword() : null) . ($this->checksumClientIp ? HTTP::getClientRoute() : null) . ($this->store['driver'] == 'session' ? session_id() : null), $salt);
 	}
@@ -422,7 +422,7 @@ abstract class Auth
 	    	case 'none':			$this->info = null; break;
 	        case 'session': 		session_start();
 									$this->info = isset($_SESSION['AUTH']) ? $_SESSION['AUTH'] : null; break;
-	        case 'cookie':  		$this->info = array_chunk_assoc($_COOKIE, 'AUTH', '__'); break;
+	        case 'cookie':  		$this->info = array_chunk_assoc($_COOKIE, 'AUTH', '_'); break;
 	        case 'request': 		$this->info = isset($_REQUEST['AUTH']) ? $_REQUEST['AUTH'] : null; break;
 	        case 'env':				$this->info = split_set_assoc(unquote(getenv('AUTH'))); break;
 	        case 'http':			$this->info = getenv('REMOTE_USER') ? array('username'=>getenv('REMOTE_USER')) : null; break;
@@ -460,14 +460,15 @@ abstract class Auth
 	protected function storeInfo()
 	{
 	    $this->info = null;
-	    if (isset($this->user)) {
+	    if ($this->user) {
 	        $this->info['uid'] = $this->user->getId();
 	        $this->info['checksum'] = $this->checksum();
 	    }
+
 	    
 	    $matches = null;
 	    if (is_string($this->store)) $this->store = extract_dsn($this->store);
-	    
+
 		switch ($this->store['driver']) {
 			case 'none':
 				break;
@@ -642,9 +643,10 @@ abstract class Auth
     	$this->logEvent('logout', $status);
         $this->status = $status == self::OK ? self::NO_SESSION : $status;        
     	
-		$this->onLogout();
+	$this->onLogout();
+        $this->storeInfo(null);
+
         if ($status > 0 && $status < 16) {
-            $this->storeInfo(null);
             $this->user = null;
         }
     }
