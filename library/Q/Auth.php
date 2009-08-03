@@ -628,9 +628,32 @@ abstract class Auth
         $this->isBlocked(null, 0);
 
         $this->onLogin();
-        return;
     }
 
+    /**
+     * Set the user without logging in.
+     * This is something you might want to do after confirming an account.
+     * 
+     * No validation is done, so use this with care.
+     * 
+     * @param string|Auth_User  Username or user
+     */
+    public function setUser($user)
+    {
+        if (!($user instanceof Auth_User)) {
+            $username = $user;
+            $user = $this->fetchUserByName($username);
+            if (!isset($user)) throw new Exception("Unable to set '$username' as active user. User doesn't exist.");
+        }
+        
+        $this->user = $user;
+        $this->status = self::OK;
+        $this->logEvent('set-user', self::OK);
+        
+        $this->storeInfo();
+        $this->onLogin();
+    }
+    
 	/**
 	 * End user session.
 	 * 

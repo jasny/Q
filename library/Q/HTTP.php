@@ -237,8 +237,8 @@ class HTTP extends \HttpResponse
         }
 
 //        $input = self::getRequestBody();  // Seems to hang fcgi
-	$input = @file_get_contents('php://input');
-	$contenttype = trim(preg_replace('/;.*$/', '', $_SERVER['CONTENT_TYPE']));
+        $input = @file_get_contents('php://input');
+        $contenttype = trim(preg_replace('/;.*$/', '', $_SERVER['CONTENT_TYPE']));
 
         switch ($contenttype) {
             case 'application/json': self::$data =& json_decode($input); break;
