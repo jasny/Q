@@ -225,8 +225,6 @@ class HTTP extends \HttpResponse
      * Get parsed PUT/POST data.
      * To get raw data, just use HttpResponse::getRequestBody().
      * 
-     *  $_SERVER['CONTENT_TYPE']
-     * 
      * @return mixed
      */
     static public function getRequestData()
@@ -237,16 +235,14 @@ class HTTP extends \HttpResponse
             self::$data =& $_POST;
             return self::$data;
         }
-        
-        $input = HttpResponse::getRequestBody();
-        if (empty($input)) {
-            self::$data = '';
-            return '';
-        }
-        
-        switch ($_SERVER['CONTENT_TYPE']) {
+
+//        $input = self::getRequestBody();  // Seems to hang fcgi
+	$input = @file_get_contents('php://input');
+	$contenttype = trim(preg_replace('/;.*$/', '', $_SERVER['CONTENT_TYPE']));
+
+        switch ($contenttype) {
             case 'application/json': self::$data =& json_decode($input); break;
-            default:                 self::$data = null;
+            default:                 throw new InputException("Unsupported Content-Type '$contenttype'.");
         }
         
         return self::$data;
