@@ -241,7 +241,7 @@ class HTTP extends \HttpResponse
         $contenttype = trim(preg_replace('/;.*$/', '', $_SERVER['CONTENT_TYPE']));
 
         switch ($contenttype) {
-            case 'application/json': self::$data =& json_decode($input); break;
+            case 'application/json': self::$data = json_decode($input); break;
             default:                 throw new InputException("Unsupported Content-Type '$contenttype'.");
         }
         
