@@ -49,7 +49,7 @@ class ErrorHandler_Logs implements \IteratorAggregate, \ArrayAccess, \Countable
 	 * Add a log handler.
 	 * Works as a fluent interface.
 	 * 
-	 * @param mixed          $type  Error number (int) or Exception class name.
+	 * @param mixed         $type  Error number (int) or Exception class name.
 	 * @param Q\Log_Handler $log   May also be a DSN string.
 	 * @param More logs can be specified as additional arguments.
 	 * @return ErrorHandler_Log
@@ -177,15 +177,15 @@ class ErrorHandler_Logs implements \IteratorAggregate, \ArrayAccess, \Countable
 	 */
 	public function offsetUnset($key)
 	{
-	    if (is_string($type)) $type = self::errnoForType($type);
+	    if (is_string($key)) $key = self::errnoForType($key);
 	    
 		// Set logs for specific error code(s) or exception
-		if (is_int($type)) {
+		if (is_int($key)) {
     		for ($i=1; $i<=4096; $i = $i << 1) {
-    		    if ($i & $type) unset($this->logs[$type]);
+    		    if ($i & $key) unset($this->logs[$key]);
     		}
         } else {
-            unset($this->logs[$type]);
+            unset($this->logs[$key]);
 		}	    
 	}
 	

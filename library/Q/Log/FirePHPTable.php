@@ -76,6 +76,8 @@ class Log_FirePHPTable extends Log_FirePHP
 	    if (isset($this->alias[$type])) $type = $this->alias[$type];
 		if (!$this->shouldLog($type)) return;
 
+		$filename = null;
+		$linenum = null;
         if (HTTP::headers_sent($filename, $linenum)) {
             trigger_error("Headers already sent in {$filename} on line {$linenum}. Cannot send log data to FirePHP. You must have Output Buffering enabled via ob_start() or output_buffering ini directive.", E_USER_NOTICE);
             return;

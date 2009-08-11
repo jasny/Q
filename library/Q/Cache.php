@@ -61,7 +61,6 @@ abstract class Cache
 	
 	/**
 	 * Create a new config interface.
-	 * @static
 	 *
 	 * @param string|array $dsn      Configuration options, may be serialized as assoc set (string)
 	 * @param array        $options  Configuration options (which do not appear in DSN)

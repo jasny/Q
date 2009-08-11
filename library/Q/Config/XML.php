@@ -117,7 +117,7 @@ class Config_XML extends Config_Files
         } 
         
         if (strpos($item, '.') !== false) {
-            $items = split_set($item, '.', false);
+            $items = split_set('.', $item, false);
             if (count($items) > 1) {
                 $value = '';
                 foreach ($items as $item) $value .= $this->sxmlGetMapped($node, null, $item);

@@ -93,42 +93,14 @@ function parse_key($key, $value, &$target=null)
 }
 
 /**
- * Split a string on $seperator, grouping values between quotes and round brackets
- *
- * @param string $string
- * @param string $seperator  Character list; Split on any character in $seperator. With .. you can specify a range of characters.
- * @param string $unquote    Character list; Trim these characters for each part. TRUE: remove ' and ";
- * @return array
- */
-function split_set($string, $seperator=";", $unquote=true)
-{
-	if (!is_scalar($string) || empty($string)) return (array)$string;
-	
-	$matches = null;
-	$seperator = str_replace('\\.\\.', '-', preg_quote($seperator));
-	preg_match_all('/(?:(`[^`]*`)|("(?:\\\\"|[^"])*")|(\'(?:\\\\\'|[^\'])*\')|\((?:(?R)|[' . $seperator . '])*\)|([^`"\'()' . $seperator . ']+))+/', $string, $matches);
-	
-	$parts = array_map('trim', $matches[0]);
-	if (!$unquote) return $parts;
-
-	if ($unquote === true) $unquote = '\'"';
-	
-	$value = null;
-	foreach ($parts as &$value) $value = unquote($value, $unquote);
-	return $parts;
-}
-
-/**
  * Split a string on $seperator as key=value, grouping values between quotes and round brackets.
  *
- * @param string $string
  * @param string $seperator  Character list; Split on any character in $seperator. With .. you can specify a range of characters.
+ * @param string $string
  * @param string $unquote    Character list; Trim these characters for each part. TRUE: remove ' and ";
  * @return array
- * 
- * @todo Combine with split_set
  */
-function split_set_assoc($string, $seperator=";", $unquote=true)
+function split_set($seperator, $string, $unquote=true)
 {
 	if (!is_scalar($string) || empty($string)) return $string;
 	
@@ -165,7 +137,7 @@ function extract_dsn($dsn)
     
 	$matches = null;
 	if (!preg_match('/^([\w-]+)\:(.*)$/', $dsn, $matches)) return array('driver'=>$dsn);
-	return array('driver'=>$matches[1]) + split_set_assoc($matches[2], ';');
+	return array('driver'=>$matches[1]) + split_set(';', $matches[2]);
 }
 
 
@@ -400,7 +372,7 @@ function implode_recursive($glue, $array, $group_prefix='(', $group_suffix=')')
 
 /**
  * Join array elements as key=value with a glue string.
- * This is the reverse of split_set_assoc.
+ * This is the reverse of split_set.
  *
  * @param string $glue
  * @param array  $array

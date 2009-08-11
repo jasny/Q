@@ -368,7 +368,7 @@ abstract class DB
 
 		if (isset($this->settings['log']) && load_class('Q\Log')) $this->log = $this->settings['log'] instanceof Log_Handler ? $this->settings['log'] : Log::with($this->settings['log']);
 		  elseif (class_exists('Q\Log') && Log::db()->exists()) $this->log = Log::db();
-		if (isset($this->settings['log-columns'])) $this->logColumns = is_string($this->settings['log-columns']) ? split_set($this->settings['log-columns'], ',') : (array)$this->settings['log-columns'];
+		if (isset($this->settings['log-columns'])) $this->logColumns = is_string($this->settings['log-columns']) ? split_set(',', $this->settings['log-columns']) : (array)$this->settings['log-columns'];
 	}
 	
 	/**
@@ -712,7 +712,7 @@ abstract class DB
         $forceType = "forceType{$type}Properties";
 		foreach (self::$$forceType as $p=>$t) {
 		    $p = '"' . addcslashes($p, '"$') . '"';
-		    if ($t == 'array') $code .= 'if (isset($properties[' . $type_key . '][' . $p . ']) && is_scalar($properties[' . $type_key . '][' . $p . '])) $properties[' . $type_key . '][' . $p . '] = Q\split_set($properties[' . $type_key . '][' . $p . ']);' . "\n";
+		    if ($t == 'array') $code .= 'if (isset($properties[' . $type_key . '][' . $p . ']) && is_scalar($properties[' . $type_key . '][' . $p . '])) $properties[' . $type_key . '][' . $p . '] = Q\split_set(";", $properties[' . $type_key . '][' . $p . ']);' . "\n";
 		      else $code .= 'if (isset($properties[' . $type_key . '][' . $p . '])) settype($properties[' . $type_key . '][' . $p . '], "' . addcslashes($t, '"$') . '");' . "\n";
 		}
         

@@ -194,7 +194,7 @@ abstract class Log implements Log_Handler
 		if (isset($args['filter'])) {
 		    $filters = $args['filter'];
             unset($args['filter']);
-		    if (!is_array($filters)) $filters = split_set($filters, ',');
+		    if (!is_array($filters)) $filters = split_set(',', $filters);
 		}
 		
 		foreach ($args as $key=>$value) {

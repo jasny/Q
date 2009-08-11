@@ -41,7 +41,7 @@ abstract class Config_Files extends Config
 		if (!file_exists($options['path'])) throw new Exception("Unable to load files for config: File/directory '" . $options['path'] . "' does not exist or is not accessable (check permissions)");
 		$options['path_is_file'] = !is_dir($options['path']);
 
-		if (isset($options['parameters'])) $this->preparseParams = is_array($options['parameters']) ? $options['parameters'] : split_set_assoc($options['parameters']);
+		if (isset($options['parameters'])) $this->preparseParams = is_array($options['parameters']) ? $options['parameters'] : split_set(';', $options['parameters']);
 		
 		parent::__construct($options);
 		if ($options['path_is_file']) $this->loadToCache();

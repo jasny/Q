@@ -1,10 +1,6 @@
 <?php
 namespace Q;
 
-/*.
-    require_module 'http';
-.*/
-
 /**
  * Yet another static class with HTTP functions.
  * 
@@ -43,9 +39,9 @@ class HTTP extends \HttpResponse
 	
 	
 	/**
-	 * Check if this script run in shell (and not in webserver).
+	 * Check if the script is running in shell (and not in webserver).
 	 * 
-	 * @return bool
+	 * @return boolean
 	 */	
 	static public function inShellMode()
 	{
@@ -53,7 +49,7 @@ class HTTP extends \HttpResponse
 	}
 
 	/**
-	 * Alias of headers_sent function.
+	 * Alias of headers_sent() function.
 	 * 
 	 * @param string $file  Output: The file name where the output started.
 	 * @param int    $line  Output: The line number where the output started.
@@ -85,31 +81,7 @@ class HTTP extends \HttpResponse
 	    
 	    return parent::redirect($url, $params, false, $status);
 	}
-	
-	/**
-	 * Output headers to force the client to download the file.
-	 *
-	 * @param string     $filename
-	 * @param int        $filesize  Leave NULL to use filesize(), set to FALSE not to include content-length info
-	 * @param string|int $modified  Last-modified header as ISO date(string) or timestamp(int)
-	 */
-	static public function forceDownload($filename, $filesize=null, $modified=null)
-	{
-		self::setHeader("Pragma", "public");
-		self::setHeader("Expires", "0");
-		self::setCacheControl("public");
-		self::setHeader("Content-Description", "File Transfer");
-		self::setContentType("application/force-download");
-		self::setContentDisposition(basename($filename));
-		self::setHeader("Content-Transfer-Encoding", "binary");
-		
-		if ($filesize !== false && (isset($filesize) || file_exists($filename))) self::setHeader("Content-Length", isset($filesize) ? $filesize : filesize($filename));
-		
-		if ($modified === false);
-	      elseif (is_int($modified)) self::setLastModified($modified);
-		  elseif (!isset($modified) && file_exists($filename)) self::setLastModified(filemtime($filename));
-		  else self::setHeader("Last-Modified", $modified);
-	}
+
 	
 	/**
 	 * This function adds another name/value pair to the URL rewrite mechanism.
@@ -118,7 +90,7 @@ class HTTP extends \HttpResponse
 	 *  the session ID when transparent URL rewriting is enabled with session.use_trans_sid.
 	 *
 	 * @param string $name
-	 * @param mixed  $value  Also allows array
+	 * @param mixed  $value  Any scalar value or array.
 	 */
 	static public function addUrlRewriteVar($name, $value)
 	{
@@ -209,7 +181,7 @@ class HTTP extends \HttpResponse
 
     
     /**
-     * Get 'Almost pretty' arguments, passed to the script as script.php/arg0/arg1/arg2/...
+     * Get 'Almost pretty' arguments, passed to the script as 'script.php/arg0/arg1/arg2/...'.
      *
      * @return array
      */
@@ -219,6 +191,19 @@ class HTTP extends \HttpResponse
         
         self::$pathArgs = explode('/', substr($_SERVER['PHP_SELF'], strlen($_SERVER['SCRIPT_NAME'])+1));
         return self::$pathArgs;
+    }
+    
+    /**
+     * Get the raw request body (e.g. POST or PUT data). 
+     * 
+     * {@internal HttpResponse::getRequestBody() hangs the scripts with fcgi and keepalive. We need to
+     *  find out the cause and report a bug. Until that time, use the overloaded funcion.}}
+     *  
+     * @return string
+     */
+    static public function getRequestBody()
+    {
+        return @file_get_contents('php://input');
     }
     
     /**
@@ -236,8 +221,7 @@ class HTTP extends \HttpResponse
             return self::$data;
         }
 
-//        $input = self::getRequestBody();  // Seems to hang fcgi
-        $input = @file_get_contents('php://input');
+        $input = self::getRequestBody();
         $contenttype = trim(preg_replace('/;.*$/', '', $_SERVER['CONTENT_TYPE']));
 
         switch ($contenttype) {

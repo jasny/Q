@@ -401,7 +401,7 @@ class DB_Field implements \ArrayAccess
 				break;
 
 			case 'array':
-				$cast = !is_array($value) && !empty($value) ? split_set($value) : $value;
+				$cast = !is_array($value) && !empty($value) ? split_set(';', $value) : $value;
 				break;
 			
 			case 'bool':
@@ -411,12 +411,12 @@ class DB_Field implements \ArrayAccess
 				break;
 
 			case 'set':
-				if (!is_int($value) && !preg_match('/^-?\d*$/', $value)) $value = split_set($value);
+				if (!is_int($value) && !preg_match('/^-?\d*$/', $value)) $value = split_set(';', $value);
 				if (is_array($value) && !empty($value) && is_string(reset($value))) {
 					$opts = $this->getProperty('values');
 					if (!empty($opts)) {
 						$intval = 0;
-						if (!is_array($opts)) $opts = split_set($opts);
+						if (!is_array($opts)) $opts = split_set(';', $opts);
 						foreach ($opts as $val=>$opt) if (in_array($opt, $value)) $intval += pow(2, $val);
 						$value = $intval;
 					}

@@ -2,22 +2,21 @@
 namespace Q;
 
 /**
- * Interface to indicate class can route requests
+ * Interface to indicate class can handle the incomming request.
  * 
- * @package Route
+ * @package HandleRequest
  */
-interface Route_Handler
+interface HandleRequest_Handler
 {
     /**
      * Class constructor
      * 
-     * @param array $options  Routing options
+     * @param array $options
      */
     public function __construct($options=array());
     
     /**
      * Route request
-     * @return unknown_type
      */
     public function handle();
 }

@@ -1,5 +1,6 @@
 <?php
 namespace Q;
+use \PHPUnit_Framework_TestCase;
 
 require_once 'TestHelper.php';
 require_once 'Q/misc.php';
@@ -28,7 +29,7 @@ class tst_misc_AQ extends tst_misc_A implements tst_misc_Q {}
 /**
  * Test case for misc functions of Q
  */
-class MiscTest extends \PHPUnit_Framework_TestCase
+class MiscTest extends PHPUnit_Framework_TestCase
 {
 	/**
 	 * Run test from php
@@ -41,8 +42,7 @@ class MiscTest extends \PHPUnit_Framework_TestCase
 	 * Prepares the environment before running a test.
 	 */
 	protected function setUp()
-	{
-	}
+	{}
 	    
     /**
      * Test class_is_a()

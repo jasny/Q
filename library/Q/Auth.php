@@ -424,7 +424,7 @@ abstract class Auth
 									$this->info = isset($_SESSION['AUTH']) ? $_SESSION['AUTH'] : null; break;
 	        case 'cookie':  		$this->info = array_chunk_assoc($_COOKIE, 'AUTH', '_'); break;
 	        case 'request': 		$this->info = isset($_REQUEST['AUTH']) ? $_REQUEST['AUTH'] : null; break;
-	        case 'env':				$this->info = split_set_assoc(unquote(getenv('AUTH'))); break;
+	        case 'env':				$this->info = split_set(';', unquote(getenv('AUTH'))); break;
 	        case 'http':			$this->info = getenv('REMOTE_USER') ? array('username'=>getenv('REMOTE_USER')) : null; break;
 	        case 'posix':			$this->info = array('uid'=>posix_getuid()); break;
 	        case 'posix_username':	$this->info = array('username'=>posix_getlogin()); break;
