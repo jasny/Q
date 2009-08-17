@@ -3,6 +3,7 @@ namespace Q;
 
 require_once 'Q/Log/Handler.php';
 require_once 'Zend/Log.php';
+require_once 'Zend/Log/Filter/Priority.php';
 
 /**
  * Wrapper class to use Zend_Log object in Q.
@@ -67,8 +68,8 @@ class Log_Zend implements Log_Handler
         }
         
         $priority = isset($this->alias[$type]) ? $this->alias[$type] : $this->alias[null];
-        $filter = new Zend_Log_Filter_Priority($priority);
-        $logger->addFilter($filter);
+        $filter = new \Zend_Log_Filter_Priority($priority);
+        $this->zendlog->addFilter($filter);
 	}
     
 	

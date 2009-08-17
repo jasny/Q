@@ -165,7 +165,7 @@ class Console
      */
     static public function getOpts()
     {
-        if (!isset(self::$opts[$key])) self::parseOptions();
+        if (!isset(self::$opts)) self::parseOptions();
         return self::$opts;
     }
     

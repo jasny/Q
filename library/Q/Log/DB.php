@@ -29,7 +29,7 @@ class Log_DB extends Log
 	 * @param DB_Table|string $table   DB_Table or table name (string)
 	 * @param array           $fields  Mapping of keys to field names
 	 */
-	public function __construct($table)
+	public function __construct($table, $fields)
 	{
         $this->table = $table;
         $this->fields = $fields;
