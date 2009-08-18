@@ -14,7 +14,7 @@ class Crypt_MD5 extends Crypt
      * Use a salt.
      * @var boolean
      */
-    public $use_salt=false;
+    public $useSalt=false;
     
 	/**
 	 * Encrypt value.
@@ -27,10 +27,9 @@ class Crypt_MD5 extends Crypt
 	{
 	    $value .= $this->secret;
 	    
-		if (!$this->use_salt) return md5($value);
+		if (!$this->useSalt) return md5($value);
 		
-		$salt = (empty($salt) ? $this->makesalt() : preg_replace('/\$[\dabcdef]{32}$/', '', $salt));
+		$salt = (empty($salt) ? $this->makeSalt() : preg_replace('/\$[\dabcdef]{32}$/', '', $salt));
 		return $salt . '$' . md5($salt . $value);
 	}
 }
-

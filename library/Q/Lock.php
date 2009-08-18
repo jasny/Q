@@ -44,7 +44,13 @@ class Lock
      */
     public function __construct($name, $options=array())
     {
-        $this->name = $name;
+        if (is_array($name)) {
+            $options = $name + $options;
+            $name = isset($options[0]) ? $options[0] : $options['name'];
+            unset($options[0], $options['name']);
+        }
+        
+        if (is_object($name)) $name = md5(method_exists($object, 'getId') ? $name->getId() : (string)$name);
         
         $value = null;
         foreach ($options as $key=>&$value) {
@@ -53,30 +59,30 @@ class Lock
     }
     
     /**
-     * Acquire or refresh a lock.
+     * Acquire the key or refresh a lock.
      * 
-     * @param string $key  Key that should fit the lock
-     * @return boolean
+     * @param string $key  Key that should fit the lock when refreshing the lock.
+     * @return string|false
      */
     public function acquire($key=null)
     {
         if ($this->getKey() && $key != $this->getKey()) return false;
 
         if (!isset($key)) $key = md5(microtime());
-        $this->info = array('timestamp'=>strftime('%Y-%m-%d %T'), 'check'=>$key);
+        $this->info = array('timestamp'=>strftime('%Y-%m-%d %T'), 'key'=>$key);
         if (class_exists('Q\Auth', false) && Auth::i()->isLoggedIn()) {
-            $this->info['user'] = Auth::i()->user()->username;
-            $this->info['user_fullname'] = Auth::i()->user()->fullname;
+            $this->info['user'] = Auth::i()->user()->getUsername();
+            $this->info['user_fullname'] = Auth::i()->user()->getFullaname();
         }
 
         if (!($this->store instanceof Cache)) $this->store = Cache::with($this->store);
         $this->store->save('lock:' . $this->name, $this->info, $this->timeout);
         
-        return true;
+        return $key;
     }
     
     /**
-     * Release a lock.
+     * Release the lock.
      * 
      * @param string $key  Key that should fit the lock
      * @return boolean
@@ -110,6 +116,16 @@ class Lock
     
     
     /**
+     * Get public information.
+     * 
+     * @return string
+     */
+    public function getInfo()
+    {
+        return array('name'=>$this->name, 'timeout'=>$this->timeout, 'user_fullname'=>isset($this->info['user_fullname']) ? $this->info['user_fullname'] : null, 'timestamp'=>$this->info['timestamp']);
+    }
+    
+    /**
      * Return lock as XML.
      * 
      * @return string
@@ -119,7 +135,7 @@ class Lock
         return "<lock name=\"{$this->name}\" timeout=\"{$this->timeout}\">" .
           (isset($this->info['user_fullname']) ? '<user>' . htmlspecialchars($this->info['user_fullname'], ENT_COMPAT, 'UTF-8') . '</user>' : null) .
           "<timestamp>{$this->info['timestamp']}</timestamp>" .
-          '</lock>';        
+          '</lock>';
     }
     
     /**

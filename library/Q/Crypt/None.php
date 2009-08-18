@@ -4,7 +4,7 @@ namespace Q;
 require_once 'Q/Crypt.php';
 
 /**
- * Encryption class for no encryption at all.
+ * Don't do any encryption at all.
  * 
  * @package Crypt
  */

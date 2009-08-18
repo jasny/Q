@@ -1,5 +1,5 @@
 <?php
-namespace Q;
+use Q\Crypt;
 
 require_once 'TestHelper.php';
 require_once 'PHPUnit/Framework/TestCase.php';
@@ -9,7 +9,7 @@ require_once 'Q/Crypt.php';
 /**
  * Test factory method
  */
-class Crypt_CreationTest extends \PHPUnit_Framework_TestCase
+class Crypt_CreationTest extends PHPUnit_Framework_TestCase
 {
 	/**
 	 * Run test from php
@@ -21,13 +21,13 @@ class Crypt_CreationTest extends \PHPUnit_Framework_TestCase
     
     public function testDriverOnly()
     {
-        $crypt = Q\Crypt::with('none');
+        $crypt = Crypt::with('none');
         $this->assertType('Q\Crypt_None', $crypt);
     }
 
     public function testMD5Options()
     {
-        $crypt = Q\Crypt::with('md5:secret=mysecret', array('use_salt'=>true));
+        $crypt = Crypt::with('md5:secret=mysecret', array('use_salt'=>true));
         $this->assertType('Q\Crypt_MD5', $crypt);
         
         $this->assertTrue($crypt->use_salt);

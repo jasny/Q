@@ -74,7 +74,7 @@ class HTTP extends \HttpResponse
 	 */
 	static public function redirect($url, $params=array(), $rewrite=null, $status=302)
 	{
-	    if ($rewrite || ($rewrite === null && str_pos(':', $url) === false)) {
+	    if ($rewrite || ($rewrite === null && strpos(':', $url) === false)) {
 	        if (!is_array($params)) $params = (array)$params;
 	        $params += self::getUrlRewriteVars();
 	    }
@@ -82,61 +82,6 @@ class HTTP extends \HttpResponse
 	    return parent::redirect($url, $params, false, $status);
 	}
 
-	
-	/**
-	 * This function adds another name/value pair to the URL rewrite mechanism.
-	 * 
-	 * The name and value will be added to URLs (as GET parameter) and forms (as hidden input fields) the same way as
-	 *  the session ID when transparent URL rewriting is enabled with session.use_trans_sid.
-	 *
-	 * @param string $name
-	 * @param mixed  $value  Any scalar value or array.
-	 */
-	static public function addUrlRewriteVar($name, $value)
-	{
-	    if (func_num_args() < 3) {
-	        self::$rewriteVars[$name] = $value;
-	        $name = urlencode($name);
-	        
-	        if (isset(self::$rewriteVars[$name]) && !is_scalar(self::$rewriteVars[$name])) {
-	            $value = self::$rewriteVars[$name];
-	            $cmd = 'clear';
-	        } else {
-	            $cmd = 'set';
-	        }
-	    } else {
-	        $cmd = func_get_arg(2);
-	    }
-	    
-	    if (is_array($value)) {
-	        foreach ($value as $k=>$v) self::addUrlRewriteVar($name . '[' . urlencode($k) . ']', $cmd == 'clear' ? null : $v, $cmd);
-	    } else {
-	        output_add_rewrite_var($name, $cmd == 'clear' ? null : $value);
-	    }
-	}
-
-	/**
-	 * This function resets the URL rewriter and removes all rewrite variables previously set by the output_add_rewrite_var() function or the session mechanism.
-	 */
-	static public function resetUrlRewriteVars()
-	{
-	    output_reset_rewrite_vars();
-	    self::$rewriteVars = array();
-	}
-	
-	/**
-	 * Return a list of rewrite vars.
-	 * Only return the vars registered through the Q\HTTP interface are availale.
-	 * 
-	 * @return array
-	 */
-	static public function getUrlRewriteVars()
-	{
-	    $vars = self::$rewriteVars;
-	    if (ini_get('session.use_trans_sid') && session_id()) $vars[session_name()] = session_id();
-	    return $vars;
-	}
-		
 	
     /**
      * Return the client IP.

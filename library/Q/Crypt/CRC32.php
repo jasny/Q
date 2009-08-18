@@ -14,17 +14,7 @@ class Crypt_CRC32 extends Crypt
      * Use a salt.
      * @var boolean
      */
-    public $use_salt=false;
-    
-	/**
-	 * Class constructor.
-	 * 
-	 * @param boolean $use_salt
-	 */
-	public function __construct($use_salt=false)
-	{
-		$this->use_salt = (int)$use_salt === 1;
-	}
+    public $useSalt=false;
 	    
 	/**
 	 * Encrypt value.
@@ -37,10 +27,9 @@ class Crypt_CRC32 extends Crypt
 	{
 	    $value .= $this->secret;
 	    
-		if (!$this->use_salt) return crc32($value);
+		if (!$this->useSalt) return sprintf('%08x', crc32($value));
 		
-		$salt = (empty($salt) ? $this->makesalt() : preg_replace('/\$[\dabcdef]{32}$/', '', $salt));
-		return $salt . '$' . crc32($salt . $value);
+		$salt = (empty($salt) ? $this->makeSalt() : preg_replace('/\$[\dabcdef]{8}$/', '', $salt));
+		return $salt . '$' . sprintf('%08x', crc32($salt . $value));
 	}
 }
-

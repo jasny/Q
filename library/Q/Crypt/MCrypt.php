@@ -5,7 +5,7 @@ require_once 'Q/Crypt.php';
 require_once 'Q/Decrypt.php';
 
 /**
- * Encryption class wrapping mcrypt.
+ * Encrypt using mcrypt.
  * 
  * @package Crypt
  */
@@ -15,32 +15,26 @@ class Crypt_MCrypt extends Crypt implements Decrypt
 	 * Type of encryption
 	 * @var string
 	 */
-	public $cipher;
-
-	/**
-	 * Salt, encryption key or passphrase
-	 * @var string
-	 */
-	public $key=null;
-	
+	public $method;
 	
 	/**
 	 * Class constructor.
 	 * 
-	 * @param string $cipher
-	 * @param string $key    Salt, encryption key or passphrase
+	 * @param string $method
 	 */
-	public function __construct($cipher, $key=null)
+	public function __construct($options)
 	{
-		if (!extension_loaded('mcrypt')) throw new Exception("MCrypt extension is not loaded");
+		if (!extension_loaded('mcrypt')) throw new Exception("MCrypt extension is not available.");
 		
-	    if (strtolower($cipher) == 'mcrypt') list(, $cipher, $key) = func_get_args();
-	    if (empty($cipher)) throw new Exception("Encryption algoritm not specified.");
+	    $options = (array)$options;
 	    
-		$this->cipher = $cipher;
-		$this->key = $key;
-		
-		if (!in_array($this->cipher, mcrypt_list_algorithms())) throw new Exception("Unknown MCrypt algorithm '{$this->cipher}'");
+	    if (isset($options[0])) {
+	        $this->method = $options[0];
+	        unset($options[0]);
+	    }
+	    
+	    parent::__construct($options);
+	    if (empty($this->method)) throw new Exception("Encryption algoritm not specified.");
 	}
 	
 	/**
@@ -52,22 +46,18 @@ class Crypt_MCrypt extends Crypt implements Decrypt
 	 */
 	public function encrypt($value, $salt=null)
 	{
-		return mcrypt_encrypt($this->cipher, $this->key, $value . $this->secret, MCRYPT_MODE_ECB);
+		return mcrypt_encrypt($this->method, $this->secret, $value, MCRYPT_MODE_ECB);
 	}
 	
 	/**
 	 * Decrypt encrypted value.
-	 * Returns NULL if hash is invalid.
 	 *
 	 * @param string $hash
-	 * @return string
+	 * @return string|false
 	 */
     public function decrypt($hash)
     {
-        $value = mcrypt_decrypt($this->cipher, $this->key, $value, MCRYPT_MODE_ECB);
-        if (empty($value) || (!empty($this->secret) && (strlen($this->secret) > strlen($value) || substr($this->secret, -1 * strlen($value)) != $value))) return null;
-        
-        return $value;
+        $value = mcrypt_decrypt($this->method, $this->secret, $value, MCRYPT_MODE_ECB);
+        return !empty($value) ? $value : false;
     }
 }
-

@@ -1,5 +1,5 @@
 <?php
-namespace Q;
+use Q\Crypt_MD5;
 
 require_once 'TestHelper.php';
 require_once 'Q/Crypt/MD5.php';
@@ -8,7 +8,7 @@ require_once 'PHPUnit/Framework/TestCase.php';
 /**
  * Crypt_MD5 test case.
  */
-class Crypt_MD5Test extends \PHPUnit_Framework_TestCase
+class Crypt_MD5Test extends PHPUnit_Framework_TestCase
 {
 	/**
 	 * @var Crypt_MD5
@@ -46,7 +46,7 @@ class Crypt_MD5Test extends \PHPUnit_Framework_TestCase
 	 */
 	public function testEncrypt_Salt()
 	{
-	    $this->Crypt_MD5->use_salt = true;
+	    $this->Crypt_MD5->useSalt = true;
 	    
 		$hash = $this->Crypt_MD5->encrypt("a test string");
 		$this->assertRegExp('/^\w{6}\$\w{32}$/', $hash);

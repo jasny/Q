@@ -1,36 +1,40 @@
 <?php
+namespace Q;
 
-require_once 'TestHelper.php';
-require_once 'Q/AllTests.php';
+require_once 'Test/Authenticate.php';
+require_once 'Test/Config.php';
+require_once 'Test/Crypt.php';
+require_once 'Test/DB.php';
+require_once 'Test/Log.php';
+require_once 'Test/Misc.php';
+require_once 'Test/VariableStream.php';
 
 /**
- * Run all tests
+ * Static test suite.
  */
-class AllTests
+class AllTest extends \PHPUnit_Framework_TestSuite
 {
-    public static function main()
+    /**
+     * Constructs the test suite handler.
+     */
+    public function __construct ()
     {
-        $parameters = array();
-
-        if (TESTS_GENERATE_REPORT && extension_loaded('xdebug')) {
-            $parameters['reportDirectory'] = TESTS_GENERATE_REPORT_TARGET;
-        }
-
-        if (defined('TESTS_ZEND_LOCALE_FORMAT_SETLOCALE') && TESTS_ZEND_LOCALE_FORMAT_SETLOCALE) {
-            // run all tests in a special locale
-            setlocale(LC_ALL, TESTS_ZEND_LOCALE_FORMAT_SETLOCALE);
-        }
-
-        PHPUnit_TextUI_TestRunner::run(self::suite(), $parameters);
+        $this->setName('AllTest');
+        $this->addTestSuite('AuthenticateTest');
+        $this->addTestSuite('ConfigTest');
+        $this->addTestSuite('CryptTest');
+        $this->addTestSuite('DBTest');
+        $this->addTestSuite('LogTest');
+        $this->addTestSuite('MiscTest');
+        $this->addTestSuite('VariableStreamTest');
     }
-
-    public static function suite()
+    
+    /**
+     * Creates the suite.
+     */
+    public static function suite ()
     {
-        $suite = new PHPUnit_Framework_TestSuite('Zend Framework');
-
-        $suite->addTest(Q\AllTests::suite());
-
-        return $suite;
+        return new self();
     }
 }
 

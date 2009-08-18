@@ -1,5 +1,5 @@
 <?php
-namespace Q;
+use Q\Crypt_System;
 
 require_once 'TestHelper.php';
 require_once 'Q/Crypt/System.php';
@@ -8,7 +8,7 @@ require_once 'PHPUnit/Framework/TestCase.php';
 /**
  * Crypt_System test case.
  */
-class Crypt_SystemTest extends \PHPUnit_Framework_TestCase
+class Crypt_SystemTest extends PHPUnit_Framework_TestCase
 {
 	/**
 	 * Run test from php

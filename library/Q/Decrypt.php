@@ -12,7 +12,7 @@ interface Decrypt
 	 * Decrypt encrypted value.
 	 *
 	 * @param string $value
-	 * @return string
+	 * @return string|false
 	 */
     public function decrypt($value);
 }
