@@ -7,7 +7,7 @@ require_once 'Q/Exception.php';
  * Interface to use output handling.
  * 
  * @package Output
- * @todo Add If-Match and If-Modified-Since support
+ * @todo Add If-Match and If-Modified-Since support for useCache
  */
 class Output
 {
@@ -26,12 +26,16 @@ class Output
      */
     protected static $markers;
     
+	/**
+	 * A list of all rewrite_vars (created through this interface)
+	 */
+	static protected $rewriteVars = array();
+	
     
     /**
      * Try to get page from cache, otherwise set cache as output handler and continue.
      * 
      * @param Cache $cache  Cache interface
-     * @param int   $opt    Handler options
      */
     static public function useCache($cache)
     {
@@ -40,7 +44,7 @@ class Output
         
         $data = $cache->get($key);
         if (!$data) {
-            new Output_Cache($cache, $opt);
+            new Output_Cache($cache);
             return;
         }
         
@@ -50,7 +54,8 @@ class Output
             self::clear();
             
             foreach ($handlers as $handler) {
-                $data = call_user_func($handler, $data, PHP_OUTPUT_HANDLER_END);
+                $out = call_user_func($handler, $data, PHP_OUTPUT_HANDLER_START | PHP_OUTPUT_HANDLER_END);
+                if ($out !== false) $data = $out;
             }
         }
         
@@ -75,9 +80,10 @@ class Output
      */
     static public function clear()
     {
-        for ($i=0, $n=count(ob_list_handlers()); $i<$n; $i++) {
+        for ($i=0, $n=ob_get_level(); $i<$n; $i++) {
             ob_end_clean();
         }
+        self::$markers = null;
     }
     
     /**
@@ -96,9 +102,11 @@ class Output
      * @param string $marker
      */
     static public function mark($marker)
-    {
-        ob_flush();
-        array_push(self::$markers, $marker);
+    {    
+        if (ob_get_level() == 0) ob_start();
+         else ob_flush();
+        
+        self::$markers[] = $marker;
     }
     
     /**
@@ -106,10 +114,10 @@ class Output
      */
     static public function endMark()
     {
-        if (empty(self::$marker)) throw new Exception("Called Output::endMark() without an Output::mark() call.");
+        if (empty(self::$markers)) throw new Exception("Called Output::endMark() without an Output::mark() call.");
         
         ob_flush();
-        array_pop(self::$markers, $key);
+        array_pop(self::$markers);
     }
     
     /**
@@ -152,7 +160,9 @@ class Output
 	    }
 	    
 	    if (is_array($value)) {
-	        foreach ($value as $k=>$v) self::addUrlRewriteVar($name . '[' . urlencode($k) . ']', $cmd == 'clear' ? null : $v, $cmd);
+	        foreach ($value as $k=>$v) {
+	            self::addUrlRewriteVar($name . '[' . urlencode($k) . ']', $cmd == 'clear' ? null : $v, $cmd);
+	        }
 	    } else {
 	        output_add_rewrite_var($name, $cmd == 'clear' ? null : $value);
 	    }
@@ -169,7 +179,7 @@ class Output
 	
 	/**
 	 * Return a list of rewrite vars.
-	 * Only return the vars registered through the Q\HTTP interface are availale.
+	 * Only return the vars registered through the Q\Output interface are availale.
 	 * 
 	 * @return array
 	 */

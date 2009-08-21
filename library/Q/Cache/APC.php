@@ -19,12 +19,28 @@ class Cache_APC extends Cache
 	 * Test if a cache is available and (if yes) return it
 	 * 
 	 * @param string $id  Cache id
+	 * @param int    $opt
 	 * @return mixed
 	 */
-	protected function doGet($id)
+	protected function doHas($id, $opt=0)
 	{
-		$data = apc_fetch("cache:{$this->options['app']}.$id}");
-		return $data !== false ? $data : null;
+	    $success = null;
+		apc_fetch("cache:{$this->options['app']}.$id}", $success);
+		return $success;
+	}
+	    
+	/**
+	 * Test if a cache is available and (if yes) return it
+	 * 
+	 * @param string $id  Cache id
+	 * @param int    $opt
+	 * @return mixed
+	 */
+	protected function doGet($id, $opt=0)
+	{
+	    $success = null;
+		$data = apc_fetch("cache:{$this->options['app']}.$id}", $success);
+		return $success ? $data : null;
 	}
 	
 	/**
@@ -32,8 +48,9 @@ class Cache_APC extends Cache
 	 * 
 	 * @param string $id    Cache id
 	 * @param mixed  $data  Data to put in the cache
+	 * @param int    $opt
 	 */
-	protected function doSave($id, $data)
+	protected function doSet($id, $data, $opt=0)
 	{
 	    $fn = $this->options['overwrite'] ? 'apc_store' : 'apc_add';
 		$fn("cache:{$this->options['app']}.{$id}", $data, $this->options['lifetime']);
@@ -43,8 +60,9 @@ class Cache_APC extends Cache
 	 * Remove data from cache
 	 * 
 	 * @param string $id  Cache id
+	 * @param int    $opt
 	 */
-	protected function doRemove($id)
+	protected function doRemove($id, $opt=0)
 	{
 		apc_delete("cache:{$this->options['app']}.{$id}");
 	}
@@ -52,18 +70,18 @@ class Cache_APC extends Cache
 	/**
 	 * Remove old/all data from cache
 	 * 
-	 * @param boolean $all  Remove all data, don't check age
+	 * @param int $opt  Cache::% options
 	 */
-	protected function doClean($all=false)
+	protected function doClean($opt=0)
 	{
-		if (!$all) return;
+		if (~$opt & Cache::ALL) return;
 		
-		$key = "cache:{$this->options['app']}";
+		$key = "cache:{$this->options['app']}.";
 		$keylen = strlen($key);
 		
 		$cache_info = apc_cache_info("user");
 		foreach ($cache_info['cache_list'] as $info) {
-			if (substr_compare($info['info'], $key, 0, $keylen) == 0) apc_delete($info['info']);
+			if (strncmp($info['info'], $key, $keylen) == 0) apc_delete($info['info']);
 		}
 	}
 }

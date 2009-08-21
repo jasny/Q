@@ -19,12 +19,7 @@ class HTTP extends \HttpResponse
 	 * @var int
 	 */
 	static public $defaultCacheTime = 300;
-	
-	/**
-	 * A list of all rewrite_vars (created through this interface)
-	 */
-	static protected $rewriteVars = array();
-	
+
 	/**
      * Path arguments.
      * @var array

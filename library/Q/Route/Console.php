@@ -1,14 +1,14 @@
 <?php
 namespace Q;
 
-require_once 'Q/HandleRequest/Router.php';
+require_once 'Q/Route.php';
 
 /**
  * Route a command line call.
  * 
  * @package Route
  */
-class Route_Console extends Route_Router
+class Route_Console extends Route
 {
     /**
      * Get controller name.
@@ -38,11 +38,7 @@ class Route_Console extends Route_Router
     {
         if ($this->method) return $this->method;
 
-        if (isset($this->methodParam)) {
-            $ctl = Console::getOpt($this->methodParam);
-        } else {
-            $ctl = Console::getArg(isset($this->ctlParam) && !isset($this->paramDelim) ? 1 : 0);
-        }
+        $method = isset($this->methodParam) ? Console::getOpt($this->methodParam) : Console::getArg(isset($this->methodParam) && !isset($this->paramDelim) ? 1 : 0);
         
         if (isset($this->paramDelim) && !empty($method) && ($pos = strpos($this->paramDelim, $method)) !== false) $method = substr($method, $pos+1);
         return $method;

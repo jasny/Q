@@ -56,7 +56,7 @@ class Crypt_CRC32Test extends PHPUnit_Framework_TestCase
 	}
 	
 	/**
-	 * Tests Crypt_DoubleCRC32->encrypt() with secret phrase
+	 * Tests Crypt_CRC32->encrypt() with secret phrase
 	 */
 	public function testEncrypt_Secret()
 	{

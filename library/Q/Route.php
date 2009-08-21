@@ -1,7 +1,7 @@
 <?php 
 namespace Q;
 
-require_once 'Q/HandleRequest/Handler.php';
+require_once 'Q/Route/Handler.php';
 require_once 'Q/Exception.php';
 
 /**

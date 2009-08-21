@@ -4,9 +4,9 @@ namespace Q;
 /**
  * Interface to indicate class can handle the incomming request.
  * 
- * @package HandleRequest
+ * @package Route
  */
-interface HandleRequest_Handler
+interface Route_Handler
 {
     /**
      * Class constructor

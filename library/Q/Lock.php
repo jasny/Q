@@ -50,8 +50,6 @@ class Lock
             unset($options[0], $options['name']);
         }
         
-        if (is_object($name)) $name = md5(method_exists($object, 'getId') ? $name->getId() : (string)$name);
-        
         $value = null;
         foreach ($options as $key=>&$value) {
             $this->$key = $value;

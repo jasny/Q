@@ -6,6 +6,9 @@ require_once 'Q/Cache.php';
 
 /**
  * Cache output.
+ * 
+ * If an empty buffer is flushed and PHP_OUTPUT_HANDLER_END is set, the handler assumes that ob_end_clean() is
+ * called and will discard the data, not caching anything.
  *
  * @package Output
  */
@@ -59,7 +62,7 @@ class Output_Cache implements Output_Handler
         }
         
         if ($flags & PHP_OUTPUT_HANDLER_END) $this->cache->save(static::makeKey(), $this->data);
-        return $buffer;
+        return false;
     }
     
     /**
