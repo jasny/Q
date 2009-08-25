@@ -79,7 +79,7 @@ class Log_Zend implements Log_Handler
 	 * @param string $message
 	 * @param string $type
 	 */
-	function write($message, $type=null)
+	public function log($message, $type=null)
 	{
 	    if (isset($message['type']) && !isset($type)) $type = $message['type'];
 	    unset($message['type']);

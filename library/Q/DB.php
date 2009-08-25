@@ -205,15 +205,13 @@ abstract class DB
 	
 
 	/**
-	 * Native DB connection object
-	 *
+	 * Native DB connection object.
 	 * @var object|resource
 	 */
 	protected $native;
 
 	/**
-	 * Settings used to create connection
-	 *
+	 * Settings used to create connection.
 	 * @var array
 	 */
 	protected $settings;	
@@ -225,13 +223,13 @@ abstract class DB
 	protected $metaData;
 
 	/**
-	 * Cached table objects
+	 * Cached table objects.
 	 * @var array
 	 */
 	protected $tables=array();
 	
 	/**
-	 * Fetch mode
+	 * Fetch mode.
 	 * @var int
 	 */
 	protected $fetchMode=self::FETCH_ASSOC;
@@ -293,7 +291,7 @@ abstract class DB
 	}
 	
 	/**
-	 * Reconnect the db connection
+	 * Reconnect the db connection.
 	 */
 	abstract public function reconnect();
 	
@@ -312,7 +310,7 @@ abstract class DB
 	}
 	
 	/**
-	 * Magic method to return specific instance
+	 * Magic method to return specific instance.
 	 *
 	 * @param string $name
 	 * @param array  $args
@@ -352,7 +350,7 @@ abstract class DB
 	// -----
 	
 	/**
-	 * Class constructor
+	 * Class constructor.
 	 *
 	 * @param object|resource $native
 	 * @param array           $settings  Settings used to create connection
@@ -372,7 +370,7 @@ abstract class DB
 	}
 	
 	/**
-	 * Class destructor: close db connection
+	 * Class destructor: close db connection.
 	 */
 	public function __destruct()
 	{
@@ -380,19 +378,19 @@ abstract class DB
 	}
 	
 	/**
-	 * Close database connection
+	 * Close database connection.
 	 */
 	abstract public function closeConnection();
 	
 	/**
-	 * Return the connection string (without additional settings)
+	 * Return the connection string (without additional settings).
 	 * 
 	 * @return string
 	 */
 	abstract public function getDSN();
 
 	/**
-	 * Alias of Q\DB::getNative()
+	 * Alias of Q\DB::getNative().
 	 * 
 	 * @return object|resource
 	 */
@@ -424,7 +422,7 @@ abstract class DB
 	// -----
 
 	/**
-	 * Retrieve the version of the DB server
+	 * Retrieve the version of the DB server.
 	 * @return string
 	 */
 	abstract public function getServerVersion();
@@ -444,7 +442,7 @@ abstract class DB
 	abstract public function getTableNames();
 	
 	/**
-	 * Get the field names of a table
+	 * Get the field names of a table.
 	 *
 	 * @param string $table
 	 * @return array
@@ -471,7 +469,7 @@ abstract class DB
 	
 	/**
 	 * Get properties for $table from the database.
-	 * @internal Make sure the field order is correct. Add '#table' as last element.
+	 * {@internal Make sure the field order is correct. Add '#table' as last element.}}
 	 *
 	 * @param string $table
 	 * @return array
@@ -497,7 +495,7 @@ abstract class DB
 		$props_cfg = $this->metaData->get($table);
     	if (!isset($props_cfg)) $props_cfg = array();
     	if (!is_array($props_cfg)) throw new Exception("Invalid metadata from config for table '$table'. Should be an array with table and field properties, but is '$props_cfg'.");
-
+    	
     	if (!isset($props_cfg['#table']) && isset($props_cfg['table_def'])) {
     	    $props_cfg['#table'] = $props_cfg['table_def'];
     	    unset($props_cfg['table_def']);
@@ -507,14 +505,16 @@ abstract class DB
     	    trigger_error("Invalid metadata from config for table properties of '$table'. Should be an array with properties, but is '{$props_cfg['#table']}'. Using default table properties only.", E_USER_WARNING);
     	    $props_cfg['#table'] = array();
     	}
-    	
+
+    	$props_cfg['#table']['name'] = $table;
     	$dbtable = empty($props_cfg['#table']['table']) ? $table : $props_cfg['#table']['table'];
 		$properties = $this->fetchMetaData($dbtable);
 		
 		if (empty($properties) && empty($props_cfg)) return null;
     	
-		$this->mergeTableProperties($properties, $props_cfg);
-		$this->mergeFieldProperties($properties, $props_cfg);
+		$inherit = null;
+		$this->mergeTableProperties($properties, $props_cfg, $inherit);
+		$this->mergeFieldProperties($properties, $props_cfg, $inherit);
         $this->setImplicitProperties($properties);
 
 		$this->metaData->set($table, $properties);
@@ -534,11 +534,11 @@ abstract class DB
 	 * 
 	 * @param array $properties
 	 * @param array $props_cfg
+	 * @param array $inherit     Output: Inherited properties
 	 */
-	protected function mergeTableProperties(&$properties, &$props_cfg)
+	protected function mergeTableProperties(&$properties, &$props_cfg, &$inherit)
 	{	
 		// Set properties for table
-        $props_cfg['#table']['name'] = $table;
         $properties['#table'] = $props_cfg['#table'] + (isset($properties['#table']) ? $properties['#table'] : array());
 
 		$this->applyTableDefaults($properties);
@@ -563,10 +563,9 @@ abstract class DB
 	 * 
 	 * @param array $properties
 	 * @param array $props_cfg
-	 * 
-	 * @todo Solve $is_junction differently
+	 * @param array $inherit
 	 */
-	protected function mergeFieldProperties(&$properties, &$props_cfg)
+	protected function mergeFieldProperties(&$properties, &$props_cfg, &$inherit)
 	{
 		// Merge field properties
 		foreach (array_unique(array_merge(array_keys($properties), array_keys($props_cfg))) as $index) {
@@ -575,7 +574,7 @@ abstract class DB
 		    if (!isset($properties[$index])) $properties[$index] = array();
 		    
         	if (isset($props_cfg[$index]) && !is_array($props_cfg[$index])) {
-        	    trigger_error("Invalid metadata from config for field properties of '$table.$index'. Should be an array with properties, but is '{$props_cfg[$index]}'. Using default table properties only.", E_USER_WARNING);
+        	    trigger_error("Invalid metadata from config for field properties of '{$props_cfg['name']}.{$index}'. Should be an array with properties, but is '{$props_cfg[$index]}'. Using default table properties only.", E_USER_WARNING);
         	    $props_cfg[$index] = array();
         	}
 		    
@@ -588,7 +587,7 @@ abstract class DB
 		    if (isset($props['name'])) $props['name_db'] = $props['name']; 
 			if (isset($props['table'])) $props['table_db'] = $props['table'];
 		    $props['name'] = $index;
-			$props['table_def'] = $table;
+			$props['table_def'] = $props_cfg['name'];
 
 			// Apply field defaults and apply symantic mapping
 			$this->applyFieldDefaults($properties, $index);
@@ -598,8 +597,6 @@ abstract class DB
 			    $props['auto:role:description'] = true;
 			}
 			$this->applyMapping($properties, $index);
-			
-			$is_junction = $is_junction && ($props['is_primary'] || $props['ignore'] || $props['readonly']);
 		}
     }
 
@@ -609,36 +606,7 @@ abstract class DB
      * @param array $properties
      */
     public function setImplicitProperties(&$properties)
-    {
-		// Set additional properties for table based on field
-		if (!isset($properties['#table']['role']) && !isset($properties['#role:id']) && $is_junction) {
-		    if (isset($properties['#role:parentkey'])) {
-		        $properties['#table']['role'] = 'junction';
-		    } else {
-    		    $pk = (array)$this->getPrimaryKey($table);
-    		    $parentkey = reset($pk);
-    		    
-    		    if (isset($properties[$parentkey]['foreign_table'])) {
-    		        $properties['#table']['role'] = 'junction';
-    		        $properties['#table']['parent'] = $properties[$parentkey]['foreign_table'];
-    		        $properties[$parentkey]['role'][] = 'parentkey';
-    		        $properties['#role:parentkey'] =& $properties[$parentkey];
-    		    }
-		    }
-		}
-		if ($properties['#table']['role'] == 'junction' && empty($properties['#table']['parent'])) {
-		    if (isset($properties['#role:parentkey']['foreign_table'])) {  
-                $properties['#table']['parent'] = $properties['#role:parentkey']['foreign_table'];
-		    } else {
-		        trigger_error("Table can't be a junction table, since the parent of the table is unknown and " . (isset($properties['#role:parentkey']) ? "parentkey field '{$properties['#role:parentkey']}' doesn't have a foreign_table property." : "table doesn't have a parentkey field."), E_USER_NOTICE);
-		        $properties['#table']['role'] = null;
-		    }
-		}
-		
-		if (empty($properties['#table']['view'])) $properties['#table']['view'] = '*';
-		if (empty($properties['#table']['overview']) && isset($properties["#role:id"]) && isset($properties["#role:description"])) $properties['#table']['overview'] = $this->makeIdentifier($dbtable, $properties["#role:id"]['name']) . ', ' . $this->makeIdentifier($dbtable, $properties["#role:description"]['name']);
-		if (empty($properties['#table']['descview']) && isset($properties["#role:id"]) && isset($properties["#role:description"])) $properties['#table']['descview'] = $this->makeIdentifier($dbtable, $properties["#role:id"]['name']) . ', ' . $this->makeIdentifier($dbtable, $properties["#role:description"]['name']) . ', ' . (isset($properties["#role:active"]) ? $this->makeIdentifier($dbtable, $properties["#role:active"]['name'], 'role:active') : $this->quote(1) . $this->makeIdentifier(null, null, 'role:active'));
-    }
+    {}
     
 	/**
 	 * Apply defaults to table properties.
@@ -1309,70 +1277,5 @@ class DB_Mock
         throw new Exception("DB interface '{$this->_name}' does not exist.");
     }
 }
-
-
-/**
- * An execption when a database action fails.
- * For example, failed to execute a query or setting up a connection.
- * @package DB
- */
-class DB_Exception extends Exception {}
-
-/**
- * An execption when executing a query failed.
- * @package DB
- */
-class DB_QueryException extends DB_Exception
-{
-	/**
-	 * Error message
-	 * @var string
-	 */
-	protected $error;
-
-	/**
-	 * Query statement
-	 * @var string
-	 */
-	protected $statement;
-	
-	/**
-	 * Class constructor 
-	 * 
-	 * @param string $error      Error message
-	 * @param string $statement  Query statement
-	 */
-	public function __construct($error, $statement)
-	{
-		parent::construct("Query failed: $error\nQuery: $statement");
-	}
-	
-	/**
-	 * Get error message
-	 * 
-	 * @return string
-	 */
-	public function getErrorMessage()
-	{
-		return $this->error;
-	}
-	
-	/**
-	 * Get query statement
-	 * 
-	 * @return string
-	 */
-	public function getStatement()
-	{
-		return $this->statement;
-	}
-}
-
-/**
- * An execption for an assertion checking a result.
- * @package DB
- */
-class DB_Constraint_Exception extends Exception {}
-
 
 if (defined('Q_DB_ONLOAD')) include Q_DB_ONLOAD;

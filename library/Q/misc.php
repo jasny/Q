@@ -4,22 +4,6 @@ namespace Q;
 // ------- Class -------
 
 /**
- * Return true if $class is or extends $base_class.
- *
- * @param string $class
- * @param string $base_class
- * @return boolean
- */
-function class_is_a($class, $base_class)
-{
-	if (!class_exists($base_class, false) && !interface_exists($base_class, false)) return false;
-	if ($class === $base_class) return true;
-
-	$o = unserialize('O:'. strlen($class) . ':"' . $class . '":0:{}');
-	return $o instanceof $base_class;
-}
-
-/**
  * Include a file to load a class.
  *
  * @param string $class  Classname (in global namespace)

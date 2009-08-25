@@ -88,7 +88,8 @@ class DB_MySQL_Result extends DB_Result
 		$i = 0;
 		$this->native->field_seek(0);
 		
-		while (($field = $this->native->fetch_field())) {
+		$field = $this->native->fetch_field();
+		while ($field) {
 			$this->fieldnames[DB::FIELDNAME_COL][] = $field->name;
 			$this->fieldnames[DB::FIELDNAME_FULL][] = (isset($field->table) ? $field->table . '.' . $field->name : $field->name);
 			$this->fieldnames[DB::FIELDNAME_DB][] = (isset($field->table) ? '`' . $field->table . '`.`' . $field->orgname . '`' : $field->orgname);
@@ -99,6 +100,8 @@ class DB_MySQL_Result extends DB_Result
 			
 			$this->fieldindex[$field->name] = $i;
 			$this->fieldindex[$field->table . '.' . $field->name] = $i;
+			
+			$field = $this->native->fetch_field();
 			$i++;
 		}
 	}

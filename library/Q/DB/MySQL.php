@@ -402,6 +402,43 @@ class DB_MySQL extends DB
 		return $properties;
 	}
 	
+    /**
+     * Set properties that implicitly follow out of other properties.
+     * 
+     * @param array $properties
+     */
+    public function setImplicitProperties(&$properties)
+    {
+		// Set additional properties for table based on field
+		if (!isset($properties['#table']['role']) && !isset($properties['#role:id']) && $is_junction) {
+		    if (isset($properties['#role:parentkey'])) {
+		        $properties['#table']['role'] = 'junction';
+		    } else {
+    		    $pk = (array)$this->getPrimaryKey($table);
+    		    $parentkey = reset($pk);
+    		    
+    		    if (isset($properties[$parentkey]['foreign_table'])) {
+    		        $properties['#table']['role'] = 'junction';
+    		        $properties['#table']['parent'] = $properties[$parentkey]['foreign_table'];
+    		        $properties[$parentkey]['role'][] = 'parentkey';
+    		        $properties['#role:parentkey'] =& $properties[$parentkey];
+    		    }
+		    }
+		}
+		if ($properties['#table']['role'] == 'junction' && empty($properties['#table']['parent'])) {
+		    if (isset($properties['#role:parentkey']['foreign_table'])) {  
+                $properties['#table']['parent'] = $properties['#role:parentkey']['foreign_table'];
+		    } else {
+		        trigger_error("Table can't be a junction table, since the parent of the table is unknown and " . (isset($properties['#role:parentkey']) ? "parentkey field '{$properties['#role:parentkey']}' doesn't have a foreign_table property." : "table doesn't have a parentkey field."), E_USER_NOTICE);
+		        $properties['#table']['role'] = null;
+		    }
+		}
+		
+		// 
+		if (empty($properties['#table']['view'])) $properties['#table']['view'] = '*';
+		if (empty($properties['#table']['overview']) && isset($properties["#role:id"]) && isset($properties["#role:description"])) $properties['#table']['overview'] = $this->makeIdentifier($dbtable, $properties["#role:id"]['name']) . ', ' . $this->makeIdentifier($dbtable, $properties["#role:description"]['name']);
+		if (empty($properties['#table']['descview']) && isset($properties["#role:id"]) && isset($properties["#role:description"])) $properties['#table']['descview'] = $this->makeIdentifier($dbtable, $properties["#role:id"]['name']) . ', ' . $this->makeIdentifier($dbtable, $properties["#role:description"]['name']) . ', ' . (isset($properties["#role:active"]) ? $this->makeIdentifier($dbtable, $properties["#role:active"]['name'], 'role:active') : $this->quote(1) . $this->makeIdentifier(null, null, 'role:active'));
+    }
 	/**
 	 * Return the fieldname(s) of the primairy key.
 	 *
