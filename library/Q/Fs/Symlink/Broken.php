@@ -9,7 +9,7 @@ require_once 'Q/Fs/Symlink.php';
  * 
  * @package Fs
  */
-class Fs_Symlink_Broken extends Fs_Unknown implements Fs_Symlink
+class Fs_Symlink_Broken extends Fs_Item implements Fs_Symlink
 {
 	/**
 	 * Class constructor.

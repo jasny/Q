@@ -25,10 +25,10 @@ class Fs_Symlink_Fifo extends Fs_Fifo implements Fs_Symlink
 	/**
 	 * Returns the target of the symbolic link.
 	 * 
-	 * @return string
+	 * @return Fs_Fifo
 	 */
 	public function getTarget()
 	{
-		return readlink($this->path);
+		return Fs::get(readlink($this->path));
 	}
 }

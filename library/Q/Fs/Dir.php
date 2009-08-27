@@ -53,7 +53,7 @@ class Fs_Dir extends Fs_Item implements Iterator
 		$resource = opendir($this->path);
 		if (!$resource) throw new Fs_Exception("Unable to traverse through directory '{$this->path}'; Failed to read directory.");
 		
-		self::$handles[$id] = (object)array('resource'=>$resource, 'current'=>readfile($resource));
+		self::$handles[$id] = (object)array('resource'=>$resource);
 		return self::$handles[$id];
 	}
 	
@@ -64,6 +64,9 @@ class Fs_Dir extends Fs_Item implements Iterator
 	 */
 	public function current()
 	{
+		$handle = $this->getHandle(); 
+		while (!isset($handle->current) || $handle->current == '.' || $handle->current == '..') $handle->current = readdir($handle->resource);
+		
 		return Fs::open($this->getHandle()->current);
 	}
 	
@@ -114,13 +117,13 @@ class Fs_Dir extends Fs_Item implements Iterator
  	 */
  	public function glob($pattern, $flags=0)
  	{
- 		if ($pattern[0] != '/') $pattern = $this->path . $pattern;
+ 		if ($pattern[0] != '/') $pattern = "{$this->path}/$pattern";
  		return Fs::glob($pattern, $flags);
  	}
 
  	
  	/**
- 	 * Return the number of bytes on the corresponding filesystem or disk partition.s
+ 	 * Return the number of bytes on the corresponding filesystem or disk partition.
  	 * 
  	 * @return float
  	 */
@@ -138,4 +141,67 @@ class Fs_Dir extends Fs_Item implements Iterator
  	{
  		return disk_free_space($this->path);
  	}
+ 	
+ 	
+ 	/**
+ 	 * Magic get method; Get file in directory.
+ 	 * 
+ 	 * @param string $name
+ 	 * @return Fs_Item
+ 	 */
+ 	public function __get($name)
+ 	{
+ 		return Fs::get("{$this->path}/$name");
+ 	}
+
+ 	/**
+ 	 * Get file in directory.
+ 	 * 
+ 	 * @param string $name
+ 	 * @return Fs_Item
+ 	 */
+ 	public function file($name)
+ 	{
+ 		return Fs::file("{$this->path}/$name");
+ 	}
+ 	
+ 	/**
+ 	 * Get subdirectory.
+ 	 * 
+ 	 * @param string $name
+ 	 * @return Fs_Item
+ 	 */
+ 	public function dir($name)
+ 	{
+ 		return Fs::dir("{$this->path}/$name");
+ 	}
+ 	
+ 	
+ 	/**
+ 	 * Create this directory, if is does not exist.
+ 	 * 
+ 	 * @param int $mode
+ 	 * @param int $flags  Optional Fs::RECURSIVE
+ 	 * @throws Fs_Exception if creating the directoy fails 
+ 	 */
+ 	public function create($mode=0770, $flags=0)
+ 	{
+ 		$success = @mkdir($this->path, $mode, $flags & Fs::RECURSIVE);
+ 		
+ 		if (!$success) {
+ 			$err = error_get_last();
+ 			throw new Fs_Exception("Failed to create directory '{$this->path}'; " . $err['message']);
+ 		}
+ 	}
+ 	
+	/**
+	 * Delete the directory (and possibly the contents).
+	 * 
+	 * @param int $flags  Fs::% options as binary set
+	 */
+	public function delete($flags=0)
+	{
+		if ($flags & Fs::RECURSIVE) parent::delete($flags);
+		  else rmdir($this->path);
+	}
 }

@@ -33,12 +33,60 @@ class Fs
 	 * {@internal Should to have the same value as XATTR_DONTFOLLOW}}
 	 */
 	const DONTFOLLOW = 0x0001;
+
+	/**
+	 * Option; Overwrite if item exists.
+	 * {@internal Should to have the same value as XATTR_REPLACE}}
+	 */
+	const OVERWRITE = 0x0020;
+
+	/** Option; Traverse every symbolic link to a directory encountered. */
+	const ALWAYSFOLLOW = 0x0100;
 	
-	/** Option; Do action recursively. */
-	const RECURSIVE = 0x0100;
+	/** Option; Do action recursively / Auto-create parent directories. */
+	const RECURSIVE = 0x0200;
+
+	/** Option; Preserve mode, ownership and timestamps. */
+	const PRESERVE = 0x0400;
 	
-	/** Option; Overwrite if item exists. */
-	const OVERWRITE = 0x0200;
+	/** Option; Overwrite if item is newer. */
+	const UPDATE = 0x1000;
+	
+	
+	/**
+	 * Resolves references to '/./', '/../' and extra '/' characters in the input path.
+	 * Symlinks are not resolved and the file doesn't need to exist.
+	 *
+	 * @param string $path
+	 * @return string
+	 * 
+	 * @todo Fs::canonicalize() will give unexpected result for windows paths.
+	 */
+	public static function canonicalize($path)
+	{
+		$path = (string)$path;
+		if (empty($path)) return getcwd();
+		if ($path[0] == '/' && !preg_match('%(?:/|^)(?:\.\.?|~)(?:/|$)%', $path)) return preg_replace(array('%(?<!^)/+$%', '%/{2,}%'), array('', '/'), $path);
+
+		$canpath = "";
+		if ($path == '~' || strncmp('~/', $path, 2)) {
+			$path = realpath('~') . substr($path, 1);
+		} elseif ($path[0] != '/') {
+			$path = getcwd() . $path;
+		}
+        
+		$canpath = "";
+		foreach (preg_split('|(?<!\\\\)/+|', rtrim($path, '/')) as $part) {
+			switch ($part) {
+				case '':
+				case '.':	break;
+            	case '..':	$canpath = dirname($canpath); break;
+				default:	$canpath .= "/$part";	
+			}
+		}
+
+		return $canpath;
+	}
 	
 	
     /**
@@ -71,7 +119,7 @@ class Fs
      * @param int    $flags   Fs::% options as binary set
      * @return Fs_Dir
      */
-    public static function symlink($target, $link, $flags=0)
+    public static function symlink($target, $link, $flags=self::RECURSIVE)
     {
     	if (is_link($link) && $flags & self::OVERWRITE) unlink($link);
     	
@@ -80,7 +128,7 @@ class Fs
     		throw new Fs_Exception("Failed to create symlink '$link' to '$target'; " . $err['message']);
     	}
     	
-        return new get($link);
+        return Fs::get($link);
     }
 
     /**
@@ -120,7 +168,7 @@ class Fs
     }
     
  	/**
- 	 * Find files matching a pattern, relative to this directory.
+ 	 * Find files matching a pattern.
  	 * @see http://www.php.net/glob
  	 * 
  	 * @param string $pattern
@@ -129,11 +177,32 @@ class Fs
  	 */
  	public function glob($pattern, $flags=0)
  	{
- 		if ($pattern[0] != '/') $pattern = $this->path . $pattern;
- 		return Fs::glob($pattern, $flags);
+ 		$files = array();
+ 		foreach (glob($pattern, $flags) as $filename) $files[] = Fs::get($filename);
+ 		return $files;
  	}
  	
+ 	/**
+ 	 * Find executable file in enviroment path.
+ 	 * 
+ 	 * @param string $file
+ 	 * @return Fs_File
+ 	 */
+ 	public function which($file)
+ 	{
+ 		$paths = getenv('PATH');
+ 		foreach (explode(PATH_SEPARATOR, $paths) as $path) {
+ 			if (is_file("$path/$file") && is_executable("$path/$file")) {
+ 				$exec = "$path/$file";
+ 				break;
+ 			}
+ 		}
+ 		
+ 		if (!isset($exec)) throw new Fs_Exception("Cound not find executable '$file' (PATH=$paths).");
+ 		return self::file($exec);
+ 	} 	
     
+ 	
     /**
      * Clears file status cache.
      * 
@@ -143,40 +212,4 @@ class Fs
     {
     	clearstatcache($clear_realpath_cache);
     }
-    
-    
-	/**
-	 * Resolves references to '/./', '/../' and extra '/' characters in the input path.
-	 * Symlinks are not resolved and the file doesn't need to exist.
-	 *
-	 * @param string $path
-	 * @return string
-	 * 
-	 * @todo Fs::canonicalize() will give unexpected result for windows paths.
-	 */
-	public static function canonicalize($path)
-	{
-		$path = (string)$path;
-		if (empty($path)) return getcwd();
-		if ($path[0] == '/' && !preg_match('%(?:/|^)(?:\.\.?|~)(?:/|$)%', $path)) return preg_replace(array('%(?<!^)/+$%', '%/{2,}%'), array('', '/'), $path);
-
-		$canpath = "";
-		if ($path == '~' || strncmp('~/', $path, 2)) {
-			$path = realpath('~') . substr($path, 1);
-		} elseif ($path[0] != '/') {
-			$path = getcwd() . $path;
-		}
-        
-		$canpath = "";
-		foreach (preg_split('|(?<!\\\\)/+|', rtrim($path, '/')) as $part) {
-			switch ($part) {
-				case '':
-				case '.':	break;
-            	case '..':	$canpath = dirname($canpath); break;
-				default:	$canpath .= "/$part";	
-			}
-		}
-
-		return $canpath;
-	}
 }

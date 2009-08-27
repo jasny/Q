@@ -1,6 +1,8 @@
 <?php
 namespace Q;
 
+require_once 'Q/Fs';
+
 /**
  * Base class for any type of file on the filesystem.
  * 
@@ -24,7 +26,7 @@ abstract class Fs_Item implements \ArrayAccess
 	 */
 	public function __construct($path)
 	{
-		$this->path = rtrim((string)$path, '/\\');
+		$this->path = Fs::canonicalize((string)$path);
 	}
 	
 	/**
@@ -88,29 +90,61 @@ abstract class Fs_Item implements \ArrayAccess
 		return pathinfo($this->path, PATHINFO_FILENAME);
 	}
 	
+	
+ 	/**
+ 	 * Magic get method.
+ 	 * 
+ 	 * @param string $name
+ 	 * @throws Fs_Exception
+ 	 */
+ 	public function __get($name)
+ 	{
+ 		throw new Fs_Exception("Unable to get {$this->path}/$name; File {$this->path} is not a directory.");
+ 	}
+	
+ 	/**
+ 	 * Get file in directory.
+ 	 * 
+ 	 * @param string $name
+ 	 * @throws Fs_Exception
+ 	 */
+ 	public function file($name)
+ 	{
+ 		throw new Fs_Exception("Unable to get {$this->path}/$name; File {$this->path} is not a directory.");
+ 	}
+ 	
+ 	/**
+ 	 * Get subdirectory.
+ 	 * 
+ 	 * @param string $name
+ 	 * @throws Fs_Exception
+ 	 */
+ 	public function dir($name)
+ 	{
+ 		throw new Fs_Exception("Unable to get {$this->path}/$name; File {$this->path} is not a directory.");
+ 	}
+ 	
 	/**
-	 * Returns canonicalized absolute pathname
+	 * Returns Fs_Item of canonicalized absolute pathname.
 	 * 
-	 * @param int $flags  Optional Fs::DONTFOLLOW
-	 * @return string
+	 * @return Fs_Item
 	 */
-	public function realpath($flags=0)
+	public function realpath()
 	{
-		return $flags & Fs::DONTFOLLOW ? Fs::canonicalize($this->path) : realpath($this->path);
+		return Fs::get(realpath($this->path));
 	}
 	
-	
-	/**
+ 	/**
 	 * Get parent directory of this file.
 	 * 
 	 * @return Fs_Dir
 	 */
 	public function up()
 	{
-		return new Fs_Dir($this->dirname());
+		return Fs::dir($this->dirname());
 	}
-	
-	
+
+ 	
 	/**
 	 * Gives information about a file.
 	 * @see http://www.php.net/stat
@@ -119,8 +153,36 @@ abstract class Fs_Item implements \ArrayAccess
 	 */
 	public function stat($flags=0)
 	{
-		return stat($this->path);
-	} 
+		$stat = $flags & Fs::DONTFOLLOW ? @lstat($this->path) : @stat($this->path);
+		
+		if ($stat === false) {
+			$err = error_get_last();
+			throw new Fs_Exception("Failed to stat {$this->path}; " . $err['message']);
+		}
+		
+		return $stat;
+	}
+
+	/**
+	 * Get a list of extended attributes.
+	 * @see http://www.php.net/stat
+	 * 
+	 * @param int $flags  FS::% and/or XATTR_% options as binary set
+	 * @return array
+	 */
+	public function getXattributes($flags=0)
+	{
+		if (!extension_loaded('xattr') || !xattr_supported($this->path, $flags)) throw new Fs_Exception("Unable to get attributes of {$this->path}; Extended attributes are not supported.");
+		
+		$attr = @xattr_list($this->file, $flags);
+		
+		if ($attr === false) {
+			$err = error_get_last();
+			throw new Fs_Exception("Failed to get extended attributes of {$this->path}; " . $err['message']);
+		}
+		
+		return $attr;		
+	}
 	
 	/**
      * Clears file status cache.
@@ -150,38 +212,26 @@ abstract class Fs_Item implements \ArrayAccess
     
     /**
      * Get file or extended attribute.
+     * @see http://www.php.net/stat
      * 
      * @param string $att    Attribute name
-     * @param int    $flags  FS::% options
+     * @param int    $flags  FS::% and/or XATTR_% options as binary set
      * @return mixed
      */
     public function getAttribute($att, $flags=0)
     {
-    	switch ($att) {
-    		case 'size':  return filesize($this->path);
-    		case 'perms': return fileperms($this->path);
-    		case 'inode': return fileinode($this->path);
-    		case 'type':  return filetype($this->path);
-    		
-    		case 'atime': return fileatime($this->path);
-    		case 'ctime': return filectime($this->path);
-    		case 'mtime': return filemtime($this->path);
-    		
-    		case 'owner':      return fileowner($this->path);
-    		case 'owner_name': $info = posix_getpwuid(fileowner($this->path)); return $info['name'];
-    		case 'group':      return filegroup($this->path);
-    		case 'group_name': $info = posix_getgrgid(filegroup($this->path)); return $info['name'];
-    	}
+    	$stat = $this->stat($flags);
+    	if (isset($stat[$att])) return $stat[$att];
     	
     	if (!extension_loaded('xattr') || !xattr_supported($this->path, $flags)) {
-	    	trigger_error("Unable to get attribute '$att'; Extended attributes are not supported.", E_USER_NOTICE);
+	    	trigger_error("Unable to get attribute '$att' of {$this->path}; Extended attributes are not supported.", E_USER_NOTICE);
 	    	return null;
     	}
     	
     	$value = xattr_get($this->path, $att);
     	return $value !== false ? $value : null;
     }
-
+	
     /**
      * Set file or extended attribute.
      * 
@@ -201,11 +251,11 @@ abstract class Fs_Item implements \ArrayAccess
     		case 'ctime': throw new Exception("Unable to set attribute '$att'; Attribute is read-only.");
     		case 'mtime': return $this->touch($value);
 
-    		case 'perms':      return Fs::chmod($this, $value, $flags);
+    		case 'perms':      return $this->chmod($value, $flags);
     		case 'owner':
-    		case 'owner_name': return Fs::chown($this, $value, $flags);
+    		case 'owner_name': return $this->chown($value, $flags);
     		case 'group':      
-    		case 'group_name': return Fs::chgrp($this, $value, $flags);
+    		case 'group_name': return $this->chgrp($value, $flags);
     	}
     	
     	if (!extension_loaded('xattr') || !xattr_supported($this->path, $flags)) throw new Exception("Unable to set attribute '$att'; Not a file attribute and extended attributes are not supported.");
@@ -333,55 +383,98 @@ abstract class Fs_Item implements \ArrayAccess
 	}
 	
 	
+    /**
+     * Changes file mode.
+     * 
+     * @param string     $path   Path to the file
+     * @param int|string $mode   Octal mode (int) or symbolic mode (string) 
+     * @param int        $flags  Fs::% options as binary set
+     * @throws Fs_ExecException if chmod fails.
+     * 
+     * @todo Fs_Item::chmod() won't work for windows.
+     */
+	public static function chmod($mode, $flags=0)
+	{
+		if (is_int($mode)) $mode = sprintf('%0-4o', $mode);
+		Fs::which('chmod')->exec($mode, $this->path, $flags & self::RECURSIVE ? '--recursive' : null);
+	}
+
+    /**
+     * Changes file owner.
+     * 
+     * @param int|string $owner  User id, username or user:group
+     * @param int        $flags  Fs::% options as binary set
+     * @throws Fs_ExecException if chown fails.
+     * 
+     * @todo Fs_Item::chown() won't work for windows.
+     */
+	public static function chown($owner, $flags=0)
+	{
+		Fs::which('chown')->exec($owner, $this->path, $flags & self::RECURSIVE ? '--recursive' : null, $flags & self::DONTFOLLOW ? '--no-dereference' : null, $flags & self::ALWAYSFOLLOW ? '-L' : null);
+	}
+	
+    /**
+     * Changes file group.
+     * 
+     * @param int|string $group  Group id or groupname 
+     * @param int        $flags  Fs::% options as binary set
+     * @throws Fs_ExecException if chgrp fails.
+     * 
+     * @todo Fs_Item::chgrp() won't work for windows.
+     */
+	public static function chgrp($group, $flags=0)
+	{
+		Fs::which('chgrp')->exec($group, $this->path, $flags & Fs::RECURSIVE ? '--recursive' : null, $flags & Fs::DONTFOLLOW ? '--no-dereference' : null, $flags & Fs::ALWAYSFOLLOW ? '-L' : null);
+	}	
+	
+	
 	/**
 	 * Copy this file.
 	 * 
 	 * @param string|Fs_Item $dest
 	 * @param int            $flags  Fs::% options as binary set
 	 * @return Fs_Item
+	 * @throws Fs_ExecException if chgrp fails.
 	 */
 	public function copy($dest, $flags=0)
 	{
-		Fs::copy($this, $dest, $flags);
-		return Fs::open($dest);
+		Fs::which('cp')->exec($this->path, $dest, $flags & Fs::RECURSIVE ? '--recursive' : null, $flags & Fs::DONTFOLLOW ? '--no-dereference' : null, $flags & Fs::ALWAYSFOLLOW ? '--dereference' : null, $flags & Fs::PRESERVE ? '--preserve' : null, $flags & Fs::OVERWRITE ? '--force' : null, $flags & Fs::UPDATE ? '--update' : null);
+		return Fs::get($dest);
 	}
 	
 	/**
 	 * Rename/move this file.
 	 * 
-	 * @param string|Fs_Item $newname
-	 * @param int            $flags    Fs::% options as binary set
+	 * @param string|Fs_Item $dest
+	 * @param int            $flags  Fs::% options as binary set
 	 * @return Fs_Item
 	 */
-	public function rename($newname, $flags=0)
+	public function rename($dest, $flags=0)
 	{
-		Fs::rename($this, $newname, $flags);
-
-		$this->path = $newname;
-		return $this;
+		Fs::which('mv')->exec($this->path, $dest, $flags & Fs::OVERWRITE ? '--force' : null, $flags & Fs::UPDATE ? '--update' : null);
+		return Fs::get($dest);
 	}
 
 	/**
 	 * Alias of Fs_Item::rename().
 	 * 
-	 * @param string|Fs_Item $newname
-	 * @param int            $flags      Fs::% options as binary set
+	 * @param string|Fs_Item $dest
+	 * @param int            $flags  Fs::% options as binary set
 	 * @return Fs_Item
 	 */
-	public final function move($newname, $flags=0)
+	public final function move($dest, $flags=0)
 	{
-		return $this->rename($newname, $flags);
+		return $this->rename($dest, $flags);
 	}
 	
 	/**
 	 * Delete the file.
 	 * 
 	 * @param int $flags  Fs::% options as binary set
-	 * @return boolean
 	 */
 	public function delete($flags=0)
 	{
-		return Fs::delete($this->path, $flags);
+		Fs::which('rm')->exec($this->path, '--interactive=none', $flags & Fs::RECURSIVE ? '--recursive' : null);
 	}
 
 	/**
@@ -394,4 +487,15 @@ abstract class Fs_Item implements \ArrayAccess
 	{
 		return $this->delete($flags);
 	}
+	
+	
+	/**
+	 * Magic method for when object is used as function.
+	 * 
+	 * @throws Fs_Exception
+	 */
+	public function __invoke()
+	{
+		throw new Fs_Exception("Unable to execute {$this->path}; This is not a regular file, but a " . filetype((string)$this->realpath()) . ".");
+	}	
 }

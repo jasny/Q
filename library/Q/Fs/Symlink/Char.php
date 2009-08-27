@@ -25,10 +25,10 @@ class Fs_Symlink_Char extends Fs_Char implements Fs_Symlink
 	/**
 	 * Returns the target of the symbolic link.
 	 * 
-	 * @return string
+	 * @return Fs_Char
 	 */
 	public function getTarget()
 	{
-		return readlink($this->path);
+		return Fs::get(readlink($this->path));
 	}
 }

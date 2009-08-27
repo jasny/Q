@@ -25,10 +25,10 @@ class Fs_Symlink_Unknown extends Fs_Unknown implements Fs_Symlink
 	/**
 	 * Returns the target of the symbolic link.
 	 * 
-	 * @return string
+	 * @return Fs_Unknown
 	 */
 	public function getTarget()
 	{
-		return readlink($this->path);
+		return Fs::get(readlink($this->path));
 	}
 }

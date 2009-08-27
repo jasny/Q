@@ -9,7 +9,7 @@ require_once 'Q/Fs/Symlink.php';
  * 
  * @package Fs
  */
-class Fs_Symlink_Dir extends Fs_Symlink implements Fs_Symlink
+class Fs_Symlink_Dir extends Fs_Dir implements Fs_Symlink
 {
 	/**
 	 * Class constructor.
@@ -25,10 +25,10 @@ class Fs_Symlink_Dir extends Fs_Symlink implements Fs_Symlink
 	/**
 	 * Returns the target of the symbolic link.
 	 * 
-	 * @return string
+	 * @return Fs_Dir
 	 */
 	public function getTarget()
 	{
-		return readlink($this->path);
+		return Fs::get(readlink($this->path));
 	}
 }

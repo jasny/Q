@@ -25,10 +25,10 @@ class Fs_Symlink_File extends Fs_File implements Fs_Symlink
 	/**
 	 * Returns the target of the symbolic link.
 	 * 
-	 * @return string
+	 * @return Fs_File
 	 */
 	public function getTarget()
 	{
-		return readlink($this->path);
+		return Fs::get(readlink($this->path));
 	}
 }

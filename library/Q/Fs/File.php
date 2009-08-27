@@ -50,11 +50,12 @@ class Fs_File extends Fs_Item
 	 * Write a string to a file.
 	 * 
 	 * @param mixed $data   The data to write; Can be either a string, an array or a stream resource. 
-	 * @param int   $flags  FILE_% flags as binary set.
+	 * @param int   $flags  Fs::RECURSIVE and/org FILE_% flags as binary set.
 	 * @return int
 	 */
 	public function putContents($data, $flags=0)
 	{
+		if ($flags & Fs::RECURSIVE) $this->up->create(0770, Fs::RECURSIVE);
 		return file_put_contents($data, $flags);
 	}
 	
@@ -108,5 +109,57 @@ class Fs_File extends Fs_Item
 		}
 		
 		return $resource;
+	}
+	
+	
+	/**
+	 * Execute file and return content of stdout.
+	 * 
+	 * @param Parameters will be escaped and passed as arguments.
+	 * @return string
+	 * @throws ExecException if execution fails.
+	 */
+	public function exec()
+	{
+		if (!$this->exists()) throw new Fs_Exception("Unable to execute {$this->path}; File doesn't exist.");
+		if (!$this->isExecutable()) throw new Fs_Exception("Unable to execute {$this->path}; No permission to execute file.");
+		
+		$args = func_get_args();
+		foreach ($args as $i=>&$arg){
+			if (!isset($arg)) unset($args[$i]);
+			 else $arg = escapeshellarg((string)$arg);
+		}
+		$arglist = join(' ', $args);
+
+		$pipes = array();
+		$p = proc_open($this->path . (!empty($arglist) ? ' ' . $arglist : ''), array(array('file'=>'/dev/null', 'r'), array('pipe', 'w'), array('pipe', 'w'), $pipes));
+		if (!$p) throw new ExecException("Failed to execute {$this->path}.");
+		
+		$out = stream_get_contents($pipes[1]);
+		fclose($pipes[1]);
+		$err = stream_get_contents($pipes[2]);
+		fclose($pipes[2]);
+
+		foreach (explode("\n", $err) as $line) {
+			if (trim($line) != '') trigger_error("Exec $this->path: " . trim($line), E_USER_NOTICE);
+		}
+		
+		$return_var = proc_close($p);
+		if ($return_var != 0) throw new ExecException("Execution of {$this->path} exited with return code $return_var.", $return_var, $out, $err);
+		
+		return $out;
+	}
+	
+	/**
+	 * Magic method for when object is used as function; Calls Fs_File::exec().
+	 * 
+	 * @param Parameters will be escaped and passed as arguments.
+	 * @return string
+	 * @throws ExecException if execution fails.
+	 */
+	public function __invoke()
+	{
+		$args = func_get_args();
+		return call_user_func(array($this, 'exec'), $args);
 	}
 }
