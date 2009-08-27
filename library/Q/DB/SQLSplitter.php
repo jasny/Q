@@ -158,4 +158,3 @@ interface DB_SQLSplitter
 	 */
 	public static function buildWhere($column, $value, $compare="=");
 }
-

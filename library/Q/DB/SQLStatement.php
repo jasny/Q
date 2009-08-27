@@ -1218,4 +1218,3 @@ class DB_SQLStatement implements DB_Statement
 	    return $this->getStatement();
 	}
 }
-
