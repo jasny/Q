@@ -9,6 +9,11 @@ require_once 'Q/Log.php';
  * Other properties are set as additional header (eg. $log->from, $log->bcc, $log->reply_to). 
  * 
  * @package Log
+ * 
+ * @todo Turn this into a general Mail class that implements Message as well as Log_Handler.
+ * @todo Add __call method (as fluent interface) for headers.
+ * @todo Get headers from template.
+ * @todo Use sendmail/SMTP directly instead of mail() function. 
  */
 class Log_Mail extends Log
 {
@@ -35,7 +40,7 @@ class Log_Mail extends Log
     public $headers = array();
         
     /**
-     * E-mail recipient
+     * Combine messages and send a end of script
      * @var string
      */
     public $combine = false;
@@ -47,7 +52,7 @@ class Log_Mail extends Log
 	 * 
 	 * @var string
 	 */
-	public $format="\n";
+	public $format = "\n";
 
 	/**
 	 * Make sure each log event is on a single line.
@@ -86,14 +91,15 @@ class Log_Mail extends Log
      *
      * @param string $to  E-mail recipient
      */
-    public function __construct($to)
+    public function __construct($props=array())
     {
-        $this->to = $to;
+        if (isset($props[0])) $props['to'] = $props[0];
+        unset($props[0]);
         
-        $this->headers['From'] = ini_get('sendmail_from');
-        if (empty($this->headers['From'])) $this->headers['From'] = 'system@' . (isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : php_uname('n'));
-        
-	    parent::__construct();
+	    parent::__construct($props);
+
+	    if (empty($this->headers['From'])) $this->headers['From'] = ini_get('sendmail_from');
+	    if (empty($this->headers['From'])) $this->headers['From'] = 'system@' . (isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : php_uname('n'));
     }
     
     /**
@@ -110,18 +116,18 @@ class Log_Mail extends Log
 	 * @param string $message
 	 * @param string $type
 	 */
-	protected function writeLine($message, $type)
+	protected function write($args)
 	{
 	    if ($this->combine) {
 	        $this->messages[] = $message;
 	        return;
 	    }
 	    
-	    $this->send($message, $type);
+	    $this->send($args);
 	}
 	
 	/**
-	 * Send out waiting messages (only in combine mode)
+	 * Send out waiting messages (only in combine mode).
 	 */
 	public function flush()
 	{
@@ -131,11 +137,13 @@ class Log_Mail extends Log
 	/**
 	 * Send the message.
 	 *
-	 * @param string $message
-	 * @param string $type
+	 * @param array $data
 	 */
-	protected function send($message=null, $type=null)
+	protected function send($data)
 	{
+		$type = $data['type'];
+		$message = $this->getLine($data);
+		
 	    try {
 	        $quote = $this->quote; $this->quote = false; // Don't quote
 	        $formatValue = $this->formatValue; $this->formatValue = null; // Don't format values
@@ -192,4 +200,3 @@ class Log_Mail extends Log
 	    return isset($this->headers[$var]) ? $this->headers[$var] : null;
 	}
 }
-

@@ -30,25 +30,16 @@ class Log_Sapi extends Log
 		'debug'=>LOG_INFO,
 	);   
 
-	
-	/**
-	 * Class constructor
-	 */
-	public function __construct()
-	{
-	    parent::__construct();
-	}
-		
 	/**
 	 * Write the log entry
 	 *
-	 * @param string $line
-	 * @param string $type
+	 * @param array $args
 	 */
-    protected function writeLine($line, $type)
+    protected function write($args)
     {
+    	$type = isset($args['type']) ? $args['type'] : null; 
 		$logtype = isset($this->types[$type]) ? $this->types[$type] : $this->types[null];
-		syslog($logtype, $line);
+		syslog($logtype, $this->getLine($args));
     }
 }
 

@@ -11,21 +11,13 @@ require_once 'Q/Log/Text.php';
 class Log_Sapi extends Log
 {
 	/**
-	 * Class constructor
-	 */
-	public function __construct()
-	{
-	}
-    
-	/**
-	 * Write the log entry
+	 * Write the log entry.
 	 *
-	 * @param string $line
-	 * @param string $type
+	 * @param array $args
 	 */
-    protected function writeLine($line, $type)
+    protected function write($args)
     {
-		error_log($line, 0);
+		error_log($this->getLine($args), 0);
     }
 }
 

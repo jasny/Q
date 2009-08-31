@@ -43,19 +43,18 @@ class Log_Text extends Log
 	}
 	
 	/**
-	 * Write a log line
+	 * Write a log line.
 	 *
-	 * @param string $line
-	 * @param string $type
+	 * @param array $args
 	 */
-    protected function writeLine($line, $type)
+    protected function write($args)
     {
 		if ($this->stream_file !== $this->file) {
 		    $this->stream = fopen($this->file, 'w+');
 		    $this->stream_file = $this->file;
 		}
 		
-		fwrite($this->stream, $line . "\n");
+		fwrite($this->stream, $this->getLine($args) . "\n");
     }
 }
 

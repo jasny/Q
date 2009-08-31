@@ -7,6 +7,7 @@ require_once 'Q/misc.php';
 
 require_once 'Q/Log/Handler.php';
 require_once 'Q/Log/EventValues.php';
+require_once 'Q/Log/Filters.php';
 
 /**
  * Base class for interfaces that log messages or notify users. 
@@ -14,7 +15,7 @@ require_once 'Q/Log/EventValues.php';
  * DSN: 'driver:arg1;arg2;filter=!warning,!notice;alias[sql]=info'
  * 
  * A container with multiple log handlers can be created using DSN:
- *  'output + file:mysys.log;format="[type] message" + file:error.log;filter=error + firephp + filter=error,warning' 
+ *  'firephp + errors@myorg.com;filters=!notice,!info,!debug + mysys.log;format="[type] message" + error.log;filters=error,crit,alert,emerg + firephp + filters=error,warning' 
  * 
  * Available drivers:
  *  file:FILENAME    - Log to a file
@@ -27,10 +28,16 @@ require_once 'Q/Log/EventValues.php';
  *  firephp          - Write message in the FireBug console using FirePHP
  *  firephp-table    - Collect messages to create a table in the FireBug console
  *  header           - Write an HTTP header
- * 
+ *
+ * The driver can be omitted when:
+ *  .txt, .csv         -> file
+ *  .log               -> logfile
+ *  an e-mail address  -> mail
+ *  
  * @package Log
  * 
- * @todo Set filters using magic property, just like settings event values. 
+ * @todo Use Transform for Log::getLine().
+ * @todo Move filter functionality to Log_Filter class.
  */
 abstract class Log implements Log_Handler
 {
@@ -84,6 +91,7 @@ abstract class Log implements Log_Handler
 	static public $drivers = array(
 		'container'=>'Q\Log_Container', 
 		'file'=>'Q\Log_Text',
+		'stream'=>'Q\Log_Text',
 		'logfile'=>array('Q\Log_Text', 'format'=>'[{$time}] [{$type}] {$message}'),
 		'output'=>array('Q\Log_Text', 'php://output'),
 		'stderr'=>array('Q\Log_Text', 'php://strerr'),
@@ -96,12 +104,6 @@ abstract class Log implements Log_Handler
 	    'db'=>'Q\Log_DB'
 	);
 
-	
-	/**
-	 * Enable Zend_Log compatibilty mode.
-	 * @var boolean
-	 */
-	public $zendCompatible=false;
 	
 	/**
 	 * Log (don't skip) if a type is not in filter list.
@@ -122,7 +124,7 @@ abstract class Log implements Log_Handler
 	 * 
 	 * @var string
 	 */
-	public $format=" | ";
+	public $format = " | ";
 
 	/**
 	 * The format for each value as sprintf format (key is '%1$s', value is '%2$s').
@@ -155,7 +157,7 @@ abstract class Log implements Log_Handler
 	
 	/**
 	 * Extract the connection parameters from a DSN string.
-	 * Returns array(driver, args, filters, alias)
+	 * Returns array(driver, filters, props)
 	 * 
 	 * @param string|array $dsn
 	 * @return array
@@ -169,25 +171,25 @@ abstract class Log implements Log_Handler
 		
 		// Extract DSN
 		if (!is_string($dsn)) {
-		    $args = $dsn;
-		    $driver = strtolower(array_shift($args));
+		    $props = $dsn;
+		    $driver = strtolower(array_shift($props));
 		    
 		} elseif (strpos($dsn, '+') !== false && preg_match_all('/((?:\"(?:[^\"\\\\]++|\\\\.)++\")|(?:\'(?:[^\'\\\\]++|\\\\.)++\')|[^\+\"\']++)++/', $dsn, $matches) >= 2) {
 		    $a = null;
 			$driver = 'container';
-			$args = $matches[0];
+			$props = $matches[0];
 			$filters = null;
-			foreach ($args as $i=>$arg) {
-			    if (preg_match('/^\s*(filter\s*(?:\[("(?:\\\\"|[^"])*")|(\'(?:\\\\\'|[^\'])*\'|[^\]]+)\]\s*)?)=(.*)$/', $arg, $filters)) {
+			foreach ($props as $i=>$prop) {
+			    if (preg_match('/^\s*(filter\s*(?:\[("(?:\\\\"|[^"])*")|(\'(?:\\\\\'|[^\'])*\'|[^\]]+)\]\s*)?)=(.*)$/', $prop, $filters)) {
                     parse_str($filters[1] . '=' . unquote(trim($filters[2])), $a);
                     $filters = array_replace_recursive($filters, $a);
-                    unset($args[$i]);
+                    unset($props[$i]);
                 }
 			}
 			
 		} else {
-			$args = extract_dsn($dsn);
-			$driver = strtolower(array_shift($args));
+			$props = extract_dsn($dsn);
+			$driver = strtolower(array_shift($props));
 		}
 
 		// Get filters and properties from arguments
@@ -197,19 +199,11 @@ abstract class Log implements Log_Handler
 		    if (!is_array($filters)) $filters = split_set(',', $filters);
 		}
 		
-		foreach ($args as $key=>$value) {
-		    if (!is_int($key)) {
-		        $props[$key] = $value;
-		        unset($args[$key]);
-		    }
-		}
-		
-		return array($driver, $args, $filters, $props);
+		return array($driver, $filters, $props);
 	}	
 
 	/**
 	 * Create a new Log interface.
-	 * @static
 	 *
 	 * @param string|array $dsn     DSN/driver (string) or array(driver[, arg1, ...])
 	 * @param array        $filter
@@ -221,10 +215,11 @@ abstract class Log implements Log_Handler
 	    if (isset($this) && $this instanceof self) throw new Exception("Log instance is already created.");
 	    if ($dsn instanceof Log_Handler) return $dsn;
 
-	    $args = $filters = $props = array();
+	    $filters = array();
+	    $props = array();
 	    
 		// Extract info
-		list($driver, $dsn_args, $dsn_filters, $dsn_props) = self::extractDSN($dsn);
+		list($driver, $dsn_filters, $dsn_props) = self::extractDSN($dsn);
 
 		if ($driver == 'aliasof') {
 		    if (!isset($props[0])) throw new Exception("When using 'aliasof', it's required to specify which instance to use.");
@@ -232,39 +227,37 @@ abstract class Log implements Log_Handler
 		    return $instance instanceof self ? $instance : self::$instance();
 		}
 		
-		if (!isset(self::$drivers[$driver])) throw new Exception("Unable to create RPC client: Unknown driver '$driver'");
+		if (!isset(self::$drivers[$driver])) throw new Exception("Unable to create Log interface: Unknown driver '$driver'");
 		
 		$class_options = (array)self::$drivers[$driver];
 		$class = array_shift($class_options);
-		foreach ($class_options as $key=>$value) {
-		    if (is_int($key)) $args[] = $value;
-		      elseif (!array_key_exists($key, $props)) $props[$key] = $value;
-		}
 		
-		if (!empty($dsn_args)) $args = array_merge($args, $dsn_args);
 		if (!empty($dsn_filters)) $filters = array_merge($filters, $dsn_filters);
 		if (!empty($dsn_props)) $props = array_merge_recursive($props, $dsn_props);
 		
 		// Create object
 		if (!load_class($class)) throw new Exception("Unable to create $class object: Class does not exist.");		
-		
-		$reflection = new \ReflectionClass($class);
-		$object = $reflection->newInstanceArgs($args);
-		
-		// Set properties and apply filters
-	    foreach ($props as $key=>$value) {
-	        if (!$reflection->hasProperty($key) || !$reflection->getProperty($key)->isPublic()) continue;
-    		if (is_array($value) && is_array($object->$key)) $object->$key = array_merge($object->$key, $value);
-    		  else $object->$key = $value; 
-	    }
+		$object = new $class($props);
 
 		foreach ($filters as $filter) $object->setFilter($filter);
-	    
 		return $object;
 	}
 
 	/**
-	 * Magic method to return specific instance
+	 * Alias of Log::to().
+	 *
+	 * @param string|array $dsn     DSN/driver (string) or array(driver[, arg1, ...])
+	 * @param array        $filter
+	 * @param array        $props   Values for public properties
+	 * @return Log
+	 */
+	static public function with($dsn, $filters=array(), $props=array())
+	{
+		self::to($dsn, $filters, $props);
+	}
+	
+	/**
+	 * Magic method to return specific instance.
 	 *
 	 * @param string $name
 	 * @param array  $args
@@ -304,15 +297,22 @@ abstract class Log implements Log_Handler
 	
 	/**
 	 * Class constructor.
+	 * 
+	 * @param array $props
 	 */
-	public function __construct()
+	public function __construct($props=array())
 	{
+		foreach ($props as $prop=>$value) {
+			$this->$pros = $value;
+		}
+		
         $this->_eventValues = new Log_EventValues();
 	}
 	
 	
 	/**
 	 * Add a filter to log/not log messages of a specific type.
+	 * Fluent interface
 	 *
 	 * @param string  $type    Filter type, action may be negated by prefixing it with '!'
 	 * @param boolean $action  Q\Log::FILTER_* constant
@@ -326,6 +326,8 @@ abstract class Log implements Log_Handler
 		}
         $this->filters[$type] = (bool)$action;
 		$this->filterDefault = !array_sum($this->filters);
+		
+		return $this;
 	}
 
 	/**
@@ -345,7 +347,7 @@ abstract class Log implements Log_Handler
 	 * @param string|array $message  Message or associated array with info
 	 * @param string       $type
 	 */
-	public function write($message, $type=null)
+	public function log($message, $type=null)
 	{
 	    if (is_array($message) && !isset($type) && isset($message['type'])) $type = $message['type'];
 	    if (isset($this->alias[$type])) $type = $this->alias[$type];
@@ -354,44 +356,44 @@ abstract class Log implements Log_Handler
 	    $args = is_array($message) ? $message : array('message'=>$message);
 	    if (!empty($type)) $args = array('type'=>$type) + $args;
 	    
-		$this->writeLine($this->getLine($args), $type);
+		$this->write($args);
 	}
-
+	
 	/**
-	 * Alias for write() 
-	 *
+	 * Magic invoke; Alias of Log::log().
+	 * 
 	 * @param string|array $message  Message or associated array with info
 	 * @param string       $type
 	 */
-	public final function log($message, $type=null)
+	final public static function __invoke($message, $type)
 	{
-	    $this->write($message, $type);
-	}
+		$this->log($message, $type);
+	}  
+	
 	
 	/**
-	 * Write a log line
+	 * Write a log message.
 	 *
-	 * @param string $line
-	 * @param string $type
+	 * @param array $args
 	 */
-	abstract protected function writeLine($line, $type);
+	abstract protected function write($args);
 	
 	
 	/**
-	 * Get the line for logging
+	 * Get the line for logging.
 	 *
 	 * @param array $args
 	 * @return string
 	 */
 	protected function getLine($args)
 	{
-	    return strpos($this->format, '{$') === false ?
+	    return strpos($this->format, '%{') === false ?
 	      $this->getLine_Join($args) :
 	      $this->getLine_Parse($args);
 	}
 	
 	/**
-	 * Get the line for logging joining the arguments
+	 * Get the line for logging joining the arguments.
 	 *
 	 * @param array $args
 	 * @return string
@@ -419,7 +421,7 @@ abstract class Log implements Log_Handler
     }
 
 	/**
-	 * Get the line for logging parsing the arguments
+	 * Get the line for logging parsing the arguments.
 	 *
 	 * @param array $args
 	 * @param string $template  Template for line, uses format property by default
@@ -428,7 +430,7 @@ abstract class Log implements Log_Handler
 	protected function getLine_Parse($args, $template=null)
 	{
 	    if (!isset($template)) $template = $this->format;
-	    if (strpos($this->format, '{$') === false) return $template;
+	    if (strpos($this->format, '%{') === false) return $template;
 	    
 	    if (count($args) == 1 && reset($args) instanceof \Exception) {
 	        $e = reset($args);
@@ -436,7 +438,7 @@ abstract class Log implements Log_Handler
 	    }
 
 		$replace = array();
-		foreach (array_keys($args) as $key) $replace[] = '{$' . $key . '}';
+		foreach (array_keys($args) as $key) $replace[] = '%{' . $key . '}';
 
         foreach (array_keys($args) as $key) {
             if (!is_scalar($args[$key])) $args[$key] = $this->arrayImplode['prefix'] . implode_recursive($this->arrayImplode['glue'], $args[$key], $this->arrayImplode['prefix'], $this->arrayImplode['suffix']) . $this->arrayImplode['suffix'];
@@ -445,8 +447,8 @@ abstract class Log implements Log_Handler
         }
 		$line = str_ireplace($replace, array_values($args), $template);
 		
-		if (strpos($line, '$') !== false) {
-			$line = preg_replace_callback('/\{\$([^\}]++)\}/', array($this, 'quoteEventValue'), $line);
+		if (strpos($line, '%') !== false) {
+			$line = preg_replace_callback('/%\{([^\}]++)\}/', array($this, 'quoteEventValue'), $line);
 		}
 
         if ($this->singleline) $line = str_replace(array("\n", "\r"), array(chr(182), ''), $line);		
@@ -463,7 +465,7 @@ abstract class Log implements Log_Handler
 	{
 	    if (is_array($key)) $key = $key[1]; // for preg_replace_callback
 	    
-	    $value = $this->_eventValues->getValue($key);
+	    $value = $this->_eventValues[$key];
         if (!is_scalar($value)) $value = $this->arrayImplode['prefix'] . implode_recursive($this->arrayImplode['glue'], $value, $this->arrayImplode['prefix'], $this->arrayImplode['suffix']) . $this->arrayImplode['suffix'];
 
         if (!empty($this->formatValue)) $value = sprintf($this->formatValue, $this->quote ? addcslashes($key, '"') : $key, $this->quote ? addcslashes($value, '"') : $value);
@@ -506,18 +508,78 @@ abstract class Log implements Log_Handler
         trigger_error('Undefined property: ' . get_class($this) . "::$var", E_USER_NOTICE); 
     }
     
+    
     /**
-     * Undefined method handler for Zend_Log compatibilty mode.
+     * Zend_Log compatibilty; Log an 'emerg' message
      * 
-     * @param string $method
-     * @param array  $params
+     * @param string $message
 	 */
-    public function __call($method, $params)
+    public function emerg($message)
     {
-        if (!$this->zendCompatible) trigger_error("Call to undefined method " . __CLASS__ . ":{$method}() (Zend_Log compatibilty mode disabled)", E_USER_ERROR);
-		$this->log(array_shift($params), $method);
+		$this->write($message, __FUNCTION__);
+    }
+    
+    /**
+     * Zend_Log compatibilty; Log an 'alert' message
+     * 
+     * @param string $message
+	 */
+    public function alert($message)
+    {
+		$this->write($message, __FUNCTION__);
+    }
+    
+    /**
+     * Zend_Log compatibilty; Log a 'crit' message
+     * 
+     * @param string $message
+	 */
+    public function crit($message)
+    {
+		$this->write($message, __FUNCTION__);
+    }
+    
+    /**
+     * Zend_Log compatibilty; Log a 'warn' message
+     * 
+     * @param string $message
+	 */
+    public function warn($message)
+    {
+		$this->write($message, __FUNCTION__);
+    }
+    
+    /**
+     * Zend_Log compatibilty; Log a 'notice' message
+     * 
+     * @param string $message
+	 */
+    public function notice($message)
+    {
+		$this->write($message, __FUNCTION__);
+    }
+    
+    /**
+     * Zend_Log compatibilty; Log an 'info' message
+     * 
+     * @param string $message
+	 */
+    public function info($message)
+    {
+		$this->write($message, __FUNCTION__);
+    }
+
+    /**
+     * Zend_Log compatibilty; Log a 'debug' message
+     * 
+     * @param string $message
+	 */
+    public function debug($message)
+    {
+		$this->write($message, __FUNCTION__);
     }
 }
+
 
 /**
  * Mock object to create Log instance.
@@ -612,4 +674,3 @@ class Log_Mock
         throw new Exception("Log interface '{$this->_name}' does not exist.");
     }
 }
-

@@ -43,7 +43,7 @@ class Log_DB extends Log
 	 * @param string|array $message  Message or associated array with info
 	 * @param string       $type
 	 */
-	public function write($message, $type=null)
+	public function log($message, $type=null)
 	{
 	    if (!isset($type) && is_array($message) && isset($message['type'])) $type = $message['type'];
 	    

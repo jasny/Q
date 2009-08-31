@@ -1,5 +1,5 @@
 <?php
-namespace Q;
+use Q\Log, Q\Log_Text;
 
 require_once 'TestHelper.php';
 require_once 'Q/Log/Text.php';
@@ -9,7 +9,7 @@ require_once 'PHPUnit/Framework/TestCase.php';
 /**
  * Log_Text test case.
  */
-class Log_TextTest extends \PHPUnit_Framework_TestCase
+class Log_TextTest extends PHPUnit_Framework_TestCase
 {
 	/**
 	 * @var Log_Text
@@ -33,7 +33,7 @@ class Log_TextTest extends \PHPUnit_Framework_TestCase
 		$GLOBALS['__log'] = '';
 		
 		parent::setUp();
-		$this->Log_Text = new Q\Log_Text('global://__log');
+		$this->Log_Text = new Log_Text('global://__log');
 	}
 	
 	/**
@@ -185,7 +185,7 @@ class Log_TextTest extends \PHPUnit_Framework_TestCase
 	public function testLog_FilterExclude()
 	{
 		$this->Log_Text->format = '[{$type}] {$message}';
-		$this->Log_Text->setFilter('info', Q\Log::FILTER_EXCLUDE);
+		$this->Log_Text->setFilter('info', Log::FILTER_EXCLUDE);
 		$this->Log_Text->setFilter('!notice');
 		
 		$this->Log_Text->log('This is a test', 'info');
@@ -204,7 +204,7 @@ class Log_TextTest extends \PHPUnit_Framework_TestCase
 	public function testLog_FilterInclude()
 	{
 		$this->Log_Text->format = '[{$type}] {$message}';
-		$this->Log_Text->setFilter('info', Q\Log::FILTER_INCLUDE);
+		$this->Log_Text->setFilter('info', Log::FILTER_INCLUDE);
 		$this->Log_Text->setFilter('notice');
 		
 		$this->Log_Text->log('This is a test', 'info');

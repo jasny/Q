@@ -63,22 +63,15 @@ class Log_FirePHPTable extends Log_FirePHP
 	/**
 	 * Log a message.
 	 *
-	 * @param string $message
-	 * @param string $type
+	 * @param array $args
 	 */
-	public function write($message, $type=null)
+	public function write($args)
 	{
-	    if (is_array($message)) {
-	        if (!isset($type) && isset($message['type'])) $type = $message['type'];
-	          else unset($message['type']);
-	    }
+		unset($args['type']);
 	     
-	    if (isset($this->alias[$type])) $type = $this->alias[$type];
-		if (!$this->shouldLog($type)) return;
-
 		$filename = null;
 		$linenum = null;
-        if (HTTP::headers_sent($filename, $linenum)) {
+        if (HTTP::isSent($filename, $linenum)) {
             trigger_error("Headers already sent in {$filename} on line {$linenum}. Cannot send log data to FirePHP. You must have Output Buffering enabled via ob_start() or output_buffering ini directive.", E_USER_NOTICE);
             return;
         }
@@ -94,26 +87,15 @@ class Log_FirePHPTable extends Log_FirePHP
             }
             
             if ($this->unique_counter == 0) {
-                HTTP::header("X-FirePHP-Data-{$this->unique_base}00000000: [\"{$this->title}\",");
+                HTTP::setHeader("X-FirePHP-Data-{$this->unique_base}00000000", "[\"{$this->title}\",");
                 self::sendMessage(json_encode(array_values($this->columns)), $this->unique_base, $this->unique_counter);
-                HTTP::header("X-FirePHP-Data-{$this->unique_base}99999999: ]");
+                HTTP::setHeader("X-FirePHP-Data-{$this->unique_base}99999999", "]");
             }
+            
             self::sendMessage(json_encode($row), $this->unique_base, $this->unique_counter);
         } catch (\Exception $e) {
             trigger_error("An exception occured while writing a row to a FirePHP table.\n" . (string)$e, E_USER_WARNING);
         }
-	}
-	
-	/**
-	 * Not used.
-	 * @ignore
-	 *
-	 * @param string $message
-	 * @param string $type
-	 */
-	protected function writeLine($message, $type)
-	{
-	    trigger_error("This method should never be called.", E_USER_NOTICE);
 	}
 }
 

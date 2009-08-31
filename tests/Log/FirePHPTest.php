@@ -1,5 +1,5 @@
 <?php
-namespace Q;
+use Q\Log, Q\Log_FirePHP;
 
 require_once 'TestHelper.php';
 require_once 'Q/Log/FirePHP.php';
@@ -8,7 +8,7 @@ require_once 'PHPUnit/Framework/TestCase.php';
 /**
  * Log_FirePHP test case.
  */
-class Log_FirePHPTest extends \PHPUnit_Framework_TestCase
+class Log_FirePHPTest extends PHPUnit_Framework_TestCase
 {
     /**
      * @var string
@@ -21,7 +21,7 @@ class Log_FirePHPTest extends \PHPUnit_Framework_TestCase
 	private $Log_FirePHP;
     
     /**
-     * Reflection of Q\Log_FirePHP::$counter
+     * Reflection of Log_FirePHP::$counter
      *
      * @var ReflectionProperty
      */
@@ -60,7 +60,7 @@ class Log_FirePHPTest extends \PHPUnit_Framework_TestCase
 		$this->user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : null;
         $_SERVER['HTTP_USER_AGENT'] = "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.2) Gecko/2008092313 Ubuntu/8.04 (hardy) Firefox/3.0.2 FirePHP/0.1.2";
 		
-        $this->Log_FirePHP = new Q\Log_FirePHP();
+        $this->Log_FirePHP = new Log_FirePHP();
 	}
 	
 	/**
@@ -143,7 +143,7 @@ class Log_FirePHPTest extends \PHPUnit_Framework_TestCase
 	 */
 	public function testLog_FilterExclude()
 	{
-		$this->Log_FirePHP->setFilter('info', Q\Log::FILTER_EXCLUDE);
+		$this->Log_FirePHP->setFilter('info', Log::FILTER_EXCLUDE);
 		$this->Log_FirePHP->setFilter('!notice');
 
 		$counter = $this->getCounter();
@@ -163,7 +163,7 @@ class Log_FirePHPTest extends \PHPUnit_Framework_TestCase
 	 */
 	public function testLog_FilterInclude()
 	{
-		$this->Log_FirePHP->setFilter('info', Q\Log::FILTER_INCLUDE);
+		$this->Log_FirePHP->setFilter('info', Log::FILTER_INCLUDE);
 		$this->Log_FirePHP->setFilter('notice');
 		
 		$this->Log_FirePHP->log('This is a test', 'info');
@@ -183,7 +183,7 @@ class Log_FirePHPTest extends \PHPUnit_Framework_TestCase
 	public function testLog_CustomType()
 	{
 	    $this->Log_FirePHP->format = '[{$type}] {$message}';
-	    $this->Log_FirePHP->types['sql'] = Q\Log_FirePHP::INFO;
+	    $this->Log_FirePHP->types['sql'] = Log_FirePHP::INFO;
 		
 		$this->Log_FirePHP->log('This is a test', 'sql');
 		$this->assertEquals('["INFO",' . json_encode('[sql] This is a test') . "],", Q\HTTP::header_getValue('X-FirePHP-Data-3' . str_pad($this->getCounter(), 11, '0', STR_PAD_LEFT)), "Type 'sql' specified as 'INFO'.");

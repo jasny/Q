@@ -24,10 +24,10 @@ class Log_Header extends Log
 	 * @param string $message
 	 * @param string $type
 	 */
-	protected function writeLine($message, $type)
+	protected function write($args)
 	{
-	    if (empty($type)) $type = "Log";
-		HTTP::header('X-' . ucfirst(strtolower($type)) . '-' . ++self::$counter . ': ' . str_replace(array("/r", "/n", "/t"), " ", $message));
+	    $type = !empty($args['type']) ? $args['type'] : "Log";
+		HTTP::header('X-' . ucfirst(strtolower($type)) . '-' . ++self::$counter . ': ' . str_replace(array("/r", "/n", "/t"), " ", $this->getLine($args)));
 	}
 	
 	/**

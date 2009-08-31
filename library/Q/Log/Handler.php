@@ -11,10 +11,19 @@ interface Log_Handler
 	/**
 	 * Log a message.
 	 *
-	 * @param string $message
-	 * @param string $type
+	 * @param string|array $message  Message or associated array with info
+	 * @param string       $type
 	 */
 	function log($message, $type=null);
+	
+	/**
+	 * Magic invoke; Alias of Log_Handler::log().
+	 * 
+	 * @param string|array $message  Message or associated array with info
+	 * @param string       $type
+	 */
+	public static function __invoke($message, $type);
+	
 	
 	/**
 	 * Add a filter to log/not log messages of a specific type.

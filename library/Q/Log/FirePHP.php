@@ -97,30 +97,20 @@ class Log_FirePHP extends Log
     /**
 	 * Write a message to FirePHP.
 	 *
-	 * @param string $message
-	 * @param string $type
+	 * @param array $args
 	 */
-	protected function writeLine($message, $type)
+	protected function write($args)
 	{
-        self::fbMessage($message, null, isset($this->types[$type]) ? $this->types[$type] : $this->types[null]);
-    }
-    
-	/**
-	 * Log a message.
-	 *
-	 * @param string|array $message  Message or associated array with info
-	 * @param string       $type
-	 */
-	public function write($message, $type=null)
-	{
-	    if ($message instanceof \Exception) {
-	        self::fbException($message);
+		$type = $args['type'];
+		
+		if ($args['message'] instanceof \Exception) {
+	        self::fbException($args['message']);
 	        return;
 	    }
-	    
-	    parent::write($message, $type);
-	}
-	
+		
+		$message = $this->getLine($args);
+        self::fbMessage($message, null, isset($this->types[$type]) ? $this->types[$type] : $this->types[null]);
+    }
     
     /**
      * Set processor url.
@@ -181,19 +171,19 @@ class Log_FirePHP extends Log
         
         $filename = '';
         $linenum = 0;
-        if (HTTP::headers_sent($filename, $linenum)) {
+        if (HTTP::isSent($filename, $linenum)) {
             trigger_error("Headers already sent in {$filename} on line {$linenum}. Cannot send log data to FirePHP. You must have Output Buffering enabled via ob_start() or output_buffering ini directive.", E_USER_NOTICE);
             return false;
         }
         
-        HTTP::header('X-FirePHP-Data-100000000001: {');
-        HTTP::Header('X-FirePHP-Data-300000000001: "FirePHP.Firebug.Console":[');
-        HTTP::Header('X-FirePHP-Data-499999999999: ["__SKIP__"]],');
-        HTTP::header('X-FirePHP-Data-999999999999: "__SKIP__":"__SKIP__"}');
+        HTTP::setHeader('X-FirePHP-Data-100000000001', '{');
+        HTTP::setHeader('X-FirePHP-Data-300000000001', '"FirePHP.Firebug.Console":[');
+        HTTP::setHeader('X-FirePHP-Data-499999999999', '["__SKIP__"]],');
+        HTTP::setHeader('X-FirePHP-Data-999999999999', '"__SKIP__":"__SKIP__"}');
 
         return true;
     }
-
+	
     /**
      * Send the message as header to the client
      *
@@ -207,7 +197,7 @@ class Log_FirePHP extends Log
         
         foreach(explode("\n", chunk_split($msg, 5000, "\n")) as $part) {
             if (empty($part)) continue;
-            HTTP::header("X-FirePHP-Data-{$base}" . str_pad(++$counter, $pad, '0', STR_PAD_LEFT) . ": $part");
+            HTTP::setHeader("X-FirePHP-Data-{$base}" . str_pad(++$counter, $pad, '0', STR_PAD_LEFT), $part);
         }
     }
 
@@ -292,16 +282,16 @@ class Log_FirePHP extends Log
         
         $filename = '';
         $linenum = 0;
-        if (HTTP::headers_sent($filename, $linenum)) {
+        if (HTTP::isSent($filename, $linenum)) {
             trigger_error("Headers already sent in {$filename} on line {$linenum}. Cannot send log data to FirePHP. You must have Output Buffering enabled via ob_start() or output_buffering ini directive.", E_USER_NOTICE);
             return false;
         }
         
-        HTTP::header('X-FirePHP-Data-100000000001: {');
-    	HTTP::Header('X-FirePHP-Data-200000000001: "FirePHP.Dump":{');
-        HTTP::header('X-FirePHP-Data-2' . str_pad(++self::$counter, 11, '0', STR_PAD_LEFT) . ': "' . $key . '":' .json_encode($variable) . ',');
-        HTTP::Header('X-FirePHP-Data-299999999999: "__SKIP__":"__SKIP__"},');
-        HTTP::header('X-FirePHP-Data-999999999999: "__SKIP__":"__SKIP__"}');
+        HTTP::setHeader('X-FirePHP-Data-100000000001', '{');
+    	HTTP::setHeader('X-FirePHP-Data-200000000001', '"FirePHP.Dump":{');
+        HTTP::setHeader('X-FirePHP-Data-2' . str_pad(++self::$counter, 11, '0', STR_PAD_LEFT), '"' . $key . '":' .json_encode($variable) . ',');
+        HTTP::setHeader('X-FirePHP-Data-299999999999', '"__SKIP__":"__SKIP__"},');
+        HTTP::setHeader('X-FirePHP-Data-999999999999', '"__SKIP__":"__SKIP__"}');
 
 		return true;
     } 
@@ -420,4 +410,3 @@ class Log_FirePHP extends Log
         }
     }
 }
-

@@ -1,27 +1,26 @@
 <?php
-namespace Q;
 
 require_once 'PHPUnit/Framework/TestSuite.php';
-require_once 'Test/Log/Creation.php';
-require_once 'Test/Log/EventValues.php';
-require_once 'Test/Log/FirePHP.php';
-require_once 'Test/Log/FirePHPStatic.php';
-require_once 'Test/Log/FirePHPTable.php';
-require_once 'Test/Log/Header.php';
-require_once 'Test/Log/Mail.php';
-require_once 'Test/Log/Text.php';
+require_once 'Log/CreationTest.php';
+require_once 'Log/EventValuesTest.php';
+require_once 'Log/FirePHPTest.php';
+require_once 'Log/FirePHPStaticTest.php';
+require_once 'Log/FirePHPTableTest.php';
+require_once 'Log/HeaderTest.php';
+require_once 'Log/MailTest.php';
+require_once 'Log/TextTest.php';
 
 /**
  * Static test suite.
  */
-class LogTest extends \PHPUnit_Framework_TestSuite
+class Log_AllTests extends PHPUnit_Framework_TestSuite
 {
     /**
      * Constructs the test suite handler.
      */
-    public function __construct ()
+    public function __construct()
     {
-        $this->setName('LogTest');
+        $this->setName(__CLASS__);
         $this->addTestSuite('Log_CreationTest');
         $this->addTestSuite('Log_EventValuesTest');
         $this->addTestSuite('Log_FirePHPTest');
@@ -34,9 +33,8 @@ class LogTest extends \PHPUnit_Framework_TestSuite
     /**
      * Creates the suite.
      */
-    public static function suite ()
+    public static function suite()
     {
         return new self();
     }
 }
-

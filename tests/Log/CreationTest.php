@@ -1,5 +1,5 @@
 <?php
-namespace Q;
+use Q\Log;
 
 require_once 'TestHelper.php';
 require_once 'PHPUnit/Framework/TestCase.php';
@@ -10,7 +10,7 @@ require_once 'Q/Log.php';
 /**
  * Test factory method
  */
-class Log_CreationTest extends \PHPUnit_Framework_TestCase
+class Log_CreationTest extends PHPUnit_Framework_TestCase
 {
 	/**
 	 * Run test from php

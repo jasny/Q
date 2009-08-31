@@ -142,18 +142,16 @@ class Log_Container extends Log implements IteratorAggregate, ArrayAccess, Count
  		return $this;
  	}
  	
- 	
-	/**
-	 * Log a message.
+
+ 	/**
+	 * Write a log line.
 	 *
-	 * @param string $message
-	 * @param string $type
+	 * @param array $args
 	 */
-	public function write($message, $type=null)
+	protected function write($args)
 	{
 		foreach ($this->logs as $log) {
-			$log->log($message, $type);
+			$log->write($args);
 		}
 	}
 }
-

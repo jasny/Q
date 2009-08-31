@@ -1,15 +1,14 @@
 <?php
-namespace Q;
+use Q\Log, Q\Log_Mail;
 
 require_once 'TestHelper.php';
 require_once 'Q/Log/Mail.php';
-require_once 'PHPUnit/Framework/TestCase.php';
-require_once 'Test/Log/q-mail-overwrite.php';
+require_once 'q-mail-overwrite.php';
 
 /**
  * Log_Mail test case.
  */
-class Log_MailTest extends \PHPUnit_Framework_TestCase
+class Log_MailTest extends PHPUnit_Framework_TestCase
 {
     /**
      * The expected mail with default properties.
@@ -22,7 +21,6 @@ class Log_MailTest extends \PHPUnit_Framework_TestCase
 	 */
 	private $Log_Mail;
 
-	
 	/**
 	 * Run test from php
 	 */
@@ -41,7 +39,7 @@ class Log_MailTest extends \PHPUnit_Framework_TestCase
         
 		$GLOBALS['_mail_'] = array();
 		
-		$this->Log_Mail = new Q\Log_Mail('test@example.com');
+		$this->Log_Mail = new Log_Mail('test@example.com');
 		$this->Log_Mail->subject = 'Log message';
 		$this->Log_Mail->headers['From'] = 'system@example.com';
 	}
@@ -130,7 +128,7 @@ class Log_MailTest extends \PHPUnit_Framework_TestCase
 	 */
 	public function testLog_FilterExclude()
 	{
-		$this->Log_Mail->setFilter('info', Q\Log::FILTER_EXCLUDE);
+		$this->Log_Mail->setFilter('info', Log::FILTER_EXCLUDE);
 		$this->Log_Mail->setFilter('!notice');
 
 		$this->Log_Mail->log("This is a test", 'info');
@@ -148,7 +146,7 @@ class Log_MailTest extends \PHPUnit_Framework_TestCase
 	 */
 	public function testLog_FilterInclude()
 	{
-		$this->Log_Mail->setFilter('info', Q\Log::FILTER_INCLUDE);
+		$this->Log_Mail->setFilter('info', Log::FILTER_INCLUDE);
 		$this->Log_Mail->setFilter('notice');
 		
 		$this->Log_Mail->log('This is a test', 'info');

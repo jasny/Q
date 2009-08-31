@@ -1,5 +1,5 @@
 <?php
-namespace Q;
+use Q\Log, Q\Log_FirePHPTable;
 
 require_once 'TestHelper.php';
 require_once 'Q/Log/FirePHPTable.php';
@@ -8,7 +8,7 @@ require_once 'PHPUnit/Framework/TestCase.php';
 /**
  * Log_FirePHP test case.
  */
-class Log_FirePHPTableTest extends \PHPUnit_Framework_TestCase
+class Log_FirePHPTableTest extends PHPUnit_Framework_TestCase
 {
     /**
      * @var string
@@ -66,7 +66,7 @@ class Log_FirePHPTableTest extends \PHPUnit_Framework_TestCase
 		$this->user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : null;
         $_SERVER['HTTP_USER_AGENT'] = "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.2) Gecko/2008092313 Ubuntu/8.04 (hardy) Firefox/3.0.2 FirePHP/0.1.2";
 
-        $this->Log_FirePHP = new Q\Log_FirePHPTable("Test");
+        $this->Log_FirePHP = new Log_FirePHPTable("Test");
         $this->unique_base = $this->prop_unique_base->getValue($this->Log_FirePHP);
 	}
 	
