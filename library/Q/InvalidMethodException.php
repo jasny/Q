@@ -2,7 +2,7 @@
 namespace Q;
 
 require_once 'Q/Exception.php';
-require_once 'Q/CommonException.php';
+require_once 'Q/RestException.php';
 require_once 'Q/ExpectedException.php';
 
 /**
@@ -10,7 +10,7 @@ require_once 'Q/ExpectedException.php';
  * 
  * @package Exception
  */
-class InvalidMethodException extends Exception implements CommonException, ExpectedException
+class InvalidMethodException extends Exception implements RestException, ExpectedException
 {
     /**
      * Class constructor

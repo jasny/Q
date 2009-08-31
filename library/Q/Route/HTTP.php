@@ -3,7 +3,7 @@ namespace Q;
 
 require_once 'Q/HandleRequest.php';
 require_once 'Q/Exception.php';
-require_once 'Q/CommonException.php';
+require_once 'Q/RestException.php';
 
 /**
  * Route HTTP request to controller or command; This is basically the FrontController pattern.

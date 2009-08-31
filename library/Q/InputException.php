@@ -2,13 +2,13 @@
 namespace Q;
 
 require_once 'Q/Exception.php';
-require_once 'Q/CommonException.php';
+require_once 'Q/RestException.php';
 require_once 'Q/ExpectedException.php';
 
 /**
  * Exception for invalid user data.
  */
-class InputException extends Exception implements CommonException, ExpectedException
+class InputException extends Exception implements RestException, ExpectedException
 {
     /**
      * Class constructor

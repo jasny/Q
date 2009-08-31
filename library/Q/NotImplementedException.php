@@ -2,14 +2,14 @@
 namespace Q;
 
 require_once 'Q/Exception.php';
-require_once 'Q/CommonException.php';
+require_once 'Q/RestException.php';
 
 /**
  * Method should exist, but is not yet implemented.
  * 
  * @package Exception
  */
-class NotImplementedException extends Exception implements CommonException
+class NotImplementedException extends Exception implements RestException
 {
     /**
      * Class constructor

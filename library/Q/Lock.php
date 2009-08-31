@@ -2,7 +2,7 @@
 namespace Q;
 
 require_once 'Q/Exception.php';
-require_once 'Q/CommonException.php';
+require_once 'Q/RestException.php';
 require_once 'Q/ExpectedException.php';
 
 /**
@@ -154,7 +154,7 @@ class Lock
  * 
  * @package Exception
  */
-class Lock_Exception extends Exception implements CommonException, ExpectedException
+class Lock_Exception extends Exception implements RestException, ExpectedException
 {
     /**
      * Class constructor

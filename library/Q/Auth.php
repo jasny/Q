@@ -2,8 +2,6 @@
 namespace Q;
 
 require_once "Q/misc.php";
-require_once "Q/ExpectedException.php";
-require_once "Q/CommonException.php";
 
 require_once "Q/Multiton.php";
 require_once "Q/Factory.php";
@@ -13,6 +11,12 @@ require_once "Q/Crypt.php";
 require_once "Q/Cache.php";
 require_once "Q/HTTP.php";
 require_once "Q/Auth/User.php";
+
+require_once "Q/Auth/Exception.php";
+require_once "Q/Authz/Exception.php";
+require_once "Q/Auth/LoginException.php";
+require_once "Q/Auth/ExpiredException.php";
+require_once "Q/Auth/SessionException.php";
 
 /**
  * Perform authentication.
@@ -453,7 +457,6 @@ abstract class Auth implements Factory, Multiton
 	        $this->info['uid'] = $this->user->getId();
 	        $this->info['checksum'] = $this->checksum();
 	    }
-
 	    
 	    $matches = null;
 	    if (is_string($this->store)) $this->store = extract_dsn($this->store);
@@ -579,7 +582,7 @@ abstract class Auth implements Factory, Multiton
      * @param string $password
      * @return int
      * 
-     * @throws Auth_Login_Exception if login fails
+     * @throws Auth_LoginException if login fails
      */
     public function login($username=null, $password=null)
     {
@@ -610,8 +613,8 @@ abstract class Auth implements Factory, Multiton
         $this->status = $result;
         $this->logEvent('login', $result);
 
-        if ($result == self::PASSWORD_EXPIRED) throw new Auth_PasswordExpired_Exception(); 
-          elseif ($result != self::OK) throw new Auth_Login_Exception($result == self::INCORRECT_PASSWORD ? self::UNKNOWN_USER : $result); // Never output incorrect password, to prevent dictionary attacks
+        if ($result == self::PASSWORD_EXPIRED) throw new Auth_ExpiredException(); 
+          elseif ($result != self::OK) throw new Auth_LoginException($result == self::INCORRECT_PASSWORD ? self::UNKNOWN_USER : $result); // Never output incorrect password, to prevent dictionary attacks
 
         $this->storeInfo();
         $this->isBlocked(null, 0);
@@ -691,12 +694,12 @@ abstract class Auth implements Factory, Multiton
      * @param string|array $role  One or more roles
      * @param Additional roles may be specified as additional parameters.
      * 
-     * @throws Auth_Session_Exception if user is not logged in.
+     * @throws Auth_SessionException if user is not logged in.
      * @throws Authz_Exception if the user is not in one of the roles.
      */
     public function authz($role=null)
     {
-        if (!$this->isLoggedIn()) throw new Auth_Session_Exception($this->status);
+        if (!$this->isLoggedIn()) throw new Auth_SessionException($this->status);
         if (!isset($role)) return;
         
     	$roles = is_array($role) ? $role : func_get_args();
@@ -709,12 +712,12 @@ abstract class Auth implements Factory, Multiton
      * @param string|array $role  One or more roles
      * @param Additional roles may be specified as additional parameters.
      * 
-     * @throws Auth_Session_Exception if user is not logged in.
+     * @throws Auth_SessionException if user is not logged in.
      * @throws Authz_Exception if the user is not in one of the roles.
      */
     public function authzAny($role=null)
     {
-        if (!$this->isLoggedIn()) throw new Auth_Session_Exception($this->status);
+        if (!$this->isLoggedIn()) throw new Auth_SessionException($this->status);
         if (!isset($role)) return;
         
     	$roles = is_array($role) ? $role : func_get_args();
@@ -747,78 +750,6 @@ abstract class Auth implements Factory, Multiton
     static public function getMessage($code)
     {
         return isset(self::$messages[$code]) ? self::$messages[$code] : "Unspecified authentication fault.";
-    }
-    
-}
-
-/* --------------- Exceptions ----------------- */
-
-/**
- * Base class for Auth exceptions
- * @package Auth
- */
-abstract class Auth_Exception extends Exception implements CommonException, ExpectedException
-{
-    /**
-     * Class constructor
-     * 
-     * @param string|int $status  Auth status message or code
-     * @param int        $code    HTTP status code
-     */
-    public function __construct($status, $code=403)
-    {
-        if (is_int($status)) $status = Auth::getMessage($status);
-        parent::__construct($status, $code);
-    }
-}
-
-/**
- * Auth login exception
- * @package Auth
- */
-class Auth_Login_Exception extends Auth_Exception
-{}
-
-/**
- * Auth exception for when password is expired 
- * @package Auth
- */
-class Auth_PasswordExpired_Exception extends Auth_Login_Exception
-{
-    /**
-     * Class constructor
-     * 
-     * @param string|int $status  Auth status message or code
-     * @param int        $code    HTTP status code
-     */
-    public function __construct($status=Auth::PASSWORD_EXPIRED, $code=403)
-    {
-        parent::__construct($status, $code);
-    }
-}
-
-/**
- * Auth session exception
- * @package Auth
- */
-class Auth_Session_Exception extends Auth_Exception
-{}
-
-/**
- * Authorization exception
- * @package Auth
- */
-class Authz_Exception extends Auth_Exception
-{
-    /**
-     * Class constructor
-     * 
-     * @param string $message
-     * @param int    $code     HTTP status code
-     */
-    public function __construct($message, $code=401)
-    {
-        parent::__construct($message, $code);
     }
 }
 

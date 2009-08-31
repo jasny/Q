@@ -1,7 +1,8 @@
 <?php
 namespace Q;
 
-require_once 'Q/Auth.php';
+require_once 'Q/Auth/User.php';
+require_once 'Q/Authz/Exception.php';
 
 /**
  * Auth user info.
