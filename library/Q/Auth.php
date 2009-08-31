@@ -1,8 +1,13 @@
 <?php
 namespace Q;
 
+require_once "Q/misc.php";
 require_once "Q/ExpectedException.php";
 require_once "Q/CommonException.php";
+
+require_once "Q/Multiton.php";
+require_once "Q/Factory.php";
+require_once "Q/Mock/With.php";
 
 require_once "Q/Crypt.php";
 require_once "Q/Cache.php";
@@ -19,7 +24,7 @@ require_once "Q/Auth/User.php";
  * 
  * @todo Implement session expire (not using session lifetime)
  */
-abstract class Auth
+abstract class Auth implements Factory, Multiton
 {
 	/** Status code: no session exists */
 	const NO_SESSION = -1;
@@ -193,8 +198,10 @@ abstract class Auth
 	 * Factory method.
 	 *
 	 * @param string|array $dsn  DSN/driver (string) or array(driver[, arg1, ...])
-	 * @param 
+	 * @param array        $options
 	 * @return Auth
+	 * 
+	 * @todo Simply drop $props in constructor. 
 	 */
 	static public function with($dsn, $options=array())
 	{
@@ -260,41 +267,23 @@ abstract class Auth
     static public function getInterface($name)
     {
     	if (!isset(self::$instances[$name])) {
-		    if (!class_exists('Q\Config') || !Config::i()->exists() || !($dsn = Config::i()->get('auth' . ($name != 'i' ? ".{$name}" : '')))) return new Auth_Mock($name);
-	        Auth::$instances[$name] = Auth::with($dsn);
+		    if (!class_exists('Q\Config') || Config::i() instanceof Mock || !($dsn = Config::i()->get('auth' . ($name != 'i' ? ".{$name}" : '')))) return new Mock_With(__CLASS__, $name);
+	        self::$instances[$name] = self::with($dsn);
 		}
 		
 		return self::$instances[$name];
     }
 	
 	/**
-	 * Check is singeton object exists
-	 * 
-	 * @param string $name
-	 * @return boolean
-	 */
-	public function exists()
-	{
-	    return true;
-	}
-
-	/**
-	 * Register instance
+	 * Register instance.
 	 * 
 	 * @param string $name
 	 */
-	public final function useFor($name)
+	public final function asInstance($name)
 	{
 		self::$instances[$name] = $this;
 	}
     
-	
-	/**
-	 * Class constructor
-	 */
-	public function __construct()
-	{}
-	
 	
 	/**
 	 * Check if user is logged in.
@@ -485,7 +474,7 @@ abstract class Auth
 	                $this->info = array();
 	                foreach (array_keys($_COOKIE) as $key) {
 	                    if (!preg_match('/^AUTH_(.*)$/i', $key, $matches)) continue;
-	                    setcookie($key, $value, 1, $cookie_params['path'], $cookie_params['domain'], $cookie_params['secure'], $cookie_params['httponly']);
+	                    setcookie($key, null, 1, $cookie_params['path'], $cookie_params['domain'], $cookie_params['secure'], $cookie_params['httponly']);
 	                    unset($_COOKIE[$key]);
 	                }
 	            } else {
@@ -666,7 +655,7 @@ abstract class Auth
     	$this->logEvent('logout', $status);
         $this->status = $status == self::OK ? self::NO_SESSION : $status;        
     	
-	$this->onLogout();
+		$this->onLogout();
         $this->storeInfo(null);
 
         if ($status > 0 && $status < 16) {
@@ -699,12 +688,13 @@ abstract class Auth
     /**
      * Authenticate and authorize; User needs to have in all roles.
      * 
-     * @param string|array $role
+     * @param string|array $role  One or more roles
+     * @param Additional roles may be specified as additional parameters.
      * 
      * @throws Auth_Session_Exception if user is not logged in.
      * @throws Authz_Exception if the user is not in one of the roles.
      */
-    public function authz($role=null/*. , args .*/)
+    public function authz($role=null)
     {
         if (!$this->isLoggedIn()) throw new Auth_Session_Exception($this->status);
         if (!isset($role)) return;
@@ -716,12 +706,13 @@ abstract class Auth
     /**
      * Authenticate and authorize; User needs to have one of the roles.
      * 
-     * @param string|array $role
+     * @param string|array $role  One or more roles
+     * @param Additional roles may be specified as additional parameters.
      * 
      * @throws Auth_Session_Exception if user is not logged in.
      * @throws Authz_Exception if the user is not in one of the roles.
      */
-    public function authzAny($role=null/*. , args .*/)
+    public function authzAny($role=null)
     {
         if (!$this->isLoggedIn()) throw new Auth_Session_Exception($this->status);
         if (!isset($role)) return;
@@ -758,99 +749,6 @@ abstract class Auth
         return isset(self::$messages[$code]) ? self::$messages[$code] : "Unspecified authentication fault.";
     }
     
-}
-
-/**
- * Mock object to create Auth instance.
- * @ignore 
- */
-class Auth_Mock
-{
-    /**
-     * Instance name
-     * @var string
-     */
-    protected $_name;
-    
-    /**
-     * Class constructor
-     *
-     * @param string $name
-     */
-    public function __construct($name)
-    {
-        $this->_name = $name;
-    }
-    
-	/**
-	 * Create a new Auth interface instance.
-	 *
-	 * @param string|array $dsn      Authuration options, may be serialized as assoc set (string)
-	 * @param array        $options  Other options (will be overwriten by DSN)
-	 * @return Auth
-	 */
-	public function with($dsn, $options=array())
-	{
-	    $instance = Auth::with($dsn, $options);
-	    $instance->useFor($this->_name);
-	    
-	    return $instance;
-    }
-    
-    
-    /**
-     * Check if instance exists.
-     *
-     * @return boolean
-     */
-    public function exists()
-    {
-        return false;
-    }
-    
-    /**
-     * Magic get method
-     *
-     * @param string $key
-     * 
-     * @throws Exception because this means that the instance is used, but does not exist.  
-     */
-    public function __get($key)
-    {
-        $name = $this->_name;
-        if (Auth::$name()->exists()) trigger_error("Illigal use of mock object 'Auth::{$this->_name}()'.", E_USER_ERROR);
-        throw new Exception("Auth interface '{$this->_name}' does not exist.");
-    }
-
-    /**
-     * Magic set method
-     *
-     * @param string $key
-     * @param mixed  $value
-     * 
-     * @throws Exception because this means that the instance is used, but does not exist.  
-     */
-    public function __set($key, $value)
-    {
-        $name = $this->_name;
-        if (Auth::$name()->exists()) trigger_error("Illigal use of mock object 'Auth::{$this->_name}()'.", E_USER_ERROR);
-        throw new Exception("Auth interface '{$this->_name}' does not exist.");
-    }
-    
-    /**
-     * Magic call method
-     *
-     * @param string $name
-     * @param array  $args
-     * 
-     * @throws Exception because this means that the instance is used, but does not exist.  
-     */
-    public function __call($function, $args)
-    {
-        $name = $this->_name;
-        if (Auth::$name()->exists()) trigger_error("Illigal use of mock object 'Auth::{$this->_name}()'.", E_USER_ERROR);
-        throw new Exception("Auth interface '{$this->_name}' does not exist.");
-    }
 }
 
 /* --------------- Exceptions ----------------- */

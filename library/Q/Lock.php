@@ -22,7 +22,7 @@ class Lock
      * Timeout on a lock (in seconds).
      * @var int
      */
-    public $timeout = 30;
+    public $timeout = 300;
     
     /**
      * Cache object that hold key
