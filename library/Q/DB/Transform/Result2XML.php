@@ -1,5 +1,15 @@
 <?php
+namespace Q;
 
+/**
+ * Transform DB result to XML.
+ * 
+ * @package DB
+ * 
+ * @todo Create DB_Transform_Result2XML from old MySQL::asXML() functions.
+ */
+class DB_Transform_Result2XML
+{
 	/**
 	 * Default config for to XML conversion.
 	 * 
@@ -396,3 +406,4 @@
 		$this->native->data_seek(0);
 		return $xml;
 	}	
+}

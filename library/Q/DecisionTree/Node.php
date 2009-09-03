@@ -4,9 +4,9 @@ namespace Q;
 /**
  * A class which represents a condition by comparing the value of a node.
  * 
- * @package ConditionalTree
+ * @package DecisionTree
  */
-class ConditionalTree_Node
+class DecisionTree_Node
 {
 	/**
 	 * Link to other nodes
@@ -22,7 +22,7 @@ class ConditionalTree_Node
 
 	/**
 	 * Index of all nodes
-	 * @var ConditionalTree_Index
+	 * @var DecisionTree_Index
 	 */
 	protected $_index;
 
@@ -45,11 +45,11 @@ class ConditionalTree_Node
 	 *
 	 * @param array  $answers    Answers on (previous) steps in tree
 	 * @param string $answerKey  Attribute name for keys in answers array
-	 * @return ConditionalTree_Iterator
+	 * @return DecisionTree_Iterator
 	 */
 	function createIterator($answers=null, $answerKey='value')
 	{
-	   return new ConditionalTree_Iterator($this, $answers, $answerKey);
+	   return new DecisionTree_Iterator($this, $answers, $answerKey);
 	}
 	
 	/**
@@ -88,7 +88,7 @@ class ConditionalTree_Node
 	 * Get an index with all nodes in the tree.
 	 * Won't have an index if the node isn't part of a tree.
 	 *
-	 * @return ConditionalTree_Index
+	 * @return DecisionTree_Index
 	 */
 	function index()
 	{
@@ -99,17 +99,17 @@ class ConditionalTree_Node
 	 * Set the transition to the next node.
 	 * Note: To decide the next node, the transitions will be checked in the reverse order they were set. 
 	 * 
-	 * @param ConditionalTree_Node|mixed $node        Next node or id of next node
+	 * @param DecisionTree_Node|mixed $node        Next node or id of next node
 	 * @param array                        $conditions  Set with conditiona which needs to be true to do this transition
 	 */
 	function setTransition($node, $conditions=null)
 	{
-		if (!isset($this->_index)) $this->_index = ConditionalTree_Index();
+		if (!isset($this->_index)) $this->_index = DecisionTree_Index();
 
 		if (!is_array($conditions)) $conditions = empty($conditions) ? array() : array($conditions);
 		
 		foreach ($conditions as $key=>$condition) {
-			if ($condition instanceof ConditionalTree_Condition) continue;
+			if ($condition instanceof DecisionTree_Condition) continue;
 
 			unset($conditions[$key]);
 			$condition = $this->_index->loadCondition($condition);
@@ -138,7 +138,7 @@ class ConditionalTree_Node
 	 * Get the next node, validating conditions to decide the correct transition.
 	 *
 	 * @param array $answers  Array with all given answers
-	 * @return ConditionalTree_Node
+	 * @return DecisionTree_Node
 	 */
 	function next($answers)
 	{
