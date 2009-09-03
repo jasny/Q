@@ -449,6 +449,8 @@ class DB_MySQL extends DB
 	 */
 	public function getPrimaryKey($table, $autoIncrementOnly=false, $asIdentifier=false)
 	{
+        if ($table instanceof DB_Table) return $table->getPrimaryKey($autoIncrementOnly, $asIdentifier);
+
 		$key = ($autoIncrementOnly ? '+!!' : '') . $table;
 		
 		if (!array_key_exists($key, $this->primaryKeys)) {
@@ -594,7 +596,7 @@ class DB_MySQL extends DB
 	public function prepareSelect($table=null, $fields=null, $criteria=null, $where=null)
 	{
 		$parent = $table instanceof DB_Table && $table->getLink() === $this ? $table : $this;
-		if ($table instanceof DB_Table) $table = $table->getTableName(); 
+//		if ($table instanceof DB_Table) $table = $table->getTableName(); 
 	    
 	    if (isset($criteria)) {
 	        if (!is_array($criteria) || !is_string(key($criteria))) {

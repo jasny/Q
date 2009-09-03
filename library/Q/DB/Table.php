@@ -132,6 +132,10 @@ class DB_Table implements \ArrayAccess
 		trigger_error("It is not possible to add a field through the table gateway. Trying to add field to " . $this->getName(), E_WARNING);
 	}
 	
+    public function __toString()
+    {  
+        return $this->getTableName();
+    }  
 	
 	/**
 	 * Get the database connection
@@ -202,7 +206,7 @@ class DB_Table implements \ArrayAccess
 	    if ($autoIncrementOnly) return null;
 	    
 	    $fields = null;
-	    foreach ($this->properties as $name=>&$props) {
+	    foreach ($this->_properties as $name=>&$props) {
 	         if ($name[0] == '#') continue;
 	         if ($props['is_primary']) $fields[] = $asIdentifier ? $this->getLink()->makeIdentifier($this->getTableName(), $name) : $name;
 	    }
@@ -615,3 +619,4 @@ class DB_Table implements \ArrayAccess
 	}
 }
 
+?>

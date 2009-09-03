@@ -349,9 +349,10 @@ class DB_Record
 		}
 		
 		// Normal behaviour
+        $basetable = $this->getBaseTable();
 		foreach ($this->_tablerefs as $name=>$dbtable) {
 			$pkfields = null;
-			$keys = $this->_link->getPrimaryKeys($dbtable);
+            $keys = $this->_link->getPrimaryKeys($basetable == $dbtable ? $basetable : $dbtable);
 			foreach ($keys as $key) {
 				foreach ($this->_fields as $field) {
 					if ($field['table'] == $name && $field['name_db'] == $key) {
