@@ -29,7 +29,7 @@ class Fs_File extends Fs_Item
 	 */
 	public function isUploadedFile()
 	{
-		return is_uploaded_file($this->path);
+		return is_uploaded_file($this->_path);
 	}
 
 	
@@ -88,7 +88,7 @@ class Fs_File extends Fs_Item
 	 */
 	public function asArray()
 	{
-		return file($this->path);
+		return file($this->_path);
 	}
 	
 	
@@ -101,7 +101,7 @@ class Fs_File extends Fs_Item
 	 */
 	public function open($mode='r+')
 	{
-		$resource = @fopen($this->path, $mode);
+		$resource = @fopen($this->_path, $mode);
 		
 		if (!$resource) {
 			$err = error_get_last();
@@ -121,8 +121,8 @@ class Fs_File extends Fs_Item
 	 */
 	public function exec()
 	{
-		if (!$this->exists()) throw new Fs_Exception("Unable to execute {$this->path}; File doesn't exist.");
-		if (!$this->isExecutable()) throw new Fs_Exception("Unable to execute {$this->path}; No permission to execute file.");
+		if (!$this->exists()) throw new Fs_Exception("Unable to execute {$this->_path}; File doesn't exist.");
+		if (!$this->isExecutable()) throw new Fs_Exception("Unable to execute {$this->_path}; No permission to execute file.");
 		
 		$args = func_get_args();
 		foreach ($args as $i=>&$arg){
@@ -132,8 +132,8 @@ class Fs_File extends Fs_Item
 		$arglist = join(' ', $args);
 
 		$pipes = array();
-		$p = proc_open($this->path . (!empty($arglist) ? ' ' . $arglist : ''), array(array('file'=>'/dev/null', 'r'), array('pipe', 'w'), array('pipe', 'w'), $pipes));
-		if (!$p) throw new ExecException("Failed to execute {$this->path}.");
+		$p = proc_open($this->_path . (!empty($arglist) ? ' ' . $arglist : ''), array(array('file'=>'/dev/null', 'r'), array('pipe', 'w'), array('pipe', 'w'), $pipes));
+		if (!$p) throw new ExecException("Failed to execute {$this->_path}.");
 		
 		$out = stream_get_contents($pipes[1]);
 		fclose($pipes[1]);
@@ -141,11 +141,11 @@ class Fs_File extends Fs_Item
 		fclose($pipes[2]);
 
 		foreach (explode("\n", $err) as $line) {
-			if (trim($line) != '') trigger_error("Exec $this->path: " . trim($line), E_USER_NOTICE);
+			if (trim($line) != '') trigger_error("Exec $this->_path: " . trim($line), E_USER_NOTICE);
 		}
 		
 		$return_var = proc_close($p);
-		if ($return_var != 0) throw new ExecException("Execution of {$this->path} exited with return code $return_var.", $return_var, $out, $err);
+		if ($return_var != 0) throw new ExecException("Execution of {$this->_path} exited with return code $return_var.", $return_var, $out, $err);
 		
 		return $out;
 	}

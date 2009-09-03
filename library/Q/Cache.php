@@ -20,7 +20,7 @@ abstract class Cache implements Cache_Handler
     
 	/**
 	 * Registered instances
-	 * @var Cache[]
+	 * @var Cache_Handler[]
 	 */
 	static protected $instances = array();
 	

@@ -1,7 +1,7 @@
 <?php
 namespace Q;
 
-require_once 'Q/Exception.php';
+require_once 'Q/DB/Exception.php';
 
 /**
  * An execption when a database action fails.
@@ -9,5 +9,5 @@ require_once 'Q/Exception.php';
  * 
  * @package DB
  */
-class DB_Exception extends Exception
+class DB_ConstraintException extends DB_Exception
 {}

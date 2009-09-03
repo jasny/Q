@@ -30,6 +30,6 @@ class Fs_Symlink_Broken extends Fs_Item implements Fs_Symlink
 	 */
 	public function getTarget()
 	{
-		return readlink($this->path);
+		return readlink($this->_path);
 	}
 }

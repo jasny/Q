@@ -24,6 +24,9 @@ require_once 'Q/Fs/Symlink/Unknown.php';
 /**
  * Interface to the filesystem.
  * 
+ * The interface to a regular file can be invoked, if the file is executable.
+ *  
+ * 
  * @package Fs
  */
 class Fs
@@ -183,12 +186,12 @@ class Fs
  	}
  	
  	/**
- 	 * Find executable file in enviroment path.
+ 	 * Find executable file in enviroment path (as `which` command)
  	 * 
  	 * @param string $file
  	 * @return Fs_File
  	 */
- 	public function which($file)
+ 	public function bin($file)
  	{
  		$paths = getenv('PATH');
  		foreach (explode(PATH_SEPARATOR, $paths) as $path) {

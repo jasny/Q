@@ -2,7 +2,7 @@
 use Q\Auth;
 
 require_once 'TestHelper.php';
-require_once 'Q/Auth/MainTest.php';
+require_once 'Auth/MainTest.php';
 
 /**
  * Auth_Manual test case.
@@ -25,4 +25,3 @@ class Auth_ManualTest extends Auth_MainTest
         parent::setUp();
     }
 }
-

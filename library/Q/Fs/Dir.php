@@ -50,8 +50,8 @@ class Fs_Dir extends Fs_Item implements Iterator
 		$id = spl_object_hash($this);
 		if (isset(self::$handles[$id])) return self::$handles[$id];
 			
-		$resource = opendir($this->path);
-		if (!$resource) throw new Fs_Exception("Unable to traverse through directory '{$this->path}'; Failed to read directory.");
+		$resource = opendir($this->_path);
+		if (!$resource) throw new Fs_Exception("Unable to traverse through directory '{$this->_path}'; Failed to read directory.");
 		
 		self::$handles[$id] = (object)array('resource'=>$resource);
 		return self::$handles[$id];
@@ -117,7 +117,7 @@ class Fs_Dir extends Fs_Item implements Iterator
  	 */
  	public function glob($pattern, $flags=0)
  	{
- 		if ($pattern[0] != '/') $pattern = "{$this->path}/$pattern";
+ 		if ($pattern[0] != '/') $pattern = "{$this->_path}/$pattern";
  		return Fs::glob($pattern, $flags);
  	}
 
@@ -129,7 +129,7 @@ class Fs_Dir extends Fs_Item implements Iterator
  	 */
  	public function diskTotalSpace()
  	{
- 		return disk_total_space($this->path);
+ 		return disk_total_space($this->_path);
  	}
  	
  	/**
@@ -139,7 +139,7 @@ class Fs_Dir extends Fs_Item implements Iterator
  	 */
  	public function diskFreeSpace()
  	{
- 		return disk_free_space($this->path);
+ 		return disk_free_space($this->_path);
  	}
  	
  	
@@ -151,7 +151,7 @@ class Fs_Dir extends Fs_Item implements Iterator
  	 */
  	public function __get($name)
  	{
- 		return Fs::get("{$this->path}/$name");
+ 		return Fs::get("{$this->_path}/$name");
  	}
 
  	/**
@@ -162,7 +162,7 @@ class Fs_Dir extends Fs_Item implements Iterator
  	 */
  	public function file($name)
  	{
- 		return Fs::file("{$this->path}/$name");
+ 		return Fs::file("{$this->_path}/$name");
  	}
  	
  	/**
@@ -173,7 +173,7 @@ class Fs_Dir extends Fs_Item implements Iterator
  	 */
  	public function dir($name)
  	{
- 		return Fs::dir("{$this->path}/$name");
+ 		return Fs::dir("{$this->_path}/$name");
  	}
  	
  	
@@ -186,11 +186,11 @@ class Fs_Dir extends Fs_Item implements Iterator
  	 */
  	public function create($mode=0770, $flags=0)
  	{
- 		$success = @mkdir($this->path, $mode, $flags & Fs::RECURSIVE);
+ 		$success = @mkdir($this->_path, $mode, $flags & Fs::RECURSIVE);
  		
  		if (!$success) {
  			$err = error_get_last();
- 			throw new Fs_Exception("Failed to create directory '{$this->path}'; " . $err['message']);
+ 			throw new Fs_Exception("Failed to create directory '{$this->_path}'; " . $err['message']);
  		}
  	}
  	
@@ -202,6 +202,6 @@ class Fs_Dir extends Fs_Item implements Iterator
 	public function delete($flags=0)
 	{
 		if ($flags & Fs::RECURSIVE) parent::delete($flags);
-		  else rmdir($this->path);
+		  else rmdir($this->_path);
 	}
 }

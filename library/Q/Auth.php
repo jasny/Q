@@ -4,8 +4,7 @@ namespace Q;
 require_once "Q/misc.php";
 
 require_once "Q/Multiton.php";
-require_once "Q/Factory.php";
-require_once "Q/Mock/With.php";
+require_once "Q/Multiton/Mock.php";
 
 require_once "Q/Crypt.php";
 require_once "Q/Cache.php";
@@ -28,7 +27,7 @@ require_once "Q/Auth/SessionException.php";
  * 
  * @todo Implement session expire (not using session lifetime)
  */
-abstract class Auth implements Factory, Multiton
+abstract class Auth implements Multiton
 {
 	/** Status code: no session exists */
 	const NO_SESSION = -1;
@@ -55,7 +54,7 @@ abstract class Auth implements Factory, Multiton
 	
 	/**
 	 * Named Auth instances
-	 * @var array[]Auth
+	 * @var Auth[]
 	 */
 	static private $instances;
 
@@ -271,7 +270,7 @@ abstract class Auth implements Factory, Multiton
     static public function getInterface($name)
     {
     	if (!isset(self::$instances[$name])) {
-		    if (!class_exists('Q\Config') || Config::i() instanceof Mock || !($dsn = Config::i()->get('auth' . ($name != 'i' ? ".{$name}" : '')))) return new Mock_With(__CLASS__, $name);
+		    if (!class_exists('Q\Config') || Config::i() instanceof Multiton_Mock || !($dsn = Config::i()->get('auth' . ($name != 'i' ? ".{$name}" : '')))) return new Multiton_Mock(__CLASS__, $name);
 	        self::$instances[$name] = self::with($dsn);
 		}
 		

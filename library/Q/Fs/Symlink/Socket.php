@@ -29,6 +29,6 @@ class Fs_Symlink_Socket extends Fs_Socket implements Fs_Symlink
 	 */
 	public function getTarget()
 	{
-		return Fs::get(readlink($this->path));
+		return Fs::get(readlink($this->_path));
 	}
 }

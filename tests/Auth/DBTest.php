@@ -1,5 +1,5 @@
 <?php
-use Q\Auth, DB;
+use Q\Auth, Q\DB;
 
 require_once 'Test/Auth/Main.php';
 require_once 'Q/Auth/DB.php';

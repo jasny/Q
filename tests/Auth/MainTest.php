@@ -165,7 +165,7 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
      */
     public function testLogin_UNKNOWN_USER()
     {
-        $this->setExpectedException('Q\Auth_Login_Exception', "Unknown user");
+        $this->setExpectedException('Q\Auth_LoginException', "Unknown user");
         $this->Auth->login('wolf', 'willem');
         
         $this->assertEquals(Auth::UNKNOWN_USER, $this->Auth->getStatus(), 'status');
@@ -180,7 +180,7 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
      */
     public function testLogin_INCORRECT_PASSWORD()
     {
-        $this->setExpectedException('Q\Auth_Login_Exception', "Unknown user");
+        $this->setExpectedException('Q\Auth_LoginException', "Unknown user");
         $this->Auth->login('monkey', 'rudolf');
         
         $this->assertFalse($this->Auth->isLoggedIn());
@@ -195,7 +195,7 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
      */
     public function testLogin_INACTIVE_USER()
     {
-        $this->setExpectedException('Q\Auth_Login_Exception', "Inactive user");
+        $this->setExpectedException('Q\Auth_LoginException', "Inactive user");
         $this->Auth->login('baboon', 'ben');
         
         $this->assertFalse($this->Auth->isLoggedIn());
@@ -209,7 +209,7 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
      */
     public function testLogin_PASSWORD_EXPIRED()
     {
-        $this->setExpectedException('Q\Auth_PasswordExpired_Exception', "Password expired");
+        $this->setExpectedException('Q\Auth_ExpiredException', "Password expired");
         $this->Auth->login('gorilla', 'george');
         
         $this->assertFalse($this->Auth->isLoggedIn());
@@ -234,7 +234,7 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
         $this->assertNotNull($this->Auth->user(), 'user');
         $this->assertEquals(1, $this->Auth->user()->getId(), 'id');
         
-        $this->setExpectedException('Q\Auth_Session_Exception', 'No session');
+        $this->setExpectedException('Q\Auth_SessionException', 'No session');
         $this->Auth->authz();
     }
 
@@ -264,7 +264,7 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
      */
     public function testAuthz_NO_SESSION()
     {
-        $this->setExpectedException('Q\Auth_Session_Exception');
+        $this->setExpectedException('Q\Auth_SessionException');
         $this->Auth->authz();
         
         $this->assertEquals(Auth::UNKNOWN_USER, $this->Auth->getStatus(), 'status code');
@@ -279,7 +279,7 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
         putenv('AUTH=' . escapeshellarg(Q\implode_assoc(";", array('uid'=>7, 'checksum'=>md5(7 . 's3cret')))));
         $this->Auth->checksumPassword = false;
         
-        $this->setExpectedException('Q\Auth_Session_Exception', "Unknown user");
+        $this->setExpectedException('Q\Auth_SessionException', "Unknown user");
         $this->Auth->authz();
         
         $this->assertEquals(Auth::UNKNOWN_USER, $this->Auth->getStatus(), 'status code');
@@ -293,7 +293,7 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
     {
         putenv('AUTH=' . escapeshellarg(Q\implode_assoc(";", array('uid'=>2, 'checksum'=>md5(2 . md5('ben') . 's3cret')))));
         
-        $this->setExpectedException('Q\Auth_Session_Exception', "Inactive user");
+        $this->setExpectedException('Q\Auth_SessionException', "Inactive user");
         $this->Auth->authz();
         
         $this->assertEquals(Auth::INACTIVE_USER, $this->Auth->getStatus(), 'status code');
@@ -324,7 +324,7 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
     {
         putenv('AUTH=' . escapeshellarg(Q\implode_assoc(";", array('uid'=>1, 'checksum'=>md5(1 . md5('abc') . 's3cret')))));
         
-        $this->setExpectedException('Q\Auth_Session_Exception', "Invalid session checksum");
+        $this->setExpectedException('Q\Auth_SessionException', "Invalid session checksum");
         $this->Auth->authz();
         
         $this->assertEquals(Auth::INVALID_CHECKSUM, $this->Auth->getStatus(), 'status code');
@@ -339,7 +339,7 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
     {
         putenv('AUTH=' . escapeshellarg(Q\implode_assoc(";", array('uid'=>1))));
                 
-        $this->setExpectedException('Q\Auth_Session_Exception', "Invalid session checksum");
+        $this->setExpectedException('Q\Auth_SessionException', "Invalid session checksum");
         $this->Auth->authz();
         
         $this->assertEquals(Auth::INVALID_CHECKSUM, $this->Auth->getStatus(), 'status code');
@@ -380,7 +380,7 @@ class Auth_MainTest extends PHPUnit_Framework_TestCase
         $this->Auth->loginAttempts = 1;
         $this->Auth->isBlocked('10.0.0.1', 5);
         
-        $this->setExpectedException('Q\Auth_Login_Exception', "Host blocked");
+        $this->setExpectedException('Q\Auth_LoginException', "Host blocked");
         $this->Auth->login('monkey', 'mark');
     }
 

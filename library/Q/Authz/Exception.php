@@ -1,7 +1,7 @@
 <?php
 namespace Q;
 
-require_once 'Auth/Exception.php';
+require_once 'Q/Auth/Exception.php';
 
 /**
  * Authorization exception

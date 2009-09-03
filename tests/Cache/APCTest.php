@@ -14,6 +14,8 @@ class Cache_APCTest extends Cache_MainTest
 	 */
 	protected function setUp()
 	{
+		if (!extension_loaded('apc')) $this->markTestSkipped("Unable to test Cache_APC; APC extension is not loaded.");
+		
 		$this->Cache = new Cache_APC();
 		parent::setUp();
 	}

@@ -29,6 +29,6 @@ class Fs_Symlink_Dir extends Fs_Dir implements Fs_Symlink
 	 */
 	public function getTarget()
 	{
-		return Fs::get(readlink($this->path));
+		return Fs::get(readlink($this->_path));
 	}
 }

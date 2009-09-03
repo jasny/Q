@@ -6,7 +6,7 @@ require_once 'Q/Fs';
 /**
  * Base class for any type of file on the filesystem.
  * 
- * {@internal An object should only have property $path so `Fs_item == Fs_item` will give the expected result.}} 
+ * {@internal An object should only have property $_path so `Fs_item == Fs_item` will give the expected result.}} 
  * 
  * @package Fs
  */
@@ -16,7 +16,7 @@ abstract class Fs_Item implements \ArrayAccess
 	 * File path.
 	 * @var string
 	 */
-	protected $path;
+	protected $_path;
 
 	
 	/**
@@ -26,7 +26,7 @@ abstract class Fs_Item implements \ArrayAccess
 	 */
 	public function __construct($path)
 	{
-		$this->path = Fs::canonicalize((string)$path);
+		$this->_path = Fs::canonicalize($path);
 	}
 	
 	/**
@@ -36,7 +36,7 @@ abstract class Fs_Item implements \ArrayAccess
 	 */
 	public function __toString()
 	{
-		return $this->path;
+		return $this->_path;
 	}
 	
 	
@@ -47,7 +47,7 @@ abstract class Fs_Item implements \ArrayAccess
 	 */
 	public function path()
 	{
-		return $this->path;
+		return $this->_path;
 	}
 	
 	/**
@@ -57,7 +57,7 @@ abstract class Fs_Item implements \ArrayAccess
 	 */
 	public function basename()
 	{
-		return basename($this->path);
+		return basename($this->_path);
 	}
 	
 	/**
@@ -67,7 +67,7 @@ abstract class Fs_Item implements \ArrayAccess
 	 */
 	public function dirname()
 	{
-		return dirname($this->path);
+		return dirname($this->_path);
 	}
 	
 	/**
@@ -77,7 +77,7 @@ abstract class Fs_Item implements \ArrayAccess
 	 */
 	public function extenstion()
 	{
-		return pathinfo($this->path, PATHINFO_EXTENSION);
+		return pathinfo($this->_path, PATHINFO_EXTENSION);
 	}
 	
 	/**
@@ -87,7 +87,7 @@ abstract class Fs_Item implements \ArrayAccess
 	 */
 	public function extenstion()
 	{
-		return pathinfo($this->path, PATHINFO_FILENAME);
+		return pathinfo($this->_path, PATHINFO_FILENAME);
 	}
 	
 	
@@ -99,7 +99,7 @@ abstract class Fs_Item implements \ArrayAccess
  	 */
  	public function __get($name)
  	{
- 		throw new Fs_Exception("Unable to get {$this->path}/$name; File {$this->path} is not a directory.");
+ 		throw new Fs_Exception("Unable to get {$this->_path}/$name; File {$this->_path} is not a directory.");
  	}
 	
  	/**
@@ -110,7 +110,7 @@ abstract class Fs_Item implements \ArrayAccess
  	 */
  	public function file($name)
  	{
- 		throw new Fs_Exception("Unable to get {$this->path}/$name; File {$this->path} is not a directory.");
+ 		throw new Fs_Exception("Unable to get {$this->_path}/$name; File {$this->_path} is not a directory.");
  	}
  	
  	/**
@@ -121,7 +121,7 @@ abstract class Fs_Item implements \ArrayAccess
  	 */
  	public function dir($name)
  	{
- 		throw new Fs_Exception("Unable to get {$this->path}/$name; File {$this->path} is not a directory.");
+ 		throw new Fs_Exception("Unable to get {$this->_path}/$name; File {$this->_path} is not a directory.");
  	}
  	
 	/**
@@ -131,7 +131,7 @@ abstract class Fs_Item implements \ArrayAccess
 	 */
 	public function realpath()
 	{
-		return Fs::get(realpath($this->path));
+		return Fs::get(realpath($this->_path));
 	}
 	
  	/**
@@ -153,11 +153,11 @@ abstract class Fs_Item implements \ArrayAccess
 	 */
 	public function stat($flags=0)
 	{
-		$stat = $flags & Fs::DONTFOLLOW ? @lstat($this->path) : @stat($this->path);
+		$stat = $flags & Fs::DONTFOLLOW ? @lstat($this->_path) : @stat($this->_path);
 		
 		if ($stat === false) {
 			$err = error_get_last();
-			throw new Fs_Exception("Failed to stat {$this->path}; " . $err['message']);
+			throw new Fs_Exception("Failed to stat {$this->_path}; " . $err['message']);
 		}
 		
 		return $stat;
@@ -172,13 +172,13 @@ abstract class Fs_Item implements \ArrayAccess
 	 */
 	public function getXattributes($flags=0)
 	{
-		if (!extension_loaded('xattr') || !xattr_supported($this->path, $flags)) throw new Fs_Exception("Unable to get attributes of {$this->path}; Extended attributes are not supported.");
+		if (!extension_loaded('xattr') || !xattr_supported($this->_path, $flags)) throw new Fs_Exception("Unable to get attributes of {$this->_path}; Extended attributes are not supported.");
 		
 		$attr = @xattr_list($this->file, $flags);
 		
 		if ($attr === false) {
 			$err = error_get_last();
-			throw new Fs_Exception("Failed to get extended attributes of {$this->path}; " . $err['message']);
+			throw new Fs_Exception("Failed to get extended attributes of {$this->_path}; " . $err['message']);
 		}
 		
 		return $attr;		
@@ -192,7 +192,7 @@ abstract class Fs_Item implements \ArrayAccess
      */
     public function clearStatCache($clear_realpath_cache=false)
     {
-    	clearstatcache($clear_realpath_cache, $this->path);
+    	clearstatcache($clear_realpath_cache, $this->_path);
     }
     
     /**
@@ -207,7 +207,7 @@ abstract class Fs_Item implements \ArrayAccess
     	if ($time instanceof \DateTime) $time = $time->getTimestamp();
     	if ($atime instanceof \DateTime) $atime = $atime->getTimestamp();
     	
-    	touch($this->path, $time, $atime);
+    	touch($this->_path, $time, $atime);
     }
     
     /**
@@ -223,12 +223,12 @@ abstract class Fs_Item implements \ArrayAccess
     	$stat = $this->stat($flags);
     	if (isset($stat[$att])) return $stat[$att];
     	
-    	if (!extension_loaded('xattr') || !xattr_supported($this->path, $flags)) {
-	    	trigger_error("Unable to get attribute '$att' of {$this->path}; Extended attributes are not supported.", E_USER_NOTICE);
+    	if (!extension_loaded('xattr') || !xattr_supported($this->_path, $flags)) {
+	    	trigger_error("Unable to get attribute '$att' of {$this->_path}; Extended attributes are not supported.", E_USER_NOTICE);
 	    	return null;
     	}
     	
-    	$value = xattr_get($this->path, $att);
+    	$value = xattr_get($this->_path, $att);
     	return $value !== false ? $value : null;
     }
 	
@@ -247,7 +247,7 @@ abstract class Fs_Item implements \ArrayAccess
     		case 'inode':
     		case 'type':  throw new Exception("Unable to set attribute '$att'; Attribute is read-only.");
     		
-    		case 'atime': return $this->touch(filemtime($this->path), $value);
+    		case 'atime': return $this->touch(filemtime($this->_path), $value);
     		case 'ctime': throw new Exception("Unable to set attribute '$att'; Attribute is read-only.");
     		case 'mtime': return $this->touch($value);
 
@@ -258,8 +258,8 @@ abstract class Fs_Item implements \ArrayAccess
     		case 'group_name': return $this->chgrp($value, $flags);
     	}
     	
-    	if (!extension_loaded('xattr') || !xattr_supported($this->path, $flags)) throw new Exception("Unable to set attribute '$att'; Not a file attribute and extended attributes are not supported.");
-    	return $value === null ? xattr_remove($this->path, $att, $flags) : xattr_set($this->path, $att, $value, $flags);
+    	if (!extension_loaded('xattr') || !xattr_supported($this->_path, $flags)) throw new Exception("Unable to set attribute '$att'; Not a file attribute and extended attributes are not supported.");
+    	return $value === null ? xattr_remove($this->_path, $att, $flags) : xattr_set($this->_path, $att, $value, $flags);
 	}
 	
 	/**
@@ -271,7 +271,7 @@ abstract class Fs_Item implements \ArrayAccess
 	public function offsetExists($att)
 	{
 		return in_array($att, array('size', 'inode', 'type', 'atime', 'ctime', 'mtime', 'perms', 'owner', 'owner_name', 'group', 'group_name'))
-		  || (extension_loaded('xattr') && xattr_supported($this->path) && xattr_get($this->path, $att) !== false); 
+		  || (extension_loaded('xattr') && xattr_supported($this->_path) && xattr_get($this->_path, $att) !== false); 
 	}
 	
 	/**
@@ -314,7 +314,7 @@ abstract class Fs_Item implements \ArrayAccess
 	 */
 	public function exists()
 	{
-		return file_exists($this->path);
+		return file_exists($this->_path);
 	}
 	
 	/**
@@ -324,7 +324,7 @@ abstract class Fs_Item implements \ArrayAccess
 	 */
 	public function isExecutable()
 	{
-		return is_executable($this->path);
+		return is_executable($this->_path);
 	}
 	
 	/**
@@ -334,7 +334,7 @@ abstract class Fs_Item implements \ArrayAccess
 	 */
 	public function isReadable()
 	{
-		return is_readable($this->path);
+		return is_readable($this->_path);
 	}
 	
 	/**
@@ -344,7 +344,7 @@ abstract class Fs_Item implements \ArrayAccess
 	 */
 	public function isWritable()
 	{
-		return is_writable($this->path);
+		return is_writable($this->_path);
 	}
 	
 	/**
@@ -379,7 +379,7 @@ abstract class Fs_Item implements \ArrayAccess
 	 */
 	public function isHidden()
 	{
-		return $this->path[0] == '.';
+		return $this->_path[0] == '.';
 	}
 	
 	
@@ -396,7 +396,7 @@ abstract class Fs_Item implements \ArrayAccess
 	public static function chmod($mode, $flags=0)
 	{
 		if (is_int($mode)) $mode = sprintf('%0-4o', $mode);
-		Fs::which('chmod')->exec($mode, $this->path, $flags & self::RECURSIVE ? '--recursive' : null);
+		Fs::bin('chmod')->exec($mode, $this->_path, $flags & self::RECURSIVE ? '--recursive' : null);
 	}
 
     /**
@@ -410,7 +410,7 @@ abstract class Fs_Item implements \ArrayAccess
      */
 	public static function chown($owner, $flags=0)
 	{
-		Fs::which('chown')->exec($owner, $this->path, $flags & self::RECURSIVE ? '--recursive' : null, $flags & self::DONTFOLLOW ? '--no-dereference' : null, $flags & self::ALWAYSFOLLOW ? '-L' : null);
+		Fs::bin('chown')->exec($owner, $this->_path, $flags & self::RECURSIVE ? '--recursive' : null, $flags & self::DONTFOLLOW ? '--no-dereference' : null, $flags & self::ALWAYSFOLLOW ? '-L' : null);
 	}
 	
     /**
@@ -424,7 +424,7 @@ abstract class Fs_Item implements \ArrayAccess
      */
 	public static function chgrp($group, $flags=0)
 	{
-		Fs::which('chgrp')->exec($group, $this->path, $flags & Fs::RECURSIVE ? '--recursive' : null, $flags & Fs::DONTFOLLOW ? '--no-dereference' : null, $flags & Fs::ALWAYSFOLLOW ? '-L' : null);
+		Fs::bin('chgrp')->exec($group, $this->_path, $flags & Fs::RECURSIVE ? '--recursive' : null, $flags & Fs::DONTFOLLOW ? '--no-dereference' : null, $flags & Fs::ALWAYSFOLLOW ? '-L' : null);
 	}	
 	
 	
@@ -438,7 +438,7 @@ abstract class Fs_Item implements \ArrayAccess
 	 */
 	public function copy($dest, $flags=0)
 	{
-		Fs::which('cp')->exec($this->path, $dest, $flags & Fs::RECURSIVE ? '--recursive' : null, $flags & Fs::DONTFOLLOW ? '--no-dereference' : null, $flags & Fs::ALWAYSFOLLOW ? '--dereference' : null, $flags & Fs::PRESERVE ? '--preserve' : null, $flags & Fs::OVERWRITE ? '--force' : null, $flags & Fs::UPDATE ? '--update' : null);
+		Fs::bin('cp')->exec($this->_path, $dest, $flags & Fs::RECURSIVE ? '--recursive' : null, $flags & Fs::DONTFOLLOW ? '--no-dereference' : null, $flags & Fs::ALWAYSFOLLOW ? '--dereference' : null, $flags & Fs::PRESERVE ? '--preserve' : null, $flags & Fs::OVERWRITE ? '--force' : null, $flags & Fs::UPDATE ? '--update' : null);
 		return Fs::get($dest);
 	}
 	
@@ -451,7 +451,7 @@ abstract class Fs_Item implements \ArrayAccess
 	 */
 	public function rename($dest, $flags=0)
 	{
-		Fs::which('mv')->exec($this->path, $dest, $flags & Fs::OVERWRITE ? '--force' : null, $flags & Fs::UPDATE ? '--update' : null);
+		Fs::bin('mv')->exec($this->_path, $dest, $flags & Fs::OVERWRITE ? '--force' : null, $flags & Fs::UPDATE ? '--update' : null);
 		return Fs::get($dest);
 	}
 
@@ -474,7 +474,7 @@ abstract class Fs_Item implements \ArrayAccess
 	 */
 	public function delete($flags=0)
 	{
-		Fs::which('rm')->exec($this->path, '--interactive=none', $flags & Fs::RECURSIVE ? '--recursive' : null);
+		Fs::bin('rm')->exec($this->_path, '--interactive=none', $flags & Fs::RECURSIVE ? '--recursive' : null);
 	}
 
 	/**
@@ -496,6 +496,18 @@ abstract class Fs_Item implements \ArrayAccess
 	 */
 	public function __invoke()
 	{
-		throw new Fs_Exception("Unable to execute {$this->path}; This is not a regular file, but a " . filetype((string)$this->realpath()) . ".");
-	}	
+		throw new Fs_Exception("Unable to execute {$this->_path}; This is not a regular file, but a " . filetype((string)$this->realpath()) . ".");
+	}
+	
+	/**
+	 * This static method is called for classes exported by var_export(). 
+	 *  
+	 * @param array $props
+	 * @return Fs_Item
+	 */
+	public static function __set_state($props)
+	{
+		$class = get_called_class();
+		return new $class($props['_path']);
+	}
 }

@@ -29,6 +29,6 @@ class Fs_Symlink_Fifo extends Fs_Fifo implements Fs_Symlink
 	 */
 	public function getTarget()
 	{
-		return Fs::get(readlink($this->path));
+		return Fs::get(readlink($this->_path));
 	}
 }

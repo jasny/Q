@@ -33,7 +33,7 @@ class Fs_Socket extends Fs_Item
 	{
 		$errno = null;
 		$errstr = null;
-		$resource = stream_socket_client('unix://' . $this->path, $errno, $errstr);
+		$resource = stream_socket_client('unix://' . $this->_path, $errno, $errstr);
 
 		if (!$resource) throw new Fs_Exception("Failed to open socket; " . $errstr);
 		return $resource;

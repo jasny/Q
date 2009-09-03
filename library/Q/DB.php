@@ -4,6 +4,9 @@ namespace Q;
 // DB exceptions are defined below
 require_once 'Q/Exception.php';
 require_once 'Q/SecurityException.php';
+require_once 'Q/DB/Exception.php';
+require_once 'Q/DB/ConstraintException.php';
+
 require_once 'Q/Cache.php';
 require_once 'Q/Config.php';
 require_once 'Q/DB/Result.php';
