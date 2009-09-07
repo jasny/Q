@@ -3,6 +3,7 @@ namespace Q;
 
 require_once 'Q/Route/Handler.php';
 require_once 'Q/Exception.php';
+require_once 'Q/Controller.php';
 
 /**
  * Base class to route requests.
@@ -42,10 +43,15 @@ abstract class Route implements Route_Handler
      */
     public $path;
     
+    /**
+     * Check if object is actually a controller.
+     * @var boolean
+     */
+    public $checkController = true;
+    
     
     /**
      * Always use this controller.
-     * 
      * @var string|object
      */
     public $controller;
@@ -73,13 +79,13 @@ abstract class Route implements Route_Handler
      * Prefix to the controller name for the controller class.
      * @var string
      */
-    public $controllerPrefix = '';
+    public $controllerPrefix;
 
     /**
      * Suffix to the controller name for the controller class.
      * @var string
      */
-    public $controllerSuffix = '';
+    public $controllerSuffix;
     
     
     /**
@@ -123,7 +129,7 @@ abstract class Route implements Route_Handler
      * Prefix for authz group.
      * @var string
      */
-    public $authzGroupPrefix = '';
+    public $authzGroupPrefix;
     
     /**
      * Character to use between controller name and method for AUTHZ_METHOD.
@@ -191,7 +197,16 @@ abstract class Route implements Route_Handler
      */
     public function __construct($options)
     {
-        foreach ($props as $key=>$value) {
+    	if (isset($options['autz']) && is_string($options['autz']) && !ctype_digit($options['autz'])) {
+    		switch ($options['autz']) {
+    			case 'none':   $options['autz'] = self::AUTHZ_NONE; break;
+    			case 'ctl':    $options['ctl'] = self::AUTHZ_CTL; break;
+    			case 'method': $options['method'] = self::AUTHZ_METHOD; break;
+    			default: throw new Exception("Invalid value '{$options['autz']}' specified for router option 'autz'.");
+    		}
+    	} 
+    	
+        foreach ($options as $key=>$value) {
             $this->$key = $value;
         }
     }
@@ -231,7 +246,7 @@ abstract class Route implements Route_Handler
     {
         $ctl = $this->getController();
         if (empty($ctl)) throw new NotFoundException("No controller selected.");
-        if (!is_object($ctl) && preg_match('/[^\w-]/', $ctl)) throw new SecurityException("Invalid controller name '{$ctl}'.");
+        if ($this->checkController && !($ctl instanceof Controller)) throw new SecurityException("Loaded object is not a controller.");
         
         $method = $this->getMethod();
         

@@ -125,7 +125,20 @@ function extract_dsn($dsn)
 }
 
 
-// -------- Integer -------
+// -------- Array -------
+
+/**
+ * Create a binary set, by doing each key to the power of 2.
+ *
+ * @param array $array  An array with numeric keys
+ * @return array
+ */
+function binset(array $array)
+{
+    $result = array();
+    foreach ($array as $i=>$item) $result[pow(2, $i)] = $item;
+    return $result;
+}
 
 /**
  * Split all items in a binairy set
@@ -144,22 +157,6 @@ function split_binset($value)
 		$count++;
 	}
 	return $array;
-}
-
-
-// -------- Array -------
-
-/**
- * Create a binary set, by doing each key to the power of 2.
- *
- * @param array $array  An array with numeric keys
- * @return array
- */
-function binset(array $array)
-{
-    $result = array();
-    foreach ($array as $i=>$item) $result[pow(2, $i)] = $item;
-    return $result;
 }
 
 /**
@@ -289,10 +286,10 @@ function array_combine_assoc(array $array, $key=null, $glue='.')
  * The values of each part are dependencies on another part, like in the syntax in a MAKE file. The first item has no dependencies,
  *  the second item can only have dependencies on the first item, etc.
  * 
- * @example refsort('p2'=>array('ch1', 'ch3', 'ch4'), 'p1'=>array('ch1', 'p2'), 'ch1'=>null, 'ch3'=>null));
- * Result: array('ch3'=>null, 'ch1'=>null, 'p2'=>array('ch1', 'ch3', 'ch4'), 'p1'=>array('ch1', 'p2'))
- * Parts 'c1' and 'c2' are placed before 'p2' because there are found in the array of 'p2'. Part 'p2' is 
- *  placed before 'p1', because 'p2' is used in 'p1'.
+ * {@example refsort('p2'=>array('ch1', 'ch3', 'ch4'), 'p1'=>array('ch1', 'p2'), 'ch1'=>null, 'ch3'=>null));
+ * // Result: array('ch3'=>null, 'ch1'=>null, 'p2'=>array('ch1', 'ch3', 'ch4'), 'p1'=>array('ch1', 'p2'))
+ * // Parts 'c1' and 'c2' are placed before 'p2' because there are found in the array of 'p2'. Part 'p2' is 
+ * //  placed before 'p1', because 'p2' is used in 'p1'.}}
  * 
  * @param array $array       array(key=>array(), ...)
  * @param int   $sort_flags  Allowed flags: SORT_ASC, SORT_DESC
