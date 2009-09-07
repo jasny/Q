@@ -110,7 +110,7 @@ class DB_MySQL_AdvancedTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals('test', $td->getName());
 		$this->assertEquals('test', $td->getTablename());
 		
-		$this->assertSame($this->conn, $td->getLink());
+		$this->assertSame($this->conn, $td->getConnection());
 	}
 
 	/**
@@ -124,7 +124,7 @@ class DB_MySQL_AdvancedTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals('test', $td->getTablename());
 		$this->assertEquals('recordTest', $td->getRecordType());
 		
-		$this->assertSame($this->conn, $td->getLink());
+		$this->assertSame($this->conn, $td->getConnection());
 	}
 	
 	/**

@@ -101,7 +101,7 @@ class DB_Field implements \ArrayAccess
 	        $this->link = $parent;
 	    } else {
 	        $this->parent = $parent;
-	        $this->link = $parent->getLink();
+	        $this->link = $parent->getConnection();
 	    }
 	    
 		$this->properties = $properties;
@@ -162,7 +162,7 @@ class DB_Field implements \ArrayAccess
 	 * 
 	 * @return DB
 	 */
-	public function getLink()
+	public function getConnection()
 	{
 		return $this->link;
 	}
@@ -206,7 +206,7 @@ class DB_Field implements \ArrayAccess
 	    $field = clone $this;
 	    
 	    $field->parent = $parent;
-	    if (isset($parent)) $field->link = $parent->getLink();
+	    if (isset($parent)) $field->link = $parent->getConnection();
 
 	    $field->mode = self::MODE_ACTIVE;
 	    if (isset($this->properties['default'])) $field->originalValue = $field->value = $this->properties['default'];

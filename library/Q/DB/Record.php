@@ -95,7 +95,7 @@ class DB_Record
 				$this->_fieldIndex[$key] = array_push($this->_fields, DB_Field::create(null, array('name'=>$key, 'table'=>null, 'type'=>gettype($value)), $value)) - 1;
 			}
 		} else {
-			$this->_link = $source->getLink();
+			$this->_link = $source->getConnection();
 			$this->_baseTable = $source instanceof DB_Table ? $source : $source->getBasetable();   
 			
             list($fields, $this->_fieldIndex, $this->_fieldnames, $this->_tablerefs) = $source->getInternalInfo();
@@ -145,7 +145,7 @@ class DB_Record
 	 * 
 	 * @return DB
 	 */
-	public function getLink()
+	public function getConnection()
 	{
 		return $this->_link;
 	}

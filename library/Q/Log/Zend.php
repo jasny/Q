@@ -1,7 +1,7 @@
 <?php
 namespace Q;
 
-require_once 'Q/Log/Handler.php';
+require_once 'Q/Logger.php';
 require_once 'Zend/Log.php';
 require_once 'Zend/Log/Filter/Priority.php';
 
@@ -10,7 +10,7 @@ require_once 'Zend/Log/Filter/Priority.php';
  * 
  * @package Log
  */
-class Log_Zend implements Log_Handler  
+class Log_Zend implements Logger  
 {
 	/**
 	 * Alias for types

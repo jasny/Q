@@ -3,20 +3,15 @@ namespace Q;
 
 require_once 'Q/misc.php';
 require_once 'Q/Exception.php';
-require_once 'Transform/Handler.php';
+require_once 'Q/Transformer.php';
+require_once 'Q/Factory.php';
 
 /**
- * Class Factory for a class that can transform data
+ * Base class for Transform interfaces.
  *  * @package Transform
  */
-abstract class Transform implements Transform_Handler
+abstract class Transform implements Transformer, Factory
 {
-	/**
-	 * Cache interface
-	 * @var Q\Transform
-	 */
-	static protected $instance;
-
 	/**
 	 * Drivers with classname.
 	 * @var array
@@ -36,13 +31,13 @@ abstract class Transform implements Transform_Handler
      */
     protected $chainNext;
 	
+    
 	/**
-	 * Create a new transformation interface.
-	 * @static
+	 * Create a new Transform interface.
 	 *
 	 * @param string|array $dsn      Transformation options, may be serialized as assoc set (string)
 	 * @param array        $options  Other options (will be overwriten by DSN)
-	 * @return Transform
+	 * @return Transformer
 	 */
 	public static function with($dsn, $options=array())
 	{
@@ -83,102 +78,4 @@ abstract class Transform implements Transform_Handler
         if (!($transform instanceof Transform)) $transform = self::with($transform);
         $this->chainNext = $transform;
     }
-    
-	/**
-	 * Magic get method: get settings
-	 *
-	 * @param string $key
-	 * @return mixed
-	 */
-/*
-	public function __get($key)
-	{
-		return $this->get($key);
-	}
-*/	
-	/**
-	 * Magic set method: put settings
-	 *
-	 * @param string $key
-	 * @param mixed  $value
-	 */
-/*
-	public function __set($key, $value)
-	{
-		$this->set($key, $value);
-	}
-*/
 }
-
-/**
- * Mock object to create transform instance.
- * @ignore 
- */
-class Transform_Mock
-{
-    /**
-     * Instance name
-     * @var string
-     */
-    protected $_name;
-    
-    /**
-     * Class constructor
-     *
-     * @param string $name
-     */
-    public function __construct($name)
-    {
-        $this->_name = $name;
-    }
-    
-	/**
-	 * Create a new transform interface instance.
-	 *
-	 * @param string|array $dsn      Transformation options, may be serialized as assoc set (string)
-	 * @param array        $options  Other options (will be overwriten by DSN)
-	 * @return Config
-	 */
-	public function with($dsn, $options=array())
-	{
-	    if (isset(self::$instance)) throw new Exception("Transform_Mock instance is already created.");
-	    
-		$options = (is_scalar($dsn) ? extract_dsn($dsn) : (array)$dsn) + (array)$options;
-	    return new self($options);
-	}
-    
-    /**
-     * Magic get method
-     *
-     * @param string $key
-     * 
-     * @throws Q\Exception because this means that the instance is used, but does not exist.  
-     */
-    public function __get($key)
-    {
-        $name = $this->_name;
-        throw new Exception("Config interface '{$this->_name}' does not exist.");
-    }
-
-    /**
-     * Magic set method
-     *
-     * @param string $key
-     * @param mixed  $value
-     * 
-     * @throws Q\Exception because this means that the instance is used, but does not exist.  
-     */
-    public function __set($key, $value)
-    {
-        $name = $this->_name;
-        throw new Exception("Config interface '{$this->_name}' does not exist.");
-    }
-}
-if (class_exists('Q\ClassConfig', false)) ClassConfig::applyToClass('Q\SiteTemplate');
-
-/*
-$transform = Transform::with('xsl:my.xsl');
-$transform->chainInput(Tranform::with('php:data2xml.php'));
-
-$transform->process($somedata);
-*/

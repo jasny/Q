@@ -14,26 +14,14 @@ require_once 'Q/DB/Field.php';
  * 
  * @todo Add factory method
  */
-class DB_Table implements \ArrayAccess
+class DB_Table extends \ArrayObject
 {
     /**
 	 * Database connection
 	 * @var DB
 	 */
-	protected $_link;
+	protected $_connection;
 	
-	/**
-	 * The properties of the table
-	 * @var array
-	 */
-	protected $_properties;
-
-	/**
-	 * Field names.
-	 * @var array
-	 */
-	protected $_fieldnames;
-
 	/**
 	 * Field objects.
 	 * @var array
@@ -41,79 +29,36 @@ class DB_Table implements \ArrayAccess
 	protected $_fields = array();
 	
 	/**
-	 * Index of created fields.
-	 * @var array
-	 */
-	protected $_fieldindex = array();	
-
-	/**
-	 * Flag to indicate $this->_fields is fully set and in order.
-	 * @var boolean
-	 */
-	protected $_fieldsComplete = false;	
-	
-	/**
 	 * The class constructor
 	 *
-	 * @param Q\DB $link        Database connection
-	 * @param array $properties  Table properties (can be passed as reference)
+	 * @param DB    $conn        Database connection
+	 * @param array $properties  Table properties
 	 */
-	function __construct($link, $properties)
+	public function __construct($conn, $properties)
 	{
-		$this->_link = $link;
-		$this->_properties =& $properties;
-	}
+		$this->_connection = $conn;
 
-	
-	/**
-	 * Check if the tabledef property exists. 
-	 *
-	 * @param string $index
-	 * @return boolean
-	 */
-	public function offsetExists($index)
-	{
-		return isset($this->_properties['#table'][$index]);
+		parent::__construct($properties['#table']);
+		$this->createFields($properties);
 	}
 	
+	
 	/**
-	 * Get a tabledef property. 
+	 * ArrayAccess; Get a table property. 
 	 *
 	 * @param string $index
-	 * @return Log::Handler
+	 * @return mixed
 	 */
 	public function offsetGet($index)
  	{
- 	    if (!isset($this->_properties['#table'][$index])) return null;
- 		return $this->_properties['#table'][$index];
+ 		$value = parent::offsetGet($index);
+ 		return $this->_connection->looksLikeStatement($value) ? $this->_connection->prepare($value) : $value;
  	}
- 	
-	/**
-	 * Set a tabledef property. 
-	 *
-	 * @param string $index
-	 * @param mixed $value
-	 */ 	
- 	public function offsetSet($index, $value)
- 	{
- 		trigger_error("Setting a table property using ArrayAccess access is not supported, use setProperty instead. Trying to set '$index' for " . $this->getName(), E_USER_WARNING);
-    }
- 	
-	/**
-	 * Unset a tabledef property.
-	 *
-	 * @param string $index
-	 */
- 	public function offsetUnset($index)
- 	{
- 		trigger_error("Setting a table property using ArrayAccess is not supported, use setProperty instead. Trying to set '$index' for " . $this->getName(), E_USER_WARNING);
- 	}	
-
  	
 	/**
 	 * Magic get method: get a field
 	 *
-	 * @param  string  $name
+	 * @param string $name
 	 * @return DB_Field
 	 */
 	public function __get($index)
@@ -129,158 +74,57 @@ class DB_Table implements \ArrayAccess
 	 */
 	public function __set($name, $value)
 	{
-		trigger_error("It is not possible to add a field through the table gateway. Trying to add field to " . $this->getName(), E_WARNING);
+		if (!($value instanceof DB_Field)) throw new Exception("Unable to add a " . (is_object($value) ? get_class($value) : gettype($value)) . " as a field.");
+		if (!array_search($this->_fields, $value, true)) throw new Exception("You can only set an alias of a field, not add a new field.");
+		if (isset($this->fields[$name])) throw new Exception("You can't overwrite a real fieldname with an alias.");
+		
+		$this->fieldindex["#$name"] = $value;
 	}
 	
+	/**
+	 * Cast object to string. Alias of DB_Table::getName().
+	 * 
+	 * @return string
+	 */
     public function __toString()
     {  
-        return $this->getTableName();
+        return $this['name'];
     }  
 	
+    
 	/**
 	 * Get the database connection
 	 * 
 	 * @return DB
 	 */
-	public function getLink()
+	public function getConnection()
 	{
-		return $this->_link;
-	}
-
-	/**
-	 * Return the name for the table definition
-	 * 
-	 * @return string
-	 */
-	public function getName()
-	{
-		return $this->_properties['#table']['name'];
-	}
-
-	/**
-	 * Return the table name (as known in the database)
-	 * 
-	 * @return string
-	 */
-	public function getTableName()
-	{
-		return isset($this->_properties['#table']['table']) ? $this->_properties['#table']['table'] : null;
-	}
-		
-	/**
-	 * Return the factory name for the record
-	 * 
-	 * @return string
-	 */
-	public function getRecordType()
-	{
-		return isset($this->_properties['#table']['recordtype']) ? $this->_properties['#table']['recordtype'] : null;
-	}
-
-	/**
-	 * Return the names of the fields of this table
-	 * 
-	 * @return array
-	 */
-	public function getFieldnames()
-	{
-	    if (isset($this->_fieldnames)) return $this->_fieldnames;
-	    
-	    $this->_fieldnames = array();
-		foreach ($this->_properties as $fieldname=>&$props) {
-		    if ($fieldname[0] != '#' && !empty($props['table'])) $this->_fieldnames[] = $fieldname; 
-		}
-		return $this->_fieldnames;
+		return $this->_connection;
 	}
 	
-	/**
-	 * Return the fieldname(s) of the primairy key.
-	 *
-	 * @param boolean $autoIncrementOnly  Only return fields with the autoincrement feature
-	 * @param boolean $asIdentifier       Add table and quote
-	 * @return string|array
-	 */
-	public function getPrimaryKey($autoIncrementOnly=false, $asIdentifier=false)
-	{
-	    if (isset($this->_properties['#role:id'])) return $asIdentifier ? $this->getLink()->makeIdentifier($this->getTableName(), $this->_properties['#role:id']['name']) : $this->_properties['#role:id']['name'];
-	    if ($autoIncrementOnly) return null;
-	    
-	    $fields = null;
-	    foreach ($this->_properties as $name=>&$props) {
-	         if ($name[0] == '#') continue;
-	         if ($props['is_primary']) $fields[] = $asIdentifier ? $this->getLink()->makeIdentifier($this->getTableName(), $name) : $name;
-	    }
-	    
-	    return $fields;
-	}
 	
 	/**
-	 * Return the metadata properties of the table
-	 * 
-	 * @return array
-	 */
-	public function getProperties()
-	{
-		return $this->_properties;
-	}
-
-	/**
-	 * Get the properties from table definition
-	 *
-	 * @return array
-	 */
-	public function getTableProperties()
-	{
-		return $this->_properties['#table'];
-	}
-		
-	/**
-	 * Get a single property from table definition
+	 * Get a single property from table definition.
 	 *
 	 * @param string $index
 	 * @return mixed
 	 */
-	public function getTableProperty($index)
+	public function getProperty($index)
 	{
-		return isset($this->_properties['#table'][$index]) ? $this->_properties['#table'][$index] : null;
+		return $this->offsetGet($index);
 	}
-
-	/**
-	 * Get properties for a field.
-	 *
-	 * @param string $field
-	 * @return array
-	 */
-	public function getFieldProperties($field)
-	{
-		return isset($this->_properties[$field]) ? $this->_properties[$field] : null;
-	}
-		
-	/**
-	 * Get a single property for a field.
-	 *
-	 * @param string $field
-	 * @param string $index
-	 * @return mixed
-	 */
-	public function getFieldProperty($field, $index)
-	{
-		return isset($this->_properties[$field][$index]) ? $this->_properties[$field][$index] : null;
-	}
-
 	
 	/**
-	 * Set the metadata properties of the table.
+	 * Set a single propertiy for table definition.
 	 * (fluent interface)
 	 * 
-	 * @param array $properties  array(field=>array(index=>value, ...), ...)
+	 * @param string $key
+	 * @param mixed  $value
 	 * @return DB_Table
 	 */
-	public function setProperties($properties)
+	public function setProperty($key, $value)
 	{
-		foreach ($properties as $field=>&$props) {
-			foreach ($props as $index=>$value) $this->_properties[$field][$index] = $value;
-		}
+		$this->offsetSet($key, $value);
 		return $this;
 	}
 	
@@ -288,67 +132,45 @@ class DB_Table implements \ArrayAccess
 	 * Set the properties for table definition.
 	 * (fluent interface)
 	 * 
-	 * @param array $properties  array(index=>value, ...)
+	 * @param array $properties  array(key=>value, ...)
 	 * @return DB_Table
 	 */
-	public function setTableProperties($properties)
+	public function setProperties($properties)
 	{
-		foreach ($properties as $index=>$value) $this->_properties['#table'][$index] = $value;
+		foreach ($properties as $key=>&$value) {
+			$this->offsetSet($key, $value);
+		}
+		
 		return $this;
 	}
 	
-	/**
-	 * Set a single propertiy for table definition.
-	 * (fluent interface)
-	 * 
-	 * @param string $index
-	 * @param mixed  $value
-	 * @return DB_Table
-	 */
-	public function setTableProperty($index, $value)
-	{
-		$this->_properties['#table'][$index] = $value;
-		return $this;
-	}
-
-	/**
-	 * Set the properties for a field.
-	 * (fluent interface)
-	 *
-	 * @param string $field
-	 * @param array  $properties
-	 * @return DB_Table
-	 */
-	public function setFieldProperties($field, $properties)
-	{
-		foreach ($properties as $index=>$value) $this->_properties[$field][$index] = $value;
-		return $this;
-	}
 	
 	/**
-	 * Set a single property for a field.
-	 * (fluent interface)
+	 * Return the field(s) of the primairy key.
 	 *
-	 * @param string $field
-	 * @param string $index
-	 * @param mixed  $value
-	 * @return DB_Table
+	 * @return DB_Field_Interface
 	 */
-	public function setFieldProperty($field, $index, $value)
+	public function getPrimaryKey()
 	{
-		$this->_properties[$field][$index] = $value;
-		return $this;
+	    if ($this->hasField('#role:id')) return $this->getField('#role:id');
+	    
+	    $pk = null;
+	    foreach ($this->fields as $name=>$field) {
+        	if ($field['is_primary']) $pk = !isset($pk) ? $field : new DB_Fields($pk, $field);
+	    }
+	    
+	    return $fields;
 	}
 	
 	/**
 	 * Return if the table has the field.
 	 *
-	 * @param string $index  Fieldname or index
+	 * @param string|int $index  Field name, alias or index
 	 * @return boolean
 	 */
 	public function hasField($index)
 	{
-	    return is_int($index) || ctype_digit($index) ? $index < count($this->getFieldnames()) : !empty($this->_properties[$index]['table']);
+	    return is_int($index) || ctype_digit($index) ? $index < count($this->_fields) : !empty($this->_fieldindex[$index]);
 	}
 	
 	/**
@@ -364,11 +186,11 @@ class DB_Table implements \ArrayAccess
 	    if (ctype_digit($index)) $index = (int)$index;
 	    if (isset($this->_fieldindex[$index])) throw new Exception("Still can't create field object for '$index': You know why.");
 	    if ($index === '#table') throw new Exception("Can't create a field object for '#table', that's the table not a field.");
-	    if (!is_int($index) && !isset($this->_properties[$index])) throw new Exception("Unknown field '$index'");
+	    if (!is_int($index) && !isset($this->___properties[$index])) throw new Exception("Unknown field '$index'");
 	    
 	    if ($index[0] === '#') {
-	        if (empty($this->_properties[$index]['table'])) throw new Exception("Can create field object for '$index': Column '{$this->_properties[$index]['name']}' is an expression.");
-	        $field = $this->_properties[$index]['name'];
+	        if (empty($this->___properties[$index]['table'])) throw new Exception("Can create field object for '$index': Column '{$this->___properties[$index]['name']}' is an expression.");
+	        $field = $this->___properties[$index]['name'];
 	    } elseif (is_int($index)) {
 	        $fieldnames = $this->getFieldnames();
 	        if (!isset($fieldnames[$index])) throw new Exception("Can create field object for field $index: Table has only " . count($fieldnames) . " fields.");
@@ -384,7 +206,7 @@ class DB_Table implements \ArrayAccess
 	        $field = $index;
 	    }
 	    
-		$i = array_push($this->_fields, DB_Field::create($this, &$this->_properties[$field]))-1;
+		$i = array_push($this->_fields, DB_Field::create($this, &$this->___properties[$field]))-1;
 		$this->_fieldindex[$field] =& $this->_fields[$i];
 		
 		return $this->_fields[$i];
@@ -404,7 +226,7 @@ class DB_Table implements \ArrayAccess
 	    $fieldnames = array();
 	    $aliases = array();
 
-	    foreach ($this->_properties as $fieldname=>$props) {
+	    foreach ($this->___properties as $fieldname=>$props) {
 	        if ($fieldname === '#table' || !isset($props['table'])) continue;
 	        
 	        if ($fieldname[0] === '#') {
@@ -413,15 +235,15 @@ class DB_Table implements \ArrayAccess
 	        }
 
 	        $fieldnames[] = $fieldname;
-	        $field = isset($this->_fieldindex[$fieldname]) ? $this->_fieldindex[$fieldname] : DB_Field::create($this, &$this->_properties[$fieldname]);
+	        $field = isset($this->_fieldindex[$fieldname]) ? $this->_fieldindex[$fieldname] : DB_Field::create($this, &$this->___properties[$fieldname]);
 	        $i = array_push($fields, $field) - 1;
 	        $fieldindex[$fieldname] =& $fields[$i];
 	        $fieldindex[$i] =& $fields[$i];
 	    }
 	    
 	    foreach ($aliases as $alias) {
-	        if (isset($this->_properties[$alias]['name']) && isset($fieldindex[$this->_properties[$alias]['name']])) {
-	            $fieldindex[$this->_properties[$alias]['name']] =& $fieldindex[$this->_properties[$alias]['name']];
+	        if (isset($this->___properties[$alias]['name']) && isset($fieldindex[$this->___properties[$alias]['name']])) {
+	            $fieldindex[$this->___properties[$alias]['name']] =& $fieldindex[$this->___properties[$alias]['name']];
 	        }
 	    }
 	    
@@ -457,8 +279,8 @@ class DB_Table implements \ArrayAccess
      */
     public function getInfo()
     {
-        if (!$this->getLink()) return null;
-        return $this->getLink()->getTableInfo($this->getName());
+        if (!$this->getConnection()) return null;
+        return $this->getConnection()->getTableInfo($this->getName());
     }
 	
     /**
@@ -471,8 +293,8 @@ class DB_Table implements \ArrayAccess
         $this->_fieldindex = array();
         $this->_fieldsComplete = false;
         
-        $this->getLink()->clearCache($this->getName());
-        $this->_properties =& $this->getLink()->getMetaData($this->getName());
+        $this->getConnection()->clearCache($this->getName());
+        $this->___properties =& $this->getConnection()->getMetaData($this->getName());
     }
     
     
@@ -489,17 +311,17 @@ class DB_Table implements \ArrayAccess
 	    if (!isset($id) && $resulttype != DB::FETCH_RECORD) throw new Exception("Loading a new record for any other result type than DB::FETCH_RECORD is not supported.");
 	    
 	    // No link or no table property, so create new record directly
-		if (!$this->getLink() || $this->getTablename() === null){
-			if (isset($id)) throw new DB_Exception("Unable to load a record for table definition '" . $this->getName() . "': " . (!$this->getLink() ? "No database connection" : "No 'table' property. Table might be virtual (does not exists in db)"));
+		if (!$this->getConnection() || $this->getTablename() === null){
+			if (isset($id)) throw new DB_Exception("Unable to load a record for table definition '" . $this->getName() . "': " . (!$this->getConnection() ? "No database connection" : "No 'table' property. Table might be virtual (does not exists in db)"));
 			return DB_Record::create($this);
 		}
 		
 		// Create a record using though a query result
-		if (isset($mode) && isset($this->_properties['#table']["load.$mode"])) $statement = $this->_properties['#table']["load.$mode"];
-		  elseif (isset($this->_properties['#table']['load'])) $statement = $this->_properties['#table']['load'];
-		  else $statement = $this->_properties['#table']['view'];
+		if (isset($mode) && isset($this->___properties['#table']["load.$mode"])) $statement = $this->___properties['#table']["load.$mode"];
+		  elseif (isset($this->___properties['#table']['load'])) $statement = $this->___properties['#table']['load'];
+		  else $statement = $this->___properties['#table']['view'];
 		
-		$result = $this->getLink()->prepareSelect($this, $statement, isset($id) ? $id : false, isset($this->_properties['#table']['filter']) ? $this->_properties['#table']['filter'] : null)->execute();
+		$result = $this->getConnection()->prepareSelect($this, $statement, isset($id) ? $id : false, isset($this->___properties['#table']['filter']) ? $this->___properties['#table']['filter'] : null)->execute();
 		return isset($id) ? $result->fetchRow($resulttype) : $result->newRecord();
 	}
 
@@ -524,7 +346,7 @@ class DB_Table implements \ArrayAccess
     	    foreach ($pk as $i=>$fieldname) {
     	        if (isset($values[$fieldname]) && $values[$fieldname] !== '') $id[$i] = $values[$fieldname];
     	          elseif (isset($values["$tablename.$fieldname"])) $id[$i] = $values["$tablename.$fieldname"];
-    	          elseif (($p = array_search($fieldname, $this->_properties)) && isset($values[$p])) $id[$i] = $values[$p];
+    	          elseif (($p = array_search($fieldname, $this->___properties)) && isset($values[$p])) $id[$i] = $values[$p];
     	    }
     	    if (isset($id) && count($id) != count($pk)) $id = null;
 	    }
@@ -546,62 +368,8 @@ class DB_Table implements \ArrayAccess
 	 */
 	function delete($id, $constraint=DB::SINGLE_ROW)
 	{
-	    if (isset($this->_properties['#table']['filter']) && $this->load($id, null, DB::FETCH_ORDERED) === null) return;
-		$this->_link->delete($this->getTablename(), $id, $constraint);
-	}
-	
-	
-	/**
-	 * Prepare a query statement for this the table definition.
-	 *
-	 * @param string $property  Property name (or array with fieldnames)
-	 * @param array  $fields    Additional fieldnames. Fieldnames may include mapping links, eg; '#role:status' or '#role:*'
-	 * @param mixed  $criteria  The value for a primairy (or as array(key, ..) if multiple key fields) or array(field=>value, ...)
-	 * @return DB_Statement
-	 */
-	function getStatement($property='view', $fields=null, $criteria=null)
-	{
-		if (!$this->getLink()) throw new DB_Exception("Unable to prepare statement for table definition '" . $this->getName() . "': No database connection");
-		if (!isset($this->_properties['#table']['table'])) throw new DB_Exception("Unable to prepare statement for table definition '" . $this->getName() . "': No 'table' property. Table might be virtual (does not exists in db)");
-
-		$fields = (array)$fields;
-		if (is_array($property)) {
-			$fields = array_merge($property, $fields);
-			unset($property);
-		}
-		
-		if (isset($property) && !isset($this->_properties['#table'][$property])) throw new DB_Exception("Unable to prepare statement for table definition '" . $this->getName() . "': Propery '$property' does not exist'");
-
-		// Check if query is something else than a select (or select with no other options) 
-		$qs = $this->getLink()->prepare($this, $this->_properties['#table'][$property]);
-		$querytype = $qs->getQueryType();
-		if (!empty($querytype) && ($querytype != 'SELECT' || (empty($fields) && empty($criteria) && empty($this->_properties['#table']['filter'])))) return $qs;
-		
-		// Get real fieldnames for mapping links
-		foreach ($fields as $i=>$field) {
-			if ($field[0] === '#') {
-				if (substr($field, -2, 2) === ':*') {
-					unset($fields[$i]);
-					$len = strlen($field) - 1;
-					foreach ($this->_properties as $index=>$props) {
-						if (substr($field, 0, $len) == substr($index, 0, $len)) {
-							$fields[] = $this->getLink()->makeIdentifier(isset($props['table']) ? $props['table'] : null, $props['name'], substr($index, 1));
-						}
-					}
-				} elseif (isset($this->_properties[$field]['name'])) {
-					$fields[$i] = $this->_link->makeIdentifier($this->_properties[$field]['table'], $this->_properties[$field]['name'], substr($field, 1));
-				} else {
-					unset($fields[$i]);
-				}
-			}
-		}
-
-		// Add value of property to fields and create prepared statement
-		if (isset($property)) array_unshift($fields, $this->_properties['#table'][$property]);
-		  elseif (empty($fields)) $fields = null;
-		
-		$qs = $this->getLink()->prepareSelect($this, $fields, $criteria, isset($this->_properties['#table']['filter']) ? $this->_properties['#table']['filter'] : null);
-		return $qs;
+	    if (isset($this->___properties['#table']['filter']) && $this->load($id, null, DB::FETCH_ORDERED) === null) return;
+		$this->getConnection()->delete($this->getTablename(), $id, $constraint);
 	}
 	
 	/**

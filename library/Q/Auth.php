@@ -734,7 +734,7 @@ abstract class Auth implements Multiton
     {
         if (!isset($this->log)) return;
         
-        if (!($this->log instanceof Log_Handler)) $this->log = Log::to($this->log);
+        if (!($this->log instanceof Logger)) $this->log = Log::to($this->log);
         
         $msg = ucfirst($event) . ($code == self::OK ? ' success' : ' failed: ' . $this->getMessage($code));
         $this->log->write(array('username'=>$this->user()->username, 'host'=>HTTP::clientRoute(), 'message'=>$msg), $event);  

@@ -2,14 +2,14 @@
 namespace Q;
 
 /**
- * Interface to indicate a class that can transform data
+ * Interface to indicate a class that can transform data.
  * 
  * @package Transform
  */
-interface Transform_Handler
+interface Transformer
 {
     /**
-     * Class constructor
+     * Class constructor.
      * 
      * @param array $options  Transform options
      */
@@ -22,6 +22,14 @@ interface Transform_Handler
      * @return mixed
      */
     public function process($data);
+    
+    /**
+     * Alias of Transformer::process($data).
+     *
+     * @param mixed $data  Data to transform
+     * @return mixed
+     */
+    public function __invoke($data);    
     
     /**
      * Do the transformation and output the result.

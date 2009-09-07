@@ -50,7 +50,7 @@ class ErrorHandler_Logs implements \IteratorAggregate, \ArrayAccess, \Countable
 	 * Works as a fluent interface.
 	 * 
 	 * @param mixed         $type  Error number (int) or Exception class name.
-	 * @param Q\Log_Handler $log   May also be a DSN string.
+	 * @param Q\Logger $log   May also be a DSN string.
 	 * @param More logs can be specified as additional arguments.
 	 * @return ErrorHandler_Log
 	 */
@@ -86,9 +86,9 @@ class ErrorHandler_Logs implements \IteratorAggregate, \ArrayAccess, \Countable
 	 * Add a log handler for a type.
 	 * 
 	 * @param int|string     $type  Error number (int) or Exception class name.
-	 * @param Q\Log_Handler $log
+	 * @param Q\Logger $log
 	 */
-	protected function addLogForType($type, Q\Log_Handler $log)
+	protected function addLogForType($type, Q\Logger $log)
     {
 		if (isset($this->logs[$type])) {
             if (!($this->logs[$type] instanceof Q\Log_Container)) $this->logs[$type] = new Q\Log_Container($this->logs[$type]);  

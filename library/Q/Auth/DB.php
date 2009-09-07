@@ -81,7 +81,7 @@ class Auth_DB extends Auth
 	        if (!isset($this->onLoginQuery) && $this->table['onlogin']) $this->onLoginQuery = $this->table->getStatement('onlogin');
 	        if (!isset($this->onLogoutQuery) && $this->table['onlogout']) $this->onLogoutQuery = $this->table->getStatement('onlogout');
 	        
-	        $link = $this->table->getLink();
+	        $link = $this->table->getConnection();
 	    } else {
 	        $link = DB::i();
 	    }

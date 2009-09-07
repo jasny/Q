@@ -56,7 +56,7 @@ class Log_Container extends Log implements IteratorAggregate, ArrayAccess, Count
 	 * Return value at given offset. 
 	 *
 	 * @param mixed $offset
-	 * @return Log_Handler
+	 * @return Logger
 	 */
 	public function offsetGet($offset)
  	{
@@ -73,7 +73,7 @@ class Log_Container extends Log implements IteratorAggregate, ArrayAccess, Count
  	{
  		if (is_string($log)) {
  			$log = Log::create($log);
- 		} elseif (!($log instanceof Log_Handler)) {
+ 		} elseif (!($log instanceof Logger)) {
  			trigger_error("Can't " . (isset($offset) ? "add log handler " : "set log handler at offset $offset") . ": value is not a Log::Handler or a DSN string.", E::USER_WARNING);
  			return; 
  		}
@@ -110,7 +110,7 @@ class Log_Container extends Log implements IteratorAggregate, ArrayAccess, Count
  	 * Add any number of log handlers.
  	 * (fluent interface)
  	 *
- 	 * @param mixed $log  Log_Handler, dsn (string) or a set of log handlers as array  
+ 	 * @param mixed $log  Logger, dsn (string) or a set of log handlers as array  
  	 * @param More log handlers may be specified as additional arguments
  	 * @return Log_Container
  	 */
@@ -132,8 +132,8 @@ class Log_Container extends Log implements IteratorAggregate, ArrayAccess, Count
  			return $this;
  		}
  		
- 		if (!($log instanceof Log_Handler)) {
- 			trigger_error("Can't add log handler: value is not a " . __NAMESPACE__ . "::Log_Handler, DSN string or array.", E_USER_WARNING);
+ 		if (!($log instanceof Logger)) {
+ 			trigger_error("Can't add log handler: value is not a " . __NAMESPACE__ . "::Logger, DSN string or array.", E_USER_WARNING);
  			return $this;
  		}
  		

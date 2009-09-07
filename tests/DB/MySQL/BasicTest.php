@@ -82,13 +82,13 @@ class DB_MySQL_BasicTest extends \PHPUnit_Framework_TestCase
     //--------
 
     /**
-     * Compare DB_Result->getLink() is $this->conn
+     * Compare DB_Result->getConnection() is $this->conn
      */
-    public function testResultGetLink()
+    public function testResultgetConnection()
     {
     	$result = $this->conn->query("SELECT * FROM test WHERE status='ACTIVE'");
         $this->assertType('Q\DB_Result', $result);
-    	$this->assertSame($this->conn, $result->getLink());
+    	$this->assertSame($this->conn, $result->getConnection());
     }
 
     /**

@@ -10,7 +10,7 @@ require_once 'Q/Log.php';
  * 
  * @package Log
  * 
- * @todo Turn this into a general Mail class that implements Message as well as Log_Handler.
+ * @todo Turn this into a general Mail class that implements Message as well as Logger.
  * @todo Add __call method (as fluent interface) for headers.
  * @todo Get headers from template.
  * @todo Use sendmail/SMTP directly instead of mail() function. 

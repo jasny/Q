@@ -6,7 +6,7 @@ namespace Q;
  * 
  * @package Log
  */
-interface Log_Handler
+interface Logger
 {
 	/**
 	 * Log a message.
@@ -17,7 +17,7 @@ interface Log_Handler
 	function log($message, $type=null);
 	
 	/**
-	 * Magic invoke; Alias of Log_Handler::log().
+	 * Magic invoke; Alias of Logger::log().
 	 * 
 	 * @param string|array $message  Message or associated array with info
 	 * @param string       $type

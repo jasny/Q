@@ -58,7 +58,7 @@ class Log_DB extends Log
 	        foreach ($this->fields as $key=>$field) $store[$field] = isset($values[$key]) ? $values[$key] : null;
 	    }
 
-	    $conn = $this->table instanceof DB_Table ? $this->table->getLink() : DB::i();
+	    $conn = $this->table instanceof DB_Table ? $this->table->getConnection() : DB::i();
 	    $conn->store($this->table, $values);
 	}
 	

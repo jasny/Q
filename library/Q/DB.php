@@ -242,7 +242,7 @@ abstract class DB
 	 * Log queries and other actions.
 	 * Using DB logging is bad for performance, so for debugging purpose only.
 	 * 
-	 * @var Q\Log_Handler
+	 * @var Q\Logger
 	 */
 	public $log;
 
@@ -367,7 +367,7 @@ abstract class DB
 		$config = array_chunk_assoc($this->settings, 'config');
 		$this->metaData = $config instanceof Config ? $config : Config::with($config, array('mapkey'=>array('table_def'=>"'#table'", 'field'=>'@name', 'alias'=>"'#alias:'.@name")));
 
-		if (isset($this->settings['log']) && load_class('Q\Log')) $this->log = $this->settings['log'] instanceof Log_Handler ? $this->settings['log'] : Log::with($this->settings['log']);
+		if (isset($this->settings['log']) && load_class('Q\Log')) $this->log = $this->settings['log'] instanceof Logger ? $this->settings['log'] : Log::with($this->settings['log']);
 		  elseif (class_exists('Q\Log') && Log::db()->exists()) $this->log = Log::db();
 		if (isset($this->settings['log-columns'])) $this->logColumns = is_string($this->settings['log-columns']) ? split_set(',', $this->settings['log-columns']) : (array)$this->settings['log-columns'];
 	}

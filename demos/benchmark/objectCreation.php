@@ -12,7 +12,7 @@
  *     An object with 7 properties with default values will cost 2x the time to create.
  *     Never use `public $prop = null` or `private $props = array()`, this is a pure waste of time. 
  * 
- * Run this script with Zend profiler or Xdebug profiler. I no longer support poorman profiling.
+ * Run this script with Zend profiler or Xdebug profiler. I no longer support poor man's profiling.
  * 
  * @ignore
  */

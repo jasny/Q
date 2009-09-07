@@ -135,11 +135,11 @@ class DB_SQLStatement implements DB_Statement
 		    $this->link = $source;
 		    if (isset($this->link->sqlSplitter)) $this->sqlSplitter = $this->link->sqlSplitter;
 	    } elseif ($source instanceof DB_Table) {
-	        $this->link = $source->getLink();
+	        $this->link = $source->getConnection();
 	        $this->basetable = $source;
 	        if (isset($this->link->sqlSplitter)) $this->sqlSplitter = $this->link->sqlSplitter;
 	    } elseif ($source instanceof self) {
-	        $this->link = $source->getLink();
+	        $this->link = $source->getConnection();
 	        $this->basetable = $source->getBaseTable();
 	        if (isset($source->sqlSplitter)) $this->sqlSplitter = $source->sqlSplitter;
 	    } elseif (isset($source)) {
@@ -155,7 +155,7 @@ class DB_SQLStatement implements DB_Statement
 	 * 
 	 * @return DB
 	 */
-	function getLink()
+	function getConnection()
 	{
 		return $this->link;
 	}

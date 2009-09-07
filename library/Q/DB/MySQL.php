@@ -595,7 +595,7 @@ class DB_MySQL extends DB
 	 */
 	public function prepareSelect($table=null, $fields=null, $criteria=null, $where=null)
 	{
-		$parent = $table instanceof DB_Table && $table->getLink() === $this ? $table : $this;
+		$parent = $table instanceof DB_Table && $table->getConnection() === $this ? $table : $this;
 //		if ($table instanceof DB_Table) $table = $table->getTableName(); 
 	    
 	    if (isset($criteria)) {
@@ -638,7 +638,7 @@ class DB_MySQL extends DB
 	 */
 	public function prepareStore($table=null, $values=null)
 	{
-		$parent = $table instanceof DB_Table && $table->getLink() === $this ? $table : $this;
+		$parent = $table instanceof DB_Table && $table->getConnection() === $this ? $table : $this;
 		if ($table instanceof DB_Table) $table = $table->getTableName(); 
 		
 	    // Get the fieldnames and rows (values)
@@ -677,7 +677,7 @@ class DB_MySQL extends DB
 	 */
 	public function prepareUpdate($table=null, $id=null, $values=null)
 	{
-		$parent = $table instanceof DB_Table && $table->getLink() === $this ? $table : $this;
+		$parent = $table instanceof DB_Table && $table->getConnection() === $this ? $table : $this;
 		if ($table instanceof DB_Table) $table = $table->getTableName(); 
 		
 	    if (!is_array($id) || !is_string(key($id))) $id = array_combine((array)$this->getPrimaryKey($table), (array)$id);
@@ -704,7 +704,7 @@ class DB_MySQL extends DB
 	 */
 	public function prepareDelete($table=null, $id=null)
 	{
-		$parent = $table instanceof DB_Table && $table->getLink() === $this ? $table : $this;
+		$parent = $table instanceof DB_Table && $table->getConnection() === $this ? $table : $this;
 		if ($table instanceof DB_Table) $table = $table->getTableName(); 
 
 		if (is_object($id) && !empty($id->{'#truncate'})) {

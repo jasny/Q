@@ -83,7 +83,7 @@ abstract class DB_Result
 		    $this->link = $source;
 	    } elseif ($source instanceof DB_Table) {
 	        $this->basetable = $source;
-	        $this->link = $source->getLink();
+	        $this->link = $source->getConnection();
 	    } else {
 	        throw new Exception("Parent of result can only be a Q\DB or Q\DB_Table, not a " . (is_object($source) ? get_class($source) : gettype($source)));
 	    }
@@ -98,7 +98,7 @@ abstract class DB_Result
 	 * 
 	 * @return DB
 	 */
-	public function getLink()
+	public function getConnection()
 	{
 		return $this->link;
 	}

@@ -246,7 +246,7 @@ abstract class Route implements Route_Handler
     {
         $ctl = $this->getController();
         if (empty($ctl)) throw new NotFoundException("No controller selected.");
-        if ($this->checkController && !($ctl instanceof Controller)) throw new SecurityException("Loaded object is not a controller.");
+        if (!is_object($ctl) && preg_match('/\W/', $ctl)) throw new SecurityException("Invalid controller name '{$ctl}'.");
         
         $method = $this->getMethod();
         
@@ -269,7 +269,8 @@ abstract class Route implements Route_Handler
             $controller = $ctl;
             $ctl = get_class($controller); 
         }
-                
+
+        if ($this->checkController && !($controller instanceof Controller)) throw new SecurityException("Loaded {$ctl} object is not a controller.");
         if (!is_callable(array($controller, $method))) throw new InvalidMethodException("Method '{$method}' is not implemented for controller '{$ctl}'.");
         $controller->$method();
     }    

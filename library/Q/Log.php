@@ -1,11 +1,11 @@
 <?php
 namespace Q;
 
+require_once 'Q/misc.php';
 require_once 'Q/Exception.php';
 require_once 'Q/SecurityException.php';
-require_once 'Q/misc.php';
 
-require_once 'Q/Log/Handler.php';
+require_once 'Q/Logger.php';
 require_once 'Q/Log/EventValues.php';
 require_once 'Q/Log/Filters.php';
 
@@ -15,11 +15,11 @@ require_once 'Q/Log/Filters.php';
  * DSN: 'driver:arg1;arg2;filter=!warning,!notice;alias[sql]=info'
  * 
  * A container with multiple log handlers can be created using DSN:
- *  'firephp + errors@myorg.com;filters=!notice,!info,!debug + mysys.log;format="[type] message" + error.log;filters=error,crit,alert,emerg + firephp + filters=error,warning' 
+ *  'firephp + errors@myorganization.com;filters=!warn,!notice + /var/log/myapp.log;format="[%{time}] message" + /var/log/myapp-error.log;filters=error,crit,alert,emerg + filters=!info,!debug' 
  * 
  * Available drivers:
  *  file:FILENAME    - Log to a file
- *  logfile:FILENAME - Log to a file using format '[{$time}] [{$type}] {$message}'
+ *  logfile:FILENAME - Log to a file using format '[%{time}] [%{type}] %{message}'
  *  output           - Log to screen
  *  stderr           - Log to stderr (console)
  *  sapi             - Log to webserver (when PHP runs as webserver module)
@@ -30,7 +30,7 @@ require_once 'Q/Log/Filters.php';
  *  header           - Write an HTTP header
  *
  * The driver can be omitted when:
- *  .txt, .csv         -> file
+ *  .txt, .csv, .dmp   -> file
  *  .log               -> logfile
  *  an e-mail address  -> mail
  *  
@@ -39,7 +39,7 @@ require_once 'Q/Log/Filters.php';
  * @todo Use Transform for Log::getLine().
  * @todo Move filter functionality to Log_Filter class.
  */
-abstract class Log implements Log_Handler
+abstract class Log implements Logger
 {
 	/** Include message of type */
 	const FILTER_INCLUDE = true;
@@ -203,17 +203,17 @@ abstract class Log implements Log_Handler
 	}	
 
 	/**
-	 * Create a new Log interface.
+	 * Factory; Create a new Log interface.
 	 *
 	 * @param string|array $dsn     DSN/driver (string) or array(driver[, arg1, ...])
 	 * @param array        $filter
 	 * @param array        $props   Values for public properties
 	 * @return Log
 	 */
-	public function to($dsn, $filters=array(), $props=array())
+	public function with($dsn, $filters=array(), $props=array())
 	{
 	    if (isset($this) && $this instanceof self) throw new Exception("Log instance is already created.");
-	    if ($dsn instanceof Log_Handler) return $dsn;
+	    if ($dsn instanceof Logger) return $dsn;
 
 	    $filters = array();
 	    $props = array();
@@ -244,16 +244,16 @@ abstract class Log implements Log_Handler
 	}
 
 	/**
-	 * Alias of Log::to().
+	 * Alias of Log::with().
 	 *
 	 * @param string|array $dsn     DSN/driver (string) or array(driver[, arg1, ...])
 	 * @param array        $filter
 	 * @param array        $props   Values for public properties
 	 * @return Log
 	 */
-	static public function with($dsn, $filters=array(), $props=array())
+	static public function to($dsn, $filters=array(), $props=array())
 	{
-		self::to($dsn, $filters, $props);
+		self::with($dsn, $filters, $props);
 	}
 	
 	/**
