@@ -4,6 +4,23 @@ namespace Q;
 require_once 'Q/Config/Files.php';
 require_once 'Q/PHPParser.php';
 
+$conf = Config::with('yaml:/etc/myapp');
+$conf['abc']['10'] = "hello";
+$conf['abc']['12'] = "hello";
+$conf->save();
+
+'/etc/myapp/abc.yaml';
+
+$c2 = Config::with('yaml:/etc/myapp');
+$c2['abc']['arnold'] = 'daniels';
+var_dump((array)$c2['abc']);
+// array (10=>"hello", 12=>"hello", 'arnold'=>"danies")
+unset($c2);
+
+$c3 = Config::with('yaml:/etc/myapp');
+var_dump((array)$c3['abc']);
+// array (10=>"hello", 12=>"hello")
+
 /**
  * Load and parse YAML config files.
  * Uses the syck extension.
@@ -41,12 +58,21 @@ class Config_Yaml extends Config_Files
 	/**
 	 * Load a config file or dir (no caching)
 	 * 
-	 * @param  string  $path
-	 * @param  string  $group
+	 * @param string $path
+	 * @param string $group
 	 * @return array
 	 */
 	protected function loadFile($path, $group=null)
 	{
+		$file = $path->{$group . '.' . $this->ext};
+		if (!$file->exists()) return null;
+
+		if ($file instanceof Fs_Dir) return new self($file, $this->_options);
+		
+		return $this->getUnserializer()->process($file);
+
+		// ---
+		
 		$file = isset($group) ? "$path/" . $this->groupName($group) . "." . $this->_ext : $path;
 		
 		if (is_file($file)) {

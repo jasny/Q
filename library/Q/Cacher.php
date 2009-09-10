@@ -4,12 +4,12 @@ namespace Q;
 /**
  * Interface to indicate that class can be used for persistant storing of data
  */
-interface Cache_Handler
+interface Cacher
 {
 	/**
 	 * Set the next cache handler in the chain.
 	 *
-	 * @param Cache_Handler $cache  Cache object, DNS string or options
+	 * @param Cacher $cache  Cache object, DNS string or options
 	 */
 	public function chain($cache);
 	

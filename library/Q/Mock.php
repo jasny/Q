@@ -6,7 +6,7 @@ namespace Q;
  *
  * @package Pattern
  */
-class Multiton_Mock
+class Mock
 {
     /**
      * Target class
@@ -56,7 +56,7 @@ class Multiton_Mock
 	        throw new Exception("{$this->_class} interface '{$this->_name}' does not exist.");
     	}
     	
-    	$instance = call_user_func(array($this->_class, $method), $dsn, $options);
+    	$instance = call_user_func_array(array($this->_class, $method), $args);
 	    $instance->asInstance($this->_name);
 	    
 	    return $instance;

@@ -15,6 +15,15 @@ interface Transformer
      */
     public function __construct($options=array());
 
+	/**
+	 * Get a transformer that does the reverse action.
+	 * 
+	 * @param Transformer $chain
+	 * @return Transformer
+	 */
+	public function getReverse($chain=null);
+    
+    
     /**
      * Do the transformation and return the result.
      *
@@ -24,17 +33,17 @@ interface Transformer
     public function process($data);
     
     /**
-     * Alias of Transformer::process($data).
-     *
-     * @param mixed $data  Data to transform
-     * @return mixed
-     */
-    public function __invoke($data);    
-    
-    /**
      * Do the transformation and output the result.
      *
      * @param mixed $data  Data to tranform
      */
-    public function output($data);   
+    public function output($data);
+
+    /**
+     * Do the transformation and save the result to a file.
+     *
+     * @param string $filename
+     * @param mixed  $data      Data to tranform
+     */
+    public function save($filename, $data); 
 }

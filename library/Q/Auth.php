@@ -270,7 +270,7 @@ abstract class Auth implements Multiton
     static public function getInterface($name)
     {
     	if (!isset(self::$instances[$name])) {
-		    if (!class_exists('Q\Config') || Config::i() instanceof Multiton_Mock || !($dsn = Config::i()->get('auth' . ($name != 'i' ? ".{$name}" : '')))) return new Multiton_Mock(__CLASS__, $name);
+		    if (!class_exists('Q\Config') || Config::i() instanceof Mock || !($dsn = Config::i()->get('auth' . ($name != 'i' ? ".{$name}" : '')))) return new Mock(__CLASS__, $name);
 	        self::$instances[$name] = self::with($dsn);
 		}
 		

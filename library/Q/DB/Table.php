@@ -44,18 +44,6 @@ class DB_Table extends \ArrayObject
 	
 	
 	/**
-	 * ArrayAccess; Get a table property. 
-	 *
-	 * @param string $index
-	 * @return mixed
-	 */
-	public function offsetGet($index)
- 	{
- 		$value = parent::offsetGet($index);
- 		return $this->_connection->looksLikeStatement($value) ? $this->_connection->prepare($value) : $value;
- 	}
- 	
-	/**
 	 * Magic get method: get a field
 	 *
 	 * @param string $name
@@ -144,7 +132,20 @@ class DB_Table extends \ArrayObject
 		return $this;
 	}
 	
-	
+	/**
+	 * Get a table property as DB_Statement. 
+	 *
+	 * @param string $index
+	 * @return DB_Statement
+	 */
+	public function get($index)
+ 	{
+ 		$value = parent::offsetGet($index);
+ 		if (!isset($value)) throw new Exception("Unable to create statement for property '$index'; Property is not set.");
+ 		
+ 		return $this->_connection->prepare($value);
+ 	}
+ 	
 	/**
 	 * Return the field(s) of the primairy key.
 	 *

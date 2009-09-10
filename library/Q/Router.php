@@ -6,7 +6,7 @@ namespace Q;
  * 
  * @package Route
  */
-interface Route_Handler
+interface Router
 {
     /**
      * Class constructor

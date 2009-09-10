@@ -10,7 +10,7 @@ require_once 'Q/Cache/Handler.php';
  * 
  * @package Cache
  */
-abstract class Cache implements Cache_Handler
+abstract class Cache implements Cacher
 {
     /** All cache */
     const ALL=0x1;
@@ -20,7 +20,7 @@ abstract class Cache implements Cache_Handler
     
 	/**
 	 * Registered instances
-	 * @var Cache_Handler[]
+	 * @var Cacher[]
 	 */
 	static protected $instances = array();
 	
@@ -63,7 +63,7 @@ abstract class Cache implements Cache_Handler
 
 	/**
 	 * Next cache item in the chain
-	 * @var Cache_Handler
+	 * @var Cacher
 	 */
 	protected $chainNext;
 	
@@ -72,7 +72,7 @@ abstract class Cache implements Cache_Handler
 	 *
 	 * @param string|array $dsn      Configuration options, may be serialized as assoc set (string)
 	 * @param array        $options  Configuration options (which do not appear in DSN)
-	 * @return Cache_Handler
+	 * @return Cacher
 	 */
 	static public function with($dsn, $options=array())
 	{
@@ -93,7 +93,7 @@ abstract class Cache implements Cache_Handler
 	 *
 	 * @param string $name
 	 * @param array  $args
-	 * @return Cache_Handler
+	 * @return Cacher
 	 */
 	static public function __callstatic($name, $args)
 	{
@@ -163,11 +163,11 @@ abstract class Cache implements Cache_Handler
 	/**
 	 * Set the next cache handler in the chain.
 	 *
-	 * @param Cache_Handler $cache  Cache object, DNS string or options
+	 * @param Cacher $cache  Cache object, DNS string or options
 	 */
 	public function chain($cache)
 	{
-	    if (!($cache instanceof Cache_Handler)) $cache = self::with($cache);
+	    if (!($cache instanceof Cacher)) $cache = self::with($cache);
 	    $this->chainNext = $cache;
 	}
 	

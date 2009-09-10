@@ -1,19 +1,21 @@
 <?php 
 namespace Q;
 
-require_once 'Q/Route/Handler.php';
 require_once 'Q/Exception.php';
 require_once 'Q/Controller.php';
+
+require_once 'Q/Router.php';
+require_once 'Q/Factory.php';
 
 /**
  * Base class to route requests.
  * 
  * The default router settings will be read from Q\Config::i()->route.
- * Additional routers can be defined as Q\Config::i()->route.NAME and used as Route::NAME() or Route::with(NAME).
+ * Additional routers can be defined as Q\Config::i()->route.NAME and used as Route::NAME() or Route::with(NAME)->handle(). 
  * 
  * @package Route
  */
-abstract class Route implements Route_Handler
+abstract class Route implements Router, Factory
 {
     /** No automatic authorization */
     const AUTHZ_NONE = 0;
@@ -139,30 +141,35 @@ abstract class Route implements Route_Handler
     
     
 	/**
-	 * Create a new router.
+	 * Factory; Create a new router.
 	 *
 	 * @param string|array $dsn      Configuration options, may be serialized as assoc set (string)
 	 * @param array        $options  Configuration options (which do not appear in DSN)
-	 * @return Route_Handler
+	 * @return Router
 	 */
 	static public function with($dsn, $options=array())
 	{
-	    $dsn_options = is_string($dsn) ? extract_dsn($dsn) : $dsn;
-		$options = (array)$dsn_options + $cfg_options + $options;
+		if (get_called_class() == __CLASS__) {
+	    	$dsn_options = is_string($dsn) ? extract_dsn($dsn) : $dsn;
+			$options = (array)$dsn_options + (is_array($options) || $options instanceof \ArrayObject ? $options : array($options));
+		
+		    if (load_class('Q\Config')) {
+		        $cfg_options = Config::i()->get('route' . (empty($options['driver']) ? '' : '.' . $options['driver']));
+	    		if ($cfg_options) {
+	    		    if (!is_array($cfg_options) && !($options instanceof \ArrayObject)) $cfg_options = split_set(';', $cfg_options);
+	    		    $options += $cfg_options;
+	    		    if (isset($cfg_options['driver'])) $options['driver'] = $cfg_options['driver'];
+	    		}
+		    } 
 
-	    if (load_class('Q\Config')) {
-	        $cfg_options = Config::i()->get('route' . (empty($options['driver']) ? '' : '.' . $options['driver']));
-    		if ($cfg_options) {
-    		    if (!is_array($cfg_options)) $cfg_options = split_set(';', $cfg_options);
-    		    $options += $cfg_options;
-    		    if (isset($cfg_options['driver'])) $options['driver'] = $cfg_options['driver'];
-    		}
-	    } 
-		 
-		if (empty($options['driver'])) throw new Exception("Unable to create Route object: No driver specified.");
-		if (!isset(self::$drivers[$options['driver']])) throw new Exception("Unable to create Route object: Unknown driver '{$options['driver']}'");
-		$class = self::$drivers[$options['driver']];
-		if (!load_class($class)) throw new Exception("Unable to create $class object: Class does not exist.");
+			if (empty($options['driver'])) throw new Exception("Unable to create Route object: No driver specified.");
+			if (!isset(self::$drivers[$options['driver']])) throw new Exception("Unable to create Route object: Unknown driver '{$options['driver']}'");
+			$class = self::$drivers[$options['driver']];
+			if (!load_class($class)) throw new Exception("Unable to create $class object: Class does not exist.");
+		} else {
+			$options = (is_array($dsn) ? $dsn : array($dsn)) + $options;
+			$class = get_called_class();
+		}
 		
 		return new $class($options);
 	}
@@ -206,6 +213,9 @@ abstract class Route implements Route_Handler
     		}
     	} 
     	
+    	if (isset($options[0])) $options['controller'] = $options[0];
+    	unset($options[0]);
+    	
         foreach ($options as $key=>$value) {
             $this->$key = $value;
         }
@@ -234,7 +244,7 @@ abstract class Route implements Route_Handler
     {
         if (!$this->authz) return;
         
-        load_class('Q\Auth');
+        if (!load_class('Q\Auth')) throw new Exception("Unable to authenticate; Can't load Q\Auth class.");
         Auth::getInterface($this->auth)->authz($this->authzGroupPrefix . ($this->authz == self::AUTHZ_METHOD ? $ctl . $this->authzGroupGlue . $method : $ctl));
     }
     

@@ -4,13 +4,13 @@ namespace Q;
 require_once 'Q/misc.php';
 require_once 'Q/Exception.php';
 require_once 'Q/Transformer.php';
-require_once 'Q/Factory.php';
+
 
 /**
  * Base class for Transform interfaces.
  *  * @package Transform
  */
-abstract class Transform implements Transformer, Factory
+abstract class Transform implements Transformer
 {
 	/**
 	 * Drivers with classname.
@@ -20,20 +20,23 @@ abstract class Transform implements Transformer, Factory
       'xsl' => 'Q\Transform_XSL',
 	  'replace' => 'Q\Transform_Replace',
 	  'php' => 'Q\Transform_PHP',
-	  'array2xml' => 'Q\Transform_Array2XML',
-	  'xml2array' => 'Q\Transform_XML2Array',
-	  'text2html' => 'Q\Transform_Text2HTML'
+	  'text2html' => 'Q\Transform_Text2HTML',
+	
+	  'serialize-json' => 'Q\Transform_Serialize_Json',
+	  'serialize-xml' => 'Q\Transform_Array2XML',
+	  'unserialize-json' => 'Q\Transform_Unserialize_Json',
+	  'unserialize-xml' => 'Q\Transform_XML2Array',
 	);
 	
     /**
      * Next transform item in the chain
      * @var Transform
      */
-    protected $chainNext;
+    protected $chainInput;
 	
     
 	/**
-	 * Create a new Transform interface.
+	 * Create a new Transformer.
 	 *
 	 * @param string|array $dsn      Transformation options, may be serialized as assoc set (string)
 	 * @param array        $options  Other options (will be overwriten by DSN)
@@ -55,7 +58,32 @@ abstract class Transform implements Transformer, Factory
 
 		return new $class($options);
 	}
+	
+	/**
+	 * Create a new Tranfromer to serialize data.
+	 * 
+	 * @param string $type
+	 * @param array  $options
+	 * @return Transformer
+	 */
+	public static function to($type, $options=array())
+	{
+		return self::with("serialize-$type", $options);
+	}
 
+	/**
+	 * Create a new Tranfromer to unserialize data.
+	 * 
+	 * @param string $type
+	 * @param array  $options
+	 * @return Transformer
+	 */
+	public static function from($type, $options=array())
+	{
+		return self::with("unserialize-$type", $options);
+	}
+	
+	
 	/**
 	 * Class constructor
 	 *
@@ -68,14 +96,64 @@ abstract class Transform implements Transformer, Factory
 	    }
 	}
 	
+	/**
+	 * Get a transformer that does the reverse action.
+	 * 
+	 * @param Transformer $chain
+	 * @return Transformer
+	 */
+	public function getReverse($chain=null)
+	{
+		throw new Exception("There is no reverse transformation defined.");
+	}
+	
     /**
-     * Set the next transform handler in the chain.
+     * Pull input through chained transformer, before processing.
      *
      * @param Transform $cache  Transform object, DNS string or options
      */
-    public function chain($transform)
+    public function chainInput($transform)
     {
         if (!($transform instanceof Transform)) $transform = self::with($transform);
-        $this->chainNext = $transform;
+        $this->chainInput = $transform;
     }
+    
+    
+    /**
+     * Magic method when object is used as function; Alias of Transform::process().
+     * 
+     * @param $data
+     * @return mixed
+     */
+    public function __invoke($data)
+    {
+		$this->transform($data);
+    }
+    
+	/**
+	 * Transform data and display the result.
+	 *
+	 * @param mixed $data
+	 */
+	public function output($data)
+	{
+		$out = $this->process($data);
+        if (!is_scaler($out) && !(is_object($out) && method_exists($out, '__toString'))) throw new Exception("Unable to output data: Transformation returned a non-scalar value of type '" . gettype($out) . "'.");
+        
+        echo $out;
+	}
+
+	/**
+	 * Transform data and save the result into a file.
+	 *
+	 * @param string $filename File name
+	 * @param mixed  $data
+	 */
+	function save($filename, $data=null)
+	{
+		$out = $this->process($data);
+        if (!is_scaler($out) && !(is_object($out) && method_exists($out, '__toString'))) throw new Exception("Unable to save data to '$filename': Transformation returned a non-scalar value of type '" . gettype($out) . "'.");
+		
+		if (!file_put_contents($filename, (string)$out)) throw new Exception("Failed to create file {$filename}.");
+	}
 }

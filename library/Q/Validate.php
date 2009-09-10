@@ -51,14 +51,6 @@ abstract class Validator
 
     
     /**
-     * Validate a value.
-     *
-     * @param mixed $value  Value to be validated
-     * @return boolean
-     */
-    public abstract function validate($value);
-    
-    /**
      * Magic method for using the object as function; Alias of Validate::validate().
      * 
      * @param mixed $value  Value to be validated
