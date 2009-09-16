@@ -2,7 +2,6 @@
 namespace Q;
 
 require_once 'Q/Crypt.php';
-require_once 'Q/Decrypt.php';
 
 /**
  * Crypt using password based encryption with OpenSSL.
@@ -48,6 +47,8 @@ class Crypt_OpenSSL extends Crypt implements Decrypt
 	 */    
     public function encrypt($value, $salt=null)
     {
+    	if ($value instanceof Fs_File) $value = $value->getContents();
+    	
         if (empty($this->secret)) trigger_error("Secret key is not set for OpenSSL password encryption. This is not secure.", E_USER_NOTICE);
         return openssl_encrypt($value, $this->method, $this->secret);
     }
@@ -59,6 +60,10 @@ class Crypt_OpenSSL extends Crypt implements Decrypt
      */
     public function decrypt($value)
     {
-        return openssl_decrypt($value, $this->method, $this->secret);
+    	if ($value instanceof Fs_File) $value = $value->getContents();
+    	
+        $ret = openssl_decrypt($value, $this->method, $this->secret);
+        if ($ret === false) throw new Decrypt_Exception("Failed to decrypt value with $this->method using openssl.");
+        return $ret;
     }
 }

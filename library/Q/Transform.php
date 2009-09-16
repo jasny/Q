@@ -5,7 +5,6 @@ require_once 'Q/misc.php';
 require_once 'Q/Exception.php';
 require_once 'Q/Transformer.php';
 
-
 /**
  * Base class for Transform interfaces.
  *  * @package Transform
@@ -24,8 +23,10 @@ abstract class Transform implements Transformer
 	
 	  'serialize-json' => 'Q\Transform_Serialize_Json',
 	  'serialize-xml' => 'Q\Transform_Array2XML',
+	  'serialize-php' => 'Q\Transform_PHP',
 	  'unserialize-json' => 'Q\Transform_Unserialize_Json',
 	  'unserialize-xml' => 'Q\Transform_XML2Array',
+	  'unserialize-php' => 'Q\Transform_PHP',
 	);
 	
     /**

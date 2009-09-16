@@ -52,6 +52,8 @@ class Crypt_System extends Crypt
 	 */
 	public function encrypt($value, $salt=null)
 	{
+		if ($value instanceof Fs_File) $value = $value->getContents();
+		
 	    $value .= $this->secret;
 	    
 		switch (strtolower($this->method)) {
@@ -63,13 +65,13 @@ class Crypt_System extends Crypt
 								break;
 							
 			case 'ext_des':		if (!CRYPT_EXT_DES) throw new Exception("Unable to encrypt value: Extended DES-based encryption with crypt() not available.");
-								return crypt($value, isset($salt) ? substr($salt, 0, 9) : $this->makesalt(9));
+								return crypt($value, isset($salt) ? $salt : $this->makesalt(9));
 							
 			case 'md5':			if (!CRYPT_MD5) throw new Exception("Unable to encrypt value: MD5 encryption with crypt() not available.");
-								return crypt($value, isset($salt) ? substr($salt, 0, 12) : $this->makesalt(12));
+								return crypt($value, isset($salt) ? $salt : $this->makesalt(12));
 							
 			case 'blowfish':	if (!CRYPT_BLOWFISH) throw new Exception("Unable to encrypt value: Blowfish encryption with crypt() not available.");
-								return crypt($value, isset($salt) ? substr($salt, 0, 29) : $this->makesalt(29));
+								return crypt($value, isset($salt) ? $salt : $this->makesalt(29));
 			
 			default:			throw new Exception("Unable to encrypt value: Unknown crypt method '{$this->method}'");
 		}
@@ -83,33 +85,33 @@ class Crypt_System extends Crypt
 	 */
 	static public function makeSalt($length=CRYPT_SALT_LENGTH)
 	{
-		$prefix='';
-		$suffix='';
-	    
 		switch($length) {
 			case 29:
-				$prefix='$2a$0' . rand(4, 9) . '$';
-				$suffix='$';
+				$salt = '$2a$07$' . rand(0, 9);
 				break;
 				
 			case 12:
-				$prefix='$1$';
-				$suffix='$';
+				$salt = '$1$';
 				break;
 				
 			case 9:
+				$salt = '_';
+				break;
+
 			case 2:
+				$salt = '';
 				break;
 
 			default: 
 			    throw new Exception("Invalid length for salt '$length'.");
 		}
-
-		$salt='';
-		$length -= strlen($prefix) + strlen($suffix);
-		while (strlen($salt) < $length) $salt .= chr(rand(64, 126));
 		
-		return $prefix . $salt . $suffix;
+		while (strlen($salt) < $length) {
+			$rnd = rand(46, 122);
+			if (($rnd >= 58 && $rnd <= 64) || ($rnd >= 91 && $rnd <= 96)) continue;
+			$salt .= chr($rnd);
+		}
+		echo $length, ': ', $salt, "\n";
+		return $salt;
 	}
 }
-

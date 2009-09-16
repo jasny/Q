@@ -2,7 +2,6 @@
 namespace Q;
 
 require_once 'Q/Crypt.php';
-require_once 'Q/Decrypt.php';
 
 /**
  * Encrypt using mcrypt.
@@ -18,20 +17,22 @@ class Crypt_MCrypt extends Crypt implements Decrypt
 	public $method;
 	
 	/**
+	 * Block cipher mode
+	 * @var string
+	 */
+	public $mode = 'ecb';
+	
+	
+	/**
 	 * Class constructor.
 	 * 
-	 * @param string $method
+	 * @param array $options
 	 */
 	public function __construct($options)
 	{
-		if (!extension_loaded('mcrypt')) throw new Exception("MCrypt extension is not available.");
-		
 	    $options = (array)$options;
-	    
-	    if (isset($options[0])) {
-	        $this->method = $options[0];
-	        unset($options[0]);
-	    }
+	    if (isset($options[0])) $options['method'] = $options[0];
+		unset($options[0]);
 	    
 	    parent::__construct($options);
 	    if (empty($this->method)) throw new Exception("Encryption algoritm not specified.");
@@ -46,18 +47,30 @@ class Crypt_MCrypt extends Crypt implements Decrypt
 	 */
 	public function encrypt($value, $salt=null)
 	{
-		return mcrypt_encrypt($this->method, $this->secret, $value, MCRYPT_MODE_ECB);
+		if (empty($this->method)) throw new Exception("Unable to encrypt; Algoritm not specified.");
+		if (!in_array($this->method, mcrypt_list_algorithms())) throw new Exception("Unable to encrypt; Algoritm '$this->method' is not supported.");
+		
+		if ($value instanceof Fs_File) $value = $value->getContents();
+		return mcrypt_encrypt($this->method, $this->secret, $value, $this->mode);
 	}
 	
 	/**
 	 * Decrypt encrypted value.
 	 *
-	 * @param string $hash
-	 * @return string|false
+	 * @param string $value
+	 * @return string
+	 * 
+	 * @throws Decrypt_Exception
 	 */
-    public function decrypt($hash)
+    public function decrypt($value)
     {
-        $value = mcrypt_decrypt($this->method, $this->secret, $value, MCRYPT_MODE_ECB);
-        return !empty($value) ? $value : false;
+    	if (empty($this->method)) throw new Exception("Unable to decrypt; Algoritm not specified.");
+		if (!in_array($this->method, mcrypt_list_algorithms())) throw new Exception("Unable to decrypt; Algoritm '$this->method' is not supported.");
+    	
+    	if (class_exists('Q\Fs_File', false) && $value instanceof Fs_File) $value = $value->getContents();
+    	
+        $ret = mcrypt_decrypt($this->method, $this->secret, $value, $this->mode);
+        if (empty($ret)) throw new Decrypt_Exception("Failed to decrypt value with $this->method using mycrypt.");
+        return $ret;
     }
 }

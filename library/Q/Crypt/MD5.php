@@ -25,7 +25,12 @@ class Crypt_MD5 extends Crypt
 	 */
 	public function encrypt($value, $salt=null)
 	{
-	    $value .= $this->secret;
+		if ($value instanceof Fs_File) {
+			if (empty($this->secret) && !$this->useSalt) return md5_file($value);
+			$value = $value->getContents();
+		}
+		
+		$value .= $this->secret;
 	    
 		if (!$this->useSalt) return md5($value);
 		

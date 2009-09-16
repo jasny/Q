@@ -14,9 +14,9 @@ class Cache_FileTest extends Cache_MainTest
      */
     protected function cleanup()
     {
-	    $dir = dirname(__DIR__) . '/tmp/cache_file';
+    	$dir = sys_get_temp_dir() . '/Q-' . __CLASS__;
 	    foreach (scandir($dir) as $file) {
-	        if (is_file("$dir/$file")) unlink("$dir/$file");
+	        if (is_file($dir . "/$file")) unlink($dir . "/$file");
 	    }
 		rmdir($dir);
     }
@@ -26,8 +26,8 @@ class Cache_FileTest extends Cache_MainTest
 	 */
 	protected function setUp()
 	{
-	    $dir = dirname(__DIR__) . '/tmp/cache_file';
-	    if (file_exists($dir)) $this->cleanup(); 
+    	$dir = sys_get_temp_dir() . '/Q-' . __CLASS__;
+		if (file_exists($dir)) $this->cleanup(); 
 	    mkdir($dir, 0770, true);
 	    
 		$this->Cache = new Cache_File(array('path'=>$dir));

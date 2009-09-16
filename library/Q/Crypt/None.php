@@ -19,7 +19,7 @@ class Crypt_None extends Crypt
 	 */
 	public function encrypt($value, $salt=null)
 	{
+		if ($value instanceof Fs_File) $value = $value->getContents();
 		return $value;
 	}
 }
-

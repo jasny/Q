@@ -24,8 +24,7 @@ require_once 'Q/Fs/Symlink/Unknown.php';
 /**
  * Interface to the filesystem.
  * 
- * The interface to a regular file can be invoked, if the file is executable.
- *  
+ * The Fs_File can be used as a function to execute as shell command.
  * 
  * @package Fs
  */
@@ -79,7 +78,7 @@ class Fs
 		}
         
 		$canpath = "";
-		foreach (preg_split('|(?<!\\\\)/+|', rtrim($path, '/')) as $part) {
+		foreach (preg_split('~(?<!\\\\)/+~', rtrim($path, '/')) as $part) {
 			switch ($part) {
 				case '':
 				case '.':	break;

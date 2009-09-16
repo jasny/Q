@@ -25,8 +25,9 @@ class Crypt_CRC32 extends Crypt
 	 */
 	public function encrypt($value, $salt=null)
 	{
+		if ($value instanceof Fs_File) $value = $value->getContents();
+		
 	    $value .= $this->secret;
-	    
 		if (!$this->useSalt) return sprintf('%08x', crc32($value));
 		
 		$salt = (empty($salt) ? $this->makeSalt() : preg_replace('/\$[\dabcdef]{8}$/', '', $salt));

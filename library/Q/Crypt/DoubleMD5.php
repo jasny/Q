@@ -1,7 +1,7 @@
 <?php
 namespace Q;
 
-require_once 'Q/Crypt/MD5.php';
+require_once 'Q/Crypt.php';
 
 /**
  * Encryption class using md5 twice.
@@ -28,8 +28,9 @@ class Crypt_DoubleMD5 extends Crypt
 	 */
 	public function encrypt($value, $salt=null)
 	{
+		if ($value instanceof Fs_File) $value = $value->getContents();
+		
 	    $value .= $this->secret;
-	    
 		if (!$this->useSalt) return md5(md5($value));
 		
 		$salt = (empty($salt) ? $this->makeSalt() : preg_replace('/\$[\dabcdef]{32}$/', '', $salt));

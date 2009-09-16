@@ -71,6 +71,15 @@ class Crypt_DoubleMD5Test extends PHPUnit_Framework_TestCase
 	    $this->Crypt_DoubleMD5->secret = "s3cret";
 		$this->assertEquals(md5(md5("a test string" . "s3cret")), $this->Crypt_DoubleMD5->encrypt("a test string"));
 	}
+	
+	/**
+	 * Tests Crypt_DoubleMD5->encrypt() with a file
+	 */
+	public function testEncrypt_File()
+	{
+		$file = $this->getMock('Q\Fs_File', array('getContents'));
+		$file->expects($this->once())->method('getContents')->will($this->returnValue("a test string"));
+		
+		$this->assertEquals(md5(md5("a test string")), $this->Crypt_DoubleMD5->encrypt($file));
+	}
 }
-
-if (PHPUnit_MAIN_METHOD == 'Crypt_DoubleMD5Test::main') Crypt_DoubleMD5Test::main();

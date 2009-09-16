@@ -1,9 +1,12 @@
 <?php
 namespace Q;
 
-require_once 'Q/Exception.php';
-require_once 'Q/misc.php';
 require_once 'Q/Encrypt.php';
+require_once 'Q/Decrypt.php';
+
+require_once 'Q/misc.php';
+require_once 'Q/Exception.php';
+require_once 'Q/Decrypt/Exception.php';
 
 /**
  * Encryption/decryption interface.
@@ -19,12 +22,13 @@ abstract class Crypt implements Encrypt
 	 * @var array
 	 */
 	static public $drivers = array (
-	  'none'=>'Q\Crypt_None',
-	  'crypt'=>'Q\Crypt_System',
-	  'md5'=>'Q\Crypt_MD5',
-	  '2md5'=>'Q\Crypt_2MD5',
-	  'mcrypt'=>'Q\Crypt_MCrypt',
-	  'openssl'=>'Q\Crypt_OpenSSL'
+	  'none' => 'Q\Crypt_None',
+	  'crypt' => 'Q\Crypt_System',
+	  'md5' => 'Q\Crypt_MD5',
+	  '2md5' => 'Q\Crypt_2MD5',
+	  'hash' => 'Q\Crypt_Hash',
+	  'mcrypt' => 'Q\Crypt_MCrypt',
+	  'openssl' => 'Q\Crypt_OpenSSL'
 	);
 	
 
@@ -83,4 +87,3 @@ abstract class Crypt implements Encrypt
 		return $salt;
 	}
 }
-

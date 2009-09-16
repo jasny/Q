@@ -14,6 +14,7 @@ class Crypt_MD5Test extends PHPUnit_Framework_TestCase
 	 * @var Crypt_MD5
 	 */
 	private $Crypt_MD5;
+
 	
 	/**
 	 * Prepares the environment before running a test.
@@ -29,6 +30,8 @@ class Crypt_MD5Test extends PHPUnit_Framework_TestCase
 	 */
 	protected function tearDown()
 	{
+		if (isset($this->tmpfile) && file_exists($this->tmpfile)) unlink($this->tmpfile);
+		
 		$this->Crypt_MD5 = null;
 		parent::tearDown();
 	}
@@ -56,11 +59,38 @@ class Crypt_MD5Test extends PHPUnit_Framework_TestCase
 	}
 	
 	/**
-	 * Tests Crypt_DoubleMD5->encrypt() with secret phrase
+	 * Tests Crypt_MD5->encrypt() with secret phrase
 	 */
 	public function testEncrypt_Secret()
 	{
 	    $this->Crypt_MD5->secret = "s3cret";
 		$this->assertEquals(md5("a test string" . "s3cret"), $this->Crypt_MD5->encrypt("a test string"));
-	}	
+	}
+	
+	/**
+	 * Tests Crypt_MD5->encrypt() with a file
+	 */
+	public function testEncrypt_File()
+	{
+		$this->tmpfile = tempnam(sys_get_temp_dir(), 'Q-');
+		file_put_contents($this->tmpfile, "a test string");
+		
+		$file = $this->getMock('Q\Fs_File', array('__toString'));
+		$file->expects($this->any())->method('__toString')->will($this->returnValue($this->tmpfile));
+		
+		$this->assertEquals(md5("a test string"), $this->Crypt_MD5->encrypt($file));
+	}
+	
+	/**
+	 * Tests Crypt_MD5->encrypt() with a file using a secret phrase
+	 */
+	public function testEncrypt_File_Secret()
+	{
+		$file = $this->getMock('Q\Fs_File', array('__toString', 'getContents'));
+		$file->expects($this->never())->method('__toString');
+		$file->expects($this->once())->method('getContents')->will($this->returnValue("a test string"));
+		
+		$this->Crypt_MD5->secret = "s3cret";
+		$this->assertEquals(md5("a test string" . "s3cret"), $this->Crypt_MD5->encrypt($file));
+	}
 }

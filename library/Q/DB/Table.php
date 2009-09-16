@@ -160,7 +160,7 @@ class DB_Table extends \ArrayObject
         	if ($field['is_primary']) $pk = !isset($pk) ? $field : new DB_Fields($pk, $field);
 	    }
 	    
-	    return $fields;
+	    return $pk;
 	}
 	
 	/**

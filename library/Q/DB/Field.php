@@ -36,7 +36,7 @@ class DB_Field implements \ArrayAccess
 	 * Database connection.
 	 * @var Q\DB
 	 */
-	protected $link = null;
+	protected $connection = null;
 
 	/**
 	 * Parent record or table.
@@ -98,10 +98,10 @@ class DB_Field implements \ArrayAccess
 	protected function __construct($parent, $properties, $value=null)
 	{
 	    if ($parent instanceof DB) {
-	        $this->link = $parent;
+	        $this->connection = $parent;
 	    } else {
 	        $this->parent = $parent;
-	        $this->link = $parent->getConnection();
+	        $this->connection = $parent->getConnection();
 	    }
 	    
 		$this->properties = $properties;
@@ -164,7 +164,7 @@ class DB_Field implements \ArrayAccess
 	 */
 	public function getConnection()
 	{
-		return $this->link;
+		return $this->connection;
 	}
 
 	/**
@@ -206,7 +206,7 @@ class DB_Field implements \ArrayAccess
 	    $field = clone $this;
 	    
 	    $field->parent = $parent;
-	    if (isset($parent)) $field->link = $parent->getConnection();
+	    if (isset($parent)) $field->connection = $parent->getConnection();
 
 	    $field->mode = self::MODE_ACTIVE;
 	    if (isset($this->properties['default'])) $field->originalValue = $field->value = $this->properties['default'];
@@ -244,9 +244,9 @@ class DB_Field implements \ArrayAccess
 	public function getDBName($with_alias=true)
 	{
 		if (!isset($this->properties['name_db'])) return null;
-		if (!isset($this->link)) return $this->properties['table'] . '.' . $this->properties['name_db'];
+		if (!isset($this->connection)) return $this->properties['table'] . '.' . $this->properties['name_db'];
 		
-		return $this->link->makeIdentifier($this->properties['table'], $this->properties['name_db'], $with_alias ? $this->properties['name'] : null);
+		return $this->connection->makeIdentifier($this->properties['table'], $this->properties['name_db'], $with_alias ? $this->properties['name'] : null);
 	}
 
 	/**

@@ -3,7 +3,7 @@ namespace Q;
 
 require_once 'Q/misc.php';
 require_once 'Q/Exception.php';
-require_once 'Q/Cache/Handler.php';
+require_once 'Q/Cacher.php';
 
 /**
  * Cache objects can be used for saving otherwise persistant data.

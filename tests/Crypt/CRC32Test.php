@@ -63,4 +63,16 @@ class Crypt_CRC32Test extends PHPUnit_Framework_TestCase
 	    $this->Crypt_CRC32->secret = "s3cret";
 		$this->assertEquals(sprintf('%08x', crc32("a test string" . "s3cret")), $this->Crypt_CRC32->encrypt("a test string"));
 	}
+	
+	/**
+	 * Tests Crypt_CRC32->encrypt() with a file
+	 */
+	public function testEncrypt_File()
+	{
+		$file = $this->getMock('Q\Fs_File', array('__toString', 'getContents'));
+		$file->expects($this->never())->method('__toString');
+		$file->expects($this->once())->method('getContents')->will($this->returnValue("a test string"));
+		
+		$this->assertEquals(sprintf('%08x', crc32("a test string")), $this->Crypt_CRC32->encrypt($file));
+	}
 }

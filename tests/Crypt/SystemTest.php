@@ -23,7 +23,7 @@ class Crypt_SystemTest extends PHPUnit_Framework_TestCase
 	 */
 	public function testEncrypt()
 	{
-	    $crypt = new Q\Crypt_System();
+	    $crypt = new Crypt_System();
 	    
 	    $hash = $crypt->encrypt("a test string");
 		$this->assertEquals(crypt("a test string", $hash), $hash);
@@ -36,13 +36,13 @@ class Crypt_SystemTest extends PHPUnit_Framework_TestCase
 	{
 	    if (!CRYPT_STD_DES) $this->markTestSkipped("Standard DES-based encryption with crypt() not available.");
 	    
-	    $crypt = new Q\Crypt_System('std_des');
+	    $crypt = new Crypt_System('std_des');
 	    
-	    $this->assertRegExp('/^.{13}$/', $crypt->encrypt("rasmuslerdorf"));
-	    $this->assertEquals(crypt("rasmuslerdorf", 'r1'), $crypt->encrypt("rasmuslerdorf", 'r1'));
+	    $this->assertRegExp('/^.{13}$/', $crypt->encrypt("a test string"));
+	    $this->assertEquals(crypt("a test string", '12'), $crypt->encrypt("a test string", '12'));
 	    
-	    $hash = $crypt->encrypt("rasmuslerdorf");
-        $this->assertEquals($hash, $crypt->encrypt("rasmuslerdorf", $hash));		
+	    $hash = $crypt->encrypt("a test string");
+        $this->assertEquals($hash, $crypt->encrypt("a test string", $hash));		
     }
 
 	/**
@@ -52,13 +52,13 @@ class Crypt_SystemTest extends PHPUnit_Framework_TestCase
 	{
 	    if (!CRYPT_EXT_DES) $this->markTestSkipped("Extended DES-based encryption with crypt() not available.");
 	    
-	    $crypt = new Q\Crypt_System('std_des');
+	    $crypt = new Crypt_System('ext_des');
 	    
-	    $this->assertRegExp('/^.{20}$/', $crypt->encrypt("rasmuslerdorf"));
-	    $this->assertEquals(crypt("rasmuslerdorf", '_J9..rasm'), $crypt->encrypt("rasmuslerdorf", '_J9..rasm'));
+	    $this->assertRegExp('/^.{20}$/', $crypt->encrypt("a test string"));
+	    $this->assertEquals(crypt("a test string", '_23456789'), $crypt->encrypt("a test string", '_23456789'));
 	    
-	    $hash = $crypt->encrypt("rasmuslerdorf");
-        $this->assertEquals($hash, $crypt->encrypt("rasmuslerdorf", $hash));		
+	    $hash = $crypt->encrypt("a test string");
+        $this->assertEquals($hash, $crypt->encrypt("a test string", $hash));		
     }
 
 	/**
@@ -68,13 +68,13 @@ class Crypt_SystemTest extends PHPUnit_Framework_TestCase
 	{
 	    if (!CRYPT_MD5) $this->markTestSkipped("MD5-based encryption with crypt() not available.");
 	    
-	    $crypt = new Q\Crypt_System('md5');
+	    $crypt = new Crypt_System('md5');
 	    
-	    $this->assertRegExp('/^\$1\$.{31}$/', $crypt->encrypt("rasmuslerdorf"));
-	    $this->assertEquals(crypt("rasmuslerdorf", '$1$rasmusle$'), $crypt->encrypt("rasmuslerdorf", '$1$rasmusle$'));
+	    $this->assertRegExp('/^\$1\$.{31}$/', $crypt->encrypt("a test string"));
+	    $this->assertEquals(crypt("a test string", '$1$12345678'), $crypt->encrypt("a test string", '$1$12345678'));
 	    
-	    $hash = $crypt->encrypt("rasmuslerdorf");
-	    $this->assertEquals($hash, $crypt->encrypt("rasmuslerdorf", $hash));		
+	    $hash = $crypt->encrypt("a test string");
+	    $this->assertEquals($hash, $crypt->encrypt("a test string", $hash));		
     }
 
 	/**
@@ -84,14 +84,27 @@ class Crypt_SystemTest extends PHPUnit_Framework_TestCase
 	{
 	    if (!CRYPT_BLOWFISH) $this->markTestSkipped("Blowfish-based encryption with crypt() not available.");
 	    
-	    $crypt = new Q\Crypt_System('blowfish');
+	    $crypt = new Crypt_System('blowfish');
 	    
-	    $this->assertRegExp('/^\$2a\$\w{2}\$.{53}$/', $crypt->encrypt("rasmuslerdorf"));
-	    $this->assertEquals(crypt("rasmuslerdorf", '$2a$07$rasmuslerd...........$'), $crypt->encrypt("rasmuslerdorf", '$2a$07$rasmuslerd...........$'));
+	    $this->assertRegExp('/^\$2a\$07\$.{53}$/', $crypt->encrypt("a test string"));
+	    $this->assertEquals(crypt("a test string", '$2a$07$1234567890123456789012'), $crypt->encrypt("a test string", '$2a$07$1234567890123456789012'));
 	    
-	    $hash = $crypt->encrypt("rasmuslerdorf");
-	    $this->assertEquals($hash, $crypt->encrypt("rasmuslerdorf", $hash), "From Hash");		
-    }    
-}
+	    $hash = $crypt->encrypt("a test string");
+	    $this->assertEquals($hash, $crypt->encrypt("a test string", $hash), "From Hash");		
+    }
 
-if (PHPUnit_MAIN_METHOD == 'Crypt_SystemTest::main') Crypt_SystemTest::main();
+	/**
+	 * Tests Crypt_System->encrypt() with a file
+	 */
+	public function testEncrypt_File()
+	{
+		$crypt = new Crypt_System();
+		
+		$file = $this->getMock('Q\Fs_File', array('__toString', 'getContents'));
+		$file->expects($this->never())->method('__toString');
+		$file->expects($this->once())->method('getContents')->will($this->returnValue("a test string"));
+		
+	    $hash = $crypt->encrypt($file);
+		$this->assertEquals(crypt("a test string", $hash), $hash);
+	}
+}
