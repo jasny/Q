@@ -59,8 +59,6 @@ class Crypt_MCrypt extends Crypt implements Decrypt
 	 *
 	 * @param string $value
 	 * @return string
-	 * 
-	 * @throws Decrypt_Exception
 	 */
     public function decrypt($value)
     {
@@ -69,8 +67,6 @@ class Crypt_MCrypt extends Crypt implements Decrypt
     	
     	if (class_exists('Q\Fs_File', false) && $value instanceof Fs_File) $value = $value->getContents();
     	
-        $ret = mcrypt_decrypt($this->method, $this->secret, $value, $this->mode);
-        if (empty($ret)) throw new Decrypt_Exception("Failed to decrypt value with $this->method using mycrypt.");
-        return $ret;
+        return trim(mcrypt_decrypt($this->method, $this->secret, $value, $this->mode), "\0");
     }
 }

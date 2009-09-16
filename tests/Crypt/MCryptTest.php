@@ -49,25 +49,25 @@ class Crypt_MCryptTest extends PHPUnit_Framework_TestCase
 	public function testDecrypt()
 	{
 	    $encrypted = mcrypt_encrypt('blowfish', 's3cret', "a test string", MCRYPT_MODE_ECB);
-		$this->assertEquals("a test string", $this->Crypt_MCrypt->decrypt($encrypted));
+	    $this->assertEquals("a test string", $this->Crypt_MCrypt->decrypt($encrypted));
 	}
 
 	/**
 	 * Tests Crypt_MCrypt->encrypt() with DES method
 	 */
-	public function testEncrypt_DES()
+	public function testEncrypt_des()
 	{
 	    $this->Crypt_MCrypt->method = 'des';
-		$this->assertEquals(mcrypt_encrypt('DES', 's3cret', "a test string", MCRYPT_MODE_ECB), $this->Crypt_MCrypt->encrypt("a test string"));
+		$this->assertEquals(mcrypt_encrypt('des', 's3cret', "a test string", MCRYPT_MODE_ECB), $this->Crypt_MCrypt->encrypt("a test string"));
 	}
 	
 	/**
 	 * Tests Crypt_MCrypt->decrypt() with DES method
 	 */
-	public function testDecrypt_DES()
+	public function testDecrypt_des()
 	{
 	    $this->Crypt_MCrypt->method = 'des';
-	    $encrypted = mcrypt_encrypt('DES', 's3cret', "a test string", MCRYPT_MODE_ECB);
+	    $encrypted = mcrypt_encrypt('des', 's3cret', "a test string", MCRYPT_MODE_ECB);
 		$this->assertEquals("a test string", $this->Crypt_MCrypt->decrypt($encrypted));
 	}	
 
@@ -97,21 +97,11 @@ class Crypt_MCryptTest extends PHPUnit_Framework_TestCase
 	}
 	
 	/**
-	 * Tests Crypt_MCrypt->decrypt() where decrypt fails
-	 */
-	public function testDecrypt_NotEncrypted()
-	{
-		$this->setExpectedException('Q\Decrypt_Exception', "Failed to decrypt value with blowfish using mycrypt.");
-		$this->Crypt_MCrypt->decrypt("not encrypted");
-	}
-
-	/**
 	 * Tests Crypt_MCrypt->decrypt() where decrypt fails because of incorrect secret phrase
 	 */
 	public function testDecrypt_WrongSecret()
 	{
-		$this->setExpectedException('Q\Decrypt_Exception', "Failed to decrypt value with blowfish using mycrypt.");
 		$encrypted = mcrypt_encrypt('blowfish', 'another_secret', "a test string", MCRYPT_MODE_ECB);
-		$this->Crypt_MCrypt->decrypt($encrypted);
+		$this->assertNotEquals("a test string", $this->Crypt_MCrypt->decrypt($encrypted));
 	}
 }
