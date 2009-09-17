@@ -430,7 +430,7 @@ function var_give($expression, $return=false, $objects=true)
         $args = array();
         foreach ($expression as $k=>$v) $args[] = ' ' . (is_string($k) ? "'$k'" : $k) . ' => ' . var_give($v, true);     
         $var = 'array (' .  join(',', $args) . ' )';
-        if (is_object($expression)) $var = "(object)array($var)";
+        if (is_object($expression)) $var = "(object) $var";
     } elseif (is_string($expression)) {
         $var = "'" . addcslashes($expression, "'") . "'";
     } else {
