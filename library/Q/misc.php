@@ -425,12 +425,12 @@ function var_give($expression, $return=false, $objects=true)
             trigger_error("Won't serialize an object: Trying to serialize " . get_class($expression) . '.', E_USER_WARNING);
             return 'null'; 
         }
-        $var = '(' . get_class($expression) . ') ' . (method_exists($expression, '__toString') ? ' ' . (string)$expression : spl_object_hash($expression));
+        $var = '(' . get_class($expression) . ') ' . (method_exists($expression, '__toString') ? (string)$expression : spl_object_hash($expression));
     } elseif (is_array($expression) || is_object($expression)) {
         $args = array();
         foreach ($expression as $k=>$v) $args[] = ' ' . (is_string($k) ? "'$k'" : $k) . ' => ' . var_give($v, true);     
         $var = 'array (' .  join(',', $args) . ' )';
-        if (is_object($expression)) $var = "stdClass::__set_state($var)";
+        if (is_object($expression)) $var = "(object)array($var)";
     } elseif (is_string($expression)) {
         $var = "'" . addcslashes($expression, "'") . "'";
     } else {
