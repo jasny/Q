@@ -166,3 +166,7 @@ class Stream_Exec implements StreamingConnection
 	}	
 }
 
+<<<<<<< HEAD:incubator/Q/Stream/Exec.php
+=======
+?>
+>>>>>>> d2e0614a15905957b34d6b2bda5e2705da749dc6:incubator/Q/Stream/Exec.php

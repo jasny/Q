@@ -124,3 +124,7 @@ class RPC_Server_XMLRPC extends RPC_Server
 	}
 }
 
+<<<<<<< HEAD:incubator/Q/RPC/Server/XMLRPC.php
+=======
+?>
+>>>>>>> d2e0614a15905957b34d6b2bda5e2705da749dc6:incubator/Q/RPC/Server/XMLRPC.php
