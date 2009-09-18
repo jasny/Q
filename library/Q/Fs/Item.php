@@ -1,7 +1,7 @@
 <?php
 namespace Q;
 
-require_once 'Q/Fs';
+require_once 'Q/Fs.php';
 
 /**
  * Base class for any type of file on the filesystem.
@@ -85,7 +85,7 @@ abstract class Fs_Item implements \ArrayAccess
 	 * 
 	 * @return string
 	 */
-	public function extenstion()
+	public function filename()
 	{
 		return pathinfo($this->_path, PATHINFO_FILENAME);
 	}

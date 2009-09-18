@@ -8,7 +8,7 @@ require_once 'Q/Fs/Item.php';
  * 
  * @package Fs
  */
-class Fs_Dir extends Fs_Item implements Iterator
+class Fs_Dir extends Fs_Item
 {
 	/**
 	 * Directory handles for traversing.

@@ -1,7 +1,7 @@
 <?php
 namespace Q;
 
-require_once 'TestHelper.php';
+require_once dirname(dirname(__FILE__)) . '/TestHelper.php';
 require_once 'PHPUnit/Framework/TestCase.php';
 require_once 'PHPUnit/TextUI/TestRunner.php';
 

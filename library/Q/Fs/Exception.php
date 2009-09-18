@@ -1,7 +1,7 @@
 <?php
 namespace Q;
 
-require_once 'Q/Exception';
+require_once 'Q/Exception.php';
 
 /**
  * Exception for Fs assertions.

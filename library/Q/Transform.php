@@ -27,6 +27,8 @@ abstract class Transform implements Transformer
 	  'unserialize-json' => 'Q\Transform_Unserialize_Json',
 	  'unserialize-xml' => 'Q\Transform_XML2Array',
 	  'unserialize-php' => 'Q\Transform_PHP',
+      'unserialize-yaml' => 'Q\Transform_Unserialize_Yaml',
+      'unserialize-ini' => 'Q\Transform_Unserialize_Ini',
 	);
 	
     /**
@@ -153,7 +155,7 @@ abstract class Transform implements Transformer
 	function save($filename, $data=null)
 	{
 		$out = $this->process($data);
-        if (!is_scaler($out) && !(is_object($out) && method_exists($out, '__toString'))) throw new Exception("Unable to save data to '$filename': Transformation returned a non-scalar value of type '" . gettype($out) . "'.");
+        if (!is_scalar($out) && !(is_object($out) && method_exists($out, '__toString'))) throw new Exception("Unable to save data to '$filename': Transformation returned a non-scalar value of type '" . gettype($out) . "'.");
 		
 		if (!file_put_contents($filename, (string)$out)) throw new Exception("Failed to create file {$filename}.");
 	}
