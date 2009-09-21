@@ -13,5 +13,5 @@ interface Fs_Symlink
 	 * 
 	 * @return string
 	 */
-	public function getTarget();
+	public function target();
 }

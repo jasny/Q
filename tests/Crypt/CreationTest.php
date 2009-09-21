@@ -11,14 +11,6 @@ require_once 'Q/Crypt.php';
  */
 class Crypt_CreationTest extends PHPUnit_Framework_TestCase
 {
-	/**
-	 * Run test from php
-	 */
-    public static function main()
-    {
-        PHPUnit_TextUI_TestRunner::run(new PHPUnit_Framework_TestSuite(__CLASS__));
-    }
-    
     public function testDriverOnly()
     {
         $crypt = Crypt::with('none');

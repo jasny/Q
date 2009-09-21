@@ -17,7 +17,8 @@ class Fs_File extends Fs_Item
 	 */
 	public function __construct($path)
 	{
-		if (is_link($path) || (file_exists($path) && !is_file($path))) throw new Fs_Exception("File '$path' is not a regular file, but a " . filetype($path) . "."); 
+		if (is_link($path) xor $this instanceof Fs_Symlink) throw new Fs_Exception("File '$path' is " . ($this instanceof Fs_Symlink ? 'not ' : '') . "a symlink.");
+		if (file_exists($path) && !is_file($path)) throw new Fs_Exception("File '$path' is not a regular file, but a " . filetype($path) . "."); 
 		parent::__construct($path);
 	}
 	
@@ -36,7 +37,7 @@ class Fs_File extends Fs_Item
 	/**
 	 * Reads entire file into a string.
 	 * 
-	 * @param int $flags     FILE_% flags as binary set.
+	 * @param int $flags   FILE_% flags as binary set.
 	 * @param int $offset  The offset where the reading starts.
 	 * @param int $maxlen  Maximum length of data read.
 	 * @return string
@@ -50,7 +51,7 @@ class Fs_File extends Fs_Item
 	 * Write a string to a file.
 	 * 
 	 * @param mixed $data   The data to write; Can be either a string, an array or a stream resource. 
-	 * @param int   $flags  Fs::RECURSIVE and/org FILE_% flags as binary set.
+	 * @param int   $flags  Fs::RECURSIVE and/or FILE_% flags as binary set.
 	 * @return int
 	 */
 	public function putContents($data, $flags=0)

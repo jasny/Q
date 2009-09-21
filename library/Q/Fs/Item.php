@@ -1,7 +1,7 @@
 <?php
 namespace Q;
 
-require_once 'Q/Fs';
+require_once 'Q/Fs.php';
 
 /**
  * Base class for any type of file on the filesystem.
@@ -61,13 +61,13 @@ abstract class Fs_Item implements \ArrayAccess
 	}
 	
 	/**
-	 * Returns directory name component of path.
+	 * Alias of Fs_Item::up().
 	 * 
-	 * @return string
+	 * @return Fs_Dir
 	 */
 	public function dirname()
 	{
-		return dirname($this->_path);
+		return $this->up();
 	}
 	
 	/**
@@ -85,7 +85,7 @@ abstract class Fs_Item implements \ArrayAccess
 	 * 
 	 * @return string
 	 */
-	public function extenstion()
+	public function filename()
 	{
 		return pathinfo($this->_path, PATHINFO_FILENAME);
 	}
@@ -131,7 +131,8 @@ abstract class Fs_Item implements \ArrayAccess
 	 */
 	public function realpath()
 	{
-		return Fs::get(realpath($this->_path));
+		$realpath = realpath($this->_path);
+		return $realpath == $this->_path ? $this : Fs::get($realpath);
 	}
 	
  	/**
@@ -141,7 +142,7 @@ abstract class Fs_Item implements \ArrayAccess
 	 */
 	public function up()
 	{
-		return Fs::dir($this->dirname());
+		return Fs::dir(dirname($this->_path));
 	}
 
  	
@@ -247,19 +248,23 @@ abstract class Fs_Item implements \ArrayAccess
     		case 'inode':
     		case 'type':  throw new Exception("Unable to set attribute '$att'; Attribute is read-only.");
     		
-    		case 'atime': return $this->touch(filemtime($this->_path), $value);
+    		case 'atime': $ret = $this->touch(filemtime($this->_path), $value); break;
     		case 'ctime': throw new Exception("Unable to set attribute '$att'; Attribute is read-only.");
-    		case 'mtime': return $this->touch($value);
+    		case 'mtime': $ret = $this->touch($value); break;
 
-    		case 'perms':      return $this->chmod($value, $flags);
+    		case 'perms':      $ret = $this->chmod($value, $flags); break;
     		case 'owner':
-    		case 'owner_name': return $this->chown($value, $flags);
+    		case 'owner_name': $ret = $this->chown($value, $flags); break;
     		case 'group':      
-    		case 'group_name': return $this->chgrp($value, $flags);
+    		case 'group_name': $ret = $this->chgrp($value, $flags); break;
+    		
+    		default:
+		    	if (!extension_loaded('xattr') || !xattr_supported($this->_path, $flags)) throw new Exception("Unable to set attribute '$att'; Not a file attribute and extended attributes are not supported.");
+		    	return $value === null ? xattr_remove($this->_path, $att, $flags) : xattr_set($this->_path, $att, $value, $flags);
     	}
     	
-    	if (!extension_loaded('xattr') || !xattr_supported($this->_path, $flags)) throw new Exception("Unable to set attribute '$att'; Not a file attribute and extended attributes are not supported.");
-    	return $value === null ? xattr_remove($this->_path, $att, $flags) : xattr_set($this->_path, $att, $value, $flags);
+    	$this->clearStatCache();
+    	return $ret;
 	}
 	
 	/**

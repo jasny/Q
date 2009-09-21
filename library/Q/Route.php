@@ -5,7 +5,6 @@ require_once 'Q/Exception.php';
 require_once 'Q/Controller.php';
 
 require_once 'Q/Router.php';
-require_once 'Q/Factory.php';
 
 /**
  * Base class to route requests.
@@ -15,7 +14,7 @@ require_once 'Q/Factory.php';
  * 
  * @package Route
  */
-abstract class Route implements Router, Factory
+abstract class Route implements Router
 {
     /** No automatic authorization */
     const AUTHZ_NONE = 0;
@@ -182,7 +181,7 @@ abstract class Route implements Router, Factory
      */
     static public function __callStatic($name, $options)
     {
-        $router = self::with($name, $args);
+        $router = self::with($name, $options);
         $router->handle();
     }
     

@@ -8,7 +8,7 @@ require_once 'Q/Fs/Item.php';
  * 
  * @package Fs
  */
-class Fs_Dir extends Fs_Item implements Iterator
+class Fs_Dir extends Fs_Item implements \Iterator
 {
 	/**
 	 * Directory handles for traversing.
@@ -28,7 +28,8 @@ class Fs_Dir extends Fs_Item implements Iterator
 	 */
 	public function __construct($path)
 	{
-		if (is_link($path) || (file_exists($path) && !is_dir($path))) throw new Fs_Exception("File '$path' is not a directory, but a " . filetype($path) . "."); 
+		if (is_link($path) xor $this instanceof Fs_Symlink) throw new Fs_Exception("File '$path' is " . ($this instanceof Fs_Symlink ? 'not ' : '') . "a symlink.");
+		if (file_exists($path) && !is_dir($path)) throw new Fs_Exception("File '$path' is not a directory, but a " . filetype($path) . "."); 
 		parent::__construct($path);
 	}
 	
