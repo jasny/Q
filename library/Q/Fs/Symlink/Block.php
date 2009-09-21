@@ -27,7 +27,7 @@ class Fs_Symlink_Block extends Fs_Block implements Fs_Symlink
 	 * 
 	 * @return Fs_Block
 	 */
-	public function getTarget()
+	public function target()
 	{
 		return Fs::get(readlink($this->_path));
 	}

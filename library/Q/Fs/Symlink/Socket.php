@@ -12,22 +12,11 @@ require_once 'Q/Fs/Symlink.php';
 class Fs_Symlink_Socket extends Fs_Socket implements Fs_Symlink
 {
 	/**
-	 * Class constructor.
-	 * 
-	 * @param string $path
-	 */
-	public function __construct($path)
-	{
-		if (!is_link($path)) throw new Fs_Exception("File '$path' is not a symlink.");
-		parent::__construct($path);
-	}
-	
-	/**
 	 * Returns the target of the symbolic link.
 	 * 
 	 * @return Fs_Socket
 	 */
-	public function getTarget()
+	public function target()
 	{
 		return Fs::get(readlink($this->_path));
 	}

@@ -416,21 +416,25 @@ function running_main()
  * @param mixed   $expression
  * @param boolean $return      Return value instead
  * @param boolean $objects     Set to false to skip object with a warning
+ * @param array   $passed      Don't use
  * @return string
  */
-function var_give($expression, $return=false, $objects=true)
+function var_give($expression, $return=false, $objects=true, &$passed=null)
 {
     if (is_object($expression) && get_class($expression) != 'stdClass') {
         if (!$objects) {
             trigger_error("Won't serialize an object: Trying to serialize " . get_class($expression) . '.', E_USER_WARNING);
             return 'null'; 
         }
-        $var = '(' . get_class($expression) . ') ' . (method_exists($expression, '__toString') ? (string)$expression : spl_object_hash($expression));
+        $var = 'object(' . get_class($expression) . ')' . (method_exists($expression, '__toString') ? ' ' . (string)$expression : '#' . spl_object_hash($expression));
     } elseif (is_array($expression) || is_object($expression)) {
+    	if (in_array($expression, $passed)) ;
+    	$passed[] = $expression;
+    	
         $args = array();
         foreach ($expression as $k=>$v) $args[] = ' ' . (is_string($k) ? "'$k'" : $k) . ' => ' . var_give($v, true);     
         $var = 'array (' .  join(',', $args) . ' )';
-        if (is_object($expression)) $var = "(object)array($var)";
+        if (is_object($expression)) $var = "(object) $var";
     } elseif (is_string($expression)) {
         $var = "'" . addcslashes($expression, "'") . "'";
     } else {

@@ -24,7 +24,7 @@ require_once 'Q/Fs/Symlink/Unknown.php';
 /**
  * Interface to the filesystem.
  * 
- * The Fs_File can be used as a function to execute as shell command.
+ * An Fs_File can be used as a function to execute as shell command.
  * 
  * @package Fs
  */
@@ -67,14 +67,15 @@ class Fs
 	public static function canonicalize($path)
 	{
 		$path = (string)$path;
-		if (empty($path)) return getcwd();
-		if ($path[0] == '/' && !preg_match('%(?:/|^)(?:\.\.?|~)(?:/|$)%', $path)) return preg_replace(array('%(?<!^)/+$%', '%/{2,}%'), array('', '/'), $path);
+		if (!preg_match('%(?:/|^)(?:\.\.?|~)(?:/|$)%', $path)) {
+			// Most cases, so fast solution
+			return preg_replace(array('%(?<!^)/+$%', '%/{2,}%'), array('', '/'), ($path[0] == '/' ? '' : getcwd() . '/') . $path);
+		}
 
-		$canpath = "";
-		if ($path == '~' || strncmp('~/', $path, 2)) {
-			$path = realpath('~') . substr($path, 1);
+		if ($path == '~' || strncmp('~/', $path, 2) == 0) {
+			$path = getenv('HOME') . substr($path, 1);
 		} elseif ($path[0] != '/') {
-			$path = getcwd() . $path;
+			$path = getcwd() . '/' . $path;
 		}
         
 		$canpath = "";
@@ -83,7 +84,7 @@ class Fs
 				case '':
 				case '.':	break;
             	case '..':	$canpath = dirname($canpath); break;
-				default:	$canpath .= "/$part";	
+				default:	$canpath .= $canpath == '/' ? $part : "/$part";	
 			}
 		}
 
@@ -119,7 +120,7 @@ class Fs
      * @param string $target
      * @param string $link
      * @param int    $flags   Fs::% options as binary set
-     * @return Fs_Dir
+     * @return Fs_Item
      */
     public static function symlink($target, $link, $flags=self::RECURSIVE)
     {
@@ -177,7 +178,7 @@ class Fs
  	 * @param int    $flags    GLOB_% options as binary set
  	 * @return Fs_Item[]
  	 */
- 	public function glob($pattern, $flags=0)
+ 	public static function glob($pattern, $flags=0)
  	{
  		$files = array();
  		foreach (glob($pattern, $flags) as $filename) $files[] = Fs::get($filename);
@@ -190,7 +191,7 @@ class Fs
  	 * @param string $file
  	 * @return Fs_File
  	 */
- 	public function bin($file)
+ 	public static function bin($file)
  	{
  		$paths = getenv('PATH');
  		foreach (explode(PATH_SEPARATOR, $paths) as $path) {

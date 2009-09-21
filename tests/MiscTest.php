@@ -4,6 +4,22 @@ use Q\foo;
 require_once 'TestHelper.php';
 require_once 'Q/misc.php';
 
+
+/** @ignore */
+interface tst_misc_Q
+{}
+
+/** @ignore */
+class tst_misc_A
+{
+    function __toString() { return "Test"; }
+}
+
+/** @ignore */
+class tst_misc_AQ extends tst_misc_A implements tst_misc_Q
+{}
+
+
 /**
  * Test case for misc functions of Q
  */
@@ -194,13 +210,10 @@ class MiscTest extends PHPUnit_Framework_TestCase
 	    $this->assertEquals("false", Q\var_give(false, true));
         
 	    $this->assertContains("(" . __CLASS__  . ")", Q\var_give($this, true));
+	    $this->assertEquals("(tst_misc_A) Test", Q\var_give(new tst_misc_A("Test"), true));
 	    
-	    $a = new tst_misc_A("Test");
-	    var_dump("(tst_misc_A) Test");
-	    var_dump(Q\var_give($a, true));
-	    $this->assertEquals("(tst_misc_A) Test", Q\var_give($a, true));
-	    
-	    $this->assertEquals("array ( 0 => 10, 'a' => 'test1', 'b' => 'another', 'c' => array ( 0 => 10, 1 => 20, 2 => (tst_misc_A) Test ) )", Q\var_give(array(10, 'a'=>'test1', 'b'=>'another', 'c'=>array(10, 20, $a)), true));
+	    $this->assertEquals("(object) array ( 0 => 10, 'a' => 'test1' )", Q\var_give((object)array(10, 'a'=>'test1'), true));
+	    $this->assertEquals("array ( 0 => 10, 'a' => 'test1', 'b' => 'another', 'c' => array ( 0 => 10, 1 => 20, 2 => (tst_misc_A) Test ) )", Q\var_give(array(10, 'a'=>'test1', 'b'=>'another', 'c'=>array(10, 20, new tst_misc_A("Test"))), true));
 	}
 	
 	/**
@@ -225,24 +238,3 @@ class MiscTest extends PHPUnit_Framework_TestCase
         $this->assertEquals("#0 $expect[2]", Q\serialize_trace($debug, array('file'=>'/var/www/lib.php', 'line'=>334)));
 	}
 }
-
-
-/**
- * @ignore
- */
-interface tst_misc_Q {}
-
-/**
- * @ignore
- */
-class tst_misc_A {
-    function __toString()
-    {
-        return "Test";
-    }
-}
-
-/**
- * @ignore
- */
-class tst_misc_AQ extends tst_misc_A implements tst_misc_Q {}

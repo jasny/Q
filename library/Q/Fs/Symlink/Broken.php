@@ -28,7 +28,7 @@ class Fs_Symlink_Broken extends Fs_Item implements Fs_Symlink
 	 * 
 	 * @return string
 	 */
-	public function getTarget()
+	public function target()
 	{
 		return readlink($this->_path);
 	}

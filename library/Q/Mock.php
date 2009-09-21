@@ -30,9 +30,9 @@ class Mock
     /**
      * Class constructor
      *
-     * @param string  $class    Target class, should implement Factory and Multiton
-     * @param string  $name     Instance name
-     * @param array   $method   Factory method name(s)
+     * @param string $class   Target class, should implement Factory and Multiton
+     * @param string $name    Instance name
+     * @param array  $method  Factory method name(s)
      */
     public function __construct($class, $name, $method='with')
     {
@@ -52,7 +52,7 @@ class Mock
     public function __call($method, $args)
     {
     	if (!in_array($method, $this->_methods)) {
-	        if (!(call_user_func(array($this->_class, $this->_name)) instanceof Multiton_Mock)) trigger_error("Illigal use of mock object '{$this->_class}::{$this->_name}()'.", E_USER_ERROR);
+	        if (!(call_user_func(array($this->_class, $this->_name)) instanceof Mock)) trigger_error("Illigal use of mock object '{$this->_class}::{$this->_name}()'.", E_USER_ERROR);
 	        throw new Exception("{$this->_class} interface '{$this->_name}' does not exist.");
     	}
     	
@@ -70,7 +70,7 @@ class Mock
      */
     public function __get($key)
     {
-        if (!(call_user_func(array($this->_class, $this->_name)) instanceof Multiton_Mock)) trigger_error("Illigal use of mock object '{$this->_class}::{$this->_name}()'.", E_USER_ERROR);
+        if (!(call_user_func(array($this->_class, $this->_name)) instanceof Mock)) trigger_error("Illigal use of mock object '{$this->_class}::{$this->_name}()'.", E_USER_ERROR);
         throw new Exception("{$this->_class} interface '{$this->_name}' does not exist.");
     }
 
@@ -83,7 +83,7 @@ class Mock
      */
     public function __set($key, $value)
     {
-        if (!(call_user_func(array($this->_class, $this->_name)) instanceof Multiton_Mock)) trigger_error("Illigal use of mock object '{$this->_class}::{$this->_name}()'.", E_USER_ERROR);
+        if (!(call_user_func(array($this->_class, $this->_name)) instanceof Mock)) trigger_error("Illigal use of mock object '{$this->_class}::{$this->_name}()'.", E_USER_ERROR);
         throw new Exception("{$this->_class} interface '{$this->_name}' does not exist.");
     }
 }
