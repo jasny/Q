@@ -3,6 +3,7 @@ namespace Q;
 
 require_once 'Q/Exception.php';
 require_once 'Q/Transform.php';
+require_once 'Q/Fs.php';
 
 /**
  * Load a ini file into an array
@@ -26,8 +27,8 @@ class Transform_Unserialize_Ini extends Transform
     public function process($data)
     {
         if ($this->chainInput) $data = $this->chainInput->process($data);
-        
-    	if ($data instanceof Fs_Item) $data = parse_ini_file($data, true);
+        $file_object = new Fs_File($data);
+    	if ($file_object->exists()) $data = parse_ini_file($data, true);
           else $data = parse_ini_string((string)$data, true);
           
         return $data;

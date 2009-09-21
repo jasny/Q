@@ -6,10 +6,19 @@ require_once 'Q/Fs.php';
 
 /**
  * Load and parse config files from a directory.
+ * 
+ * {@example 
+ * 
+ * 1) 
+ * $conf = Config::with('yaml:/etc/myapp');     
+ * $conf['abc']['10'] = "hello";
+ * $conf['abc']['12'] = "Test";
+ * $conf->save();
+ * }
  *
  * @package Config
  */
-abstract class Config_Files extends Config
+abstract class Config_Files extends Config implements \ArrayAccess
 {
 	/**
 	 * Parameters voor preparsing (might be PHP)
@@ -25,7 +34,13 @@ abstract class Config_Files extends Config
 	 */
 	protected $_ext;
 
-
+    /**
+     * Configuration variable
+     *
+     * @var array
+     */
+    protected $config = array();
+	
 	/**
 	 * Class constructor
 	 *
@@ -132,6 +147,48 @@ abstract class Config_Files extends Config
 
 		return $settings;
 	}
+
+	/**
+	 * Checks if there is a value for the key specified by the offset
+	 * @param $offset
+	 * @return boolean
+	 */
+	public function offsetExists($offset)
+	{	
+    	return array_key_exists($this->config, $offset);
+	}
+	
+	/**
+	 * Sets the offset 
+	 * @param $offset
+	 * @param $value
+	 * 
+	 * @todo : check if overwrite = true | false ??????
+	 */
+	public function offsetSet($offset, $value)
+	{
+    	$this->config[$offset] = $value;
+	}
+	
+	/**
+	 * Get an offset
+	 * @param $offset
+	 * @return mixed
+	 */
+	public function offsetGet($offset)
+	{
+    	return isset($this->config[$offset]) ? $this->config[$offset] : null;
+	}
+	
+	/**
+	 * Unset an offset
+	 * @param $offset
+	 * @return unknown_type
+	 */
+	public function offsetUnset($offset)
+	{
+    	unset($this->config[$offset]);
+	}	
 
 }
 
