@@ -1,10 +1,12 @@
 <?php
 namespace Q;
 
-require_once 'Q/Exception';
+require_once 'Q/Exception.php';
 
 /**
  * Exception for when execution of an external program fails.
+ * 
+ * @package Fs
  */
 class ExecException extends Exception
 {
@@ -33,7 +35,7 @@ class ExecException extends Exception
 	{
 		$this->stdout = $stdout;
 		$this->stderr = $stderr;
-		parent::construct($message, $return_var);
+		parent::__construct($message, $return_var);
 	}
 
 	

@@ -60,6 +60,55 @@ class Fs_Test extends PHPUnit_Framework_TestCase
         $this->assertEquals('/~', Fs::canonicalize("/~"));
     }
 
+    /**
+     * Tests Fs::mode2type()
+     */
+    public function testMode2type()
+    {
+    	$this->assertEquals('socket', Fs::mode2type(0140751));
+    	$this->assertEquals('link', Fs::mode2type(0120751));
+    	$this->assertEquals('file', Fs::mode2type(0100751));
+    	$this->assertEquals('block', Fs::mode2type(0060751));
+    	$this->assertEquals('dir', Fs::mode2type(0040751));
+    	$this->assertEquals('char', Fs::mode2type(0020751));
+    	$this->assertEquals('fifo', Fs::mode2type(0010751));
+    	$this->assertEquals('unknown', Fs::mode2type(0777));
+    }
+    
+    /**
+     * Tests Fs::mode2perms()
+     */
+    public function testMode2perms()
+    {
+    	$this->assertEquals(' rwxrwxrwx', Fs::mode2perms(0777));
+    	$this->assertEquals(' ---------', Fs::mode2perms(0000));
+    	$this->assertEquals(' rwxr-xr-x', Fs::mode2perms(0755));
+    	$this->assertEquals(' r---w---x', Fs::mode2perms(0421));
+
+    	$this->assertEquals(' rwxr-xr-x', Fs::mode2perms(00755));
+    	$this->assertEquals(' rwsr-sr-t', Fs::mode2perms(07755));
+    	$this->assertEquals(' rwSr-Sr-T', Fs::mode2perms(07644));
+    	
+    	$this->assertEquals('srwxr-xr-x', Fs::mode2perms(0140755));
+    	$this->assertEquals('lrwxr-xr-x', Fs::mode2perms(0120755));
+    	$this->assertEquals('-rwxr-xr-x', Fs::mode2perms(0100755));
+    	$this->assertEquals('brwxr-xr-x', Fs::mode2perms(0060755));
+    	$this->assertEquals('drwxr-xr-x', Fs::mode2perms(0040755));
+    	$this->assertEquals('crwxr-xr-x', Fs::mode2perms(0020755));
+    	$this->assertEquals('prwxr-xr-x', Fs::mode2perms(0010755));
+    }
+
+    /**
+     * Tests Fs::mode2umask()
+     */
+    public function testMode2umask()
+    {
+    	$this->assertEquals('000', sprintf('%03o', Fs::mode2umask(0777)));
+    	$this->assertEquals('777', sprintf('%03o', Fs::mode2umask(0000)));
+    	$this->assertEquals('022', sprintf('%03o', Fs::mode2umask(0755)));
+    	$this->assertEquals('356', sprintf('%03o', Fs::mode2umask(0421)));
+    }
+    
     
     /**
      * Tests Fs::dir()
@@ -335,7 +384,7 @@ class Fs_Test extends PHPUnit_Framework_TestCase
      */
     public function testBin()
     {
-    	if (!preg_match('~(^|' . PATH_SEPARATOR . ')/bin/?($|' . PATH_SEPARATOR . ')', getenv('PATH'))) $this->markTestSkipped("/bin is not in PATH enviroment variable.");
+    	if (!preg_match('~(^|' . PATH_SEPARATOR . ')/bin($|' . PATH_SEPARATOR . ')~', getenv('PATH'))) $this->markTestSkipped("/bin is not in PATH enviroment variable '" . getenv('PATH') . "'.");
     	if (!file_exists('/bin/ls')) $this->markTestSkipped("File /bin/ls does not exist.");
     	 
         $file = Fs::bin('ls');

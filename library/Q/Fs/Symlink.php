@@ -4,6 +4,8 @@ namespace Q;
 /**
  * Interface to indicate a Fs_Item is a symbolic link.
  * 
+ * {@internal Since PHP doesn't support multiple inheritence, we need to duplicate some code.}} 
+ * 
  * @package Fs
  */
 interface Fs_Symlink

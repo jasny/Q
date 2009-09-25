@@ -1,5 +1,7 @@
 <?php
-require_once 'Q/Fs/Item.php';
+use Q\Fs, Q\Fs_Item;
+
+require_once 'Q/Fs.php';
 require_once 'PHPUnit/Framework/TestCase.php';
 
 /**
@@ -18,34 +20,23 @@ abstract class Fs_ItemTest extends PHPUnit_Framework_TestCase
      */
     protected $Fs_Item;
     
-	/**
-	 * Any temporary files that ware created
-	 * @var array
-	 */
-	protected $tmpfiles = array();
 	
     /**
-     * Prepares the environment before running a test.
+     * Remove tmp files (recursively)
+     * 
+     * @param string  $path
      */
-    protected function setUp()
+    protected static function cleanup($path)
     {
-        parent::setUp();
-    }
-
-	/**
-	 * Cleans up the environment after running a test.
-	 */
-	protected function tearDown()
-	{
-		foreach (array_reverse($this->tmpfiles, true) as $file) {
-			if (is_link($file)) unlink($file);
-			  elseif (is_dir($file)) rmdir($file);
-			  elseif (file_exists($file)) unlink($file);
+    	if (file_exists($path) || is_link($path)) unlink($path);
+    	if (file_exists("$path.x") || is_link("$path.x")) unlink("$path.x");
+    	
+    	if (is_dir("$path.y")) {
+    		static::cleanup("$path.y/" . basename($path));
+    		rmdir("$path.y");
 		}
-		$this->tmpfiles = array();
-
-        $this->Fs_Item = null;
-	}
+    } 
+    
     
     /**
      * Tests Fs_Item->__toString()
@@ -74,9 +65,9 @@ abstract class Fs_ItemTest extends PHPUnit_Framework_TestCase
     /**
      * Tests Fs_Item->extenstion()
      */
-    public function testExtenstion()
+    public function testExtension()
     {
-        $this->Fs_Item->extenstion(pathinfo($this->file, PATHINFO_EXTENSION), $this->Fs_Item->extension());
+        $this->assertEquals(pathinfo($this->file, PATHINFO_EXTENSION), $this->Fs_Item->extension());
     }
 
     /**
@@ -84,7 +75,7 @@ abstract class Fs_ItemTest extends PHPUnit_Framework_TestCase
      */
     public function testFilename()
     {
-        $this->Fs_Item->extenstion(pathinfo($this->file, PATHINFO_FILENAME), $this->Fs_Item->filename());
+        $this->assertEquals(pathinfo($this->file, PATHINFO_FILENAME), $this->Fs_Item->filename());
 	}
 
     /**
@@ -92,7 +83,9 @@ abstract class Fs_ItemTest extends PHPUnit_Framework_TestCase
      */
     public function testRealpath()
     {
-        $this->assertEquals(realpath($this->file), $this->Fs_Item->realpath());
+    	$file = $this->Fs_Item->realpath();
+        $this->assertType(preg_replace('/Symlink_/', '', get_class($this->Fs_Item)), $file);
+        $this->assertEquals(realpath($this->file), (string)$file);
     }
 
     /**
@@ -101,7 +94,7 @@ abstract class Fs_ItemTest extends PHPUnit_Framework_TestCase
     public function testUp()
     {
         $dir = $this->Fs_Item->up();
-        $this->assertType('Fs_Dir', $dir);
+        $this->assertType('Q\Fs_Dir', $dir);
         $this->assertEquals(dirname($this->file), (string)$dir);
         
         $this->assertEquals($dir, $this->Fs_Item->dirname());
@@ -113,8 +106,47 @@ abstract class Fs_ItemTest extends PHPUnit_Framework_TestCase
      */
     public function testStat()
     {
-        $this->assertEquals(stat($this->file), $this->Fs_Item->stat());
-        $this->assertEquals(lstat($this->file), $this->Fs_Item->stat(Fs::DONTFOLLOW));
+    	$stat = stat($this->file);
+
+        $stat['type'] = filetype(realpath($this->file));
+        $stat['perms'] = Fs::mode2perms($stat['mode']);
+        $stat['umask'] = ~$stat['mode'] & 0777;
+    	
+    	if (extension_loaded('posix')) {
+	    	$userinfo = posix_getpwuid($stat['uid']);
+	    	$groupinfo = posix_getgrgid($stat['gid']);
+	    	$stat['owner'] = $userinfo['name'];
+	    	$stat['group'] = $groupinfo['name'];
+    	} else {
+	    	$stat['owner'] = $stat['uid'];
+	    	$stat['group'] = $stat['gid'];
+    	}
+    	
+        $this->assertEquals($stat, $this->Fs_Item->stat());
+    }
+
+    /**
+     * Tests Fs_Item->stat() as lstat
+     */
+    public function testStat_lstat()
+    {
+    	$stat = lstat($this->file);
+		
+        $stat['type'] = filetype($this->file);
+        $stat['perms'] = Fs::mode2perms($stat['mode']);
+        $stat['umask'] = ~$stat['mode'] & 0777;
+    	
+    	if (extension_loaded('posix')) {
+	    	$userinfo = posix_getpwuid($stat['uid']);
+	    	$groupinfo = posix_getgrgid($stat['gid']);
+	    	$stat['owner'] = $userinfo['name'];
+	    	$stat['group'] = $groupinfo['name'];
+    	} else {
+	    	$stat['owner'] = $stat['uid'];
+	    	$stat['group'] = $stat['gid'];
+    	}
+    	
+        $this->assertEquals($stat, $this->Fs_Item->stat(Fs::NO_DEREFERENCE));
     }
     
     /**
@@ -122,12 +154,12 @@ abstract class Fs_ItemTest extends PHPUnit_Framework_TestCase
      */
     public function testClearStatCache()
     {
-    	$stat = stat($this->file);
-    	if (!@touch($this->file)) $this->markTestSkipped("Could not touch {$this->file}.");
-    	if (!$stat == stat($this->file)) $this->markTestSkipped("Stats don't appear to be cached.");
+    	$mtime = filemtime($this->file);
+    	if (!@touch($this->file, strtotime('2009-01-01 12:00:00'))) $this->markTestSkipped("Could not touch {$this->file}.");
+    	if (!$mtime == filemtime($this->file)) $this->markTestSkipped("Stats don't appear to be cached.");
     	
         $this->Fs_Item->clearStatCache();
-        $this->assertNotEquals($stat, stat($this->file));
+        $this->assertNotEquals($mtime, filemtime($this->file));
     }
 
     /**
@@ -135,10 +167,23 @@ abstract class Fs_ItemTest extends PHPUnit_Framework_TestCase
      */
     public function testTouch()
     {
-    	clearstatcache(false, $this->file);
-    	$this->Fs_Item->touch(strtotime('2009-01-01 12:00'), strtotime('2009-01-01 18:00'));
-    	$this->assertEquals(strtotime('2009-01-01 12:00'), filectime($this->file));
-    	$this->assertEquals(strtotime('2009-01-01 18:00'), fileatime($this->file));
+    	filemtime($this->file); // Stat cache 
+    	
+    	$this->Fs_Item->touch(strtotime('2009-01-01 12:00:00'));
+    	$this->assertEquals('2009-01-01 12:00:00', date('Y-m-d H:i:s', filemtime($this->file)));
+    	$this->assertEquals('2009-01-01 12:00:00', date('Y-m-d H:i:s', fileatime($this->file)));
+    }
+    
+    /**
+     * Tests Fs_Item->touch() with atime
+     */
+    public function testTouch_atime()
+    {
+    	filemtime($this->file); // Stat cache
+    	
+    	$this->Fs_Item->touch(strtotime('2009-01-01 12:00:00'), strtotime('2009-01-01 18:00:00'));
+    	$this->assertEquals('2009-01-01 12:00:00', date('Y-m-d H:i:s', filemtime($this->file)));
+    	$this->assertEquals('2009-01-01 18:00:00', date('Y-m-d H:i:s', fileatime($this->file)));
     }
 
     /**
@@ -147,12 +192,25 @@ abstract class Fs_ItemTest extends PHPUnit_Framework_TestCase
     public function testTouch_DateTime()
     {
     	if (!class_exists('DateTime')) $this->markTestSkipped("DateTime is not available.");
+    	filemtime($this->file); // Stat cache
     	
-    	clearstatcache(false, $this->file);
-    	$this->Fs_Item->touch(new DateTime('2009-01-01 12:00'), new DateTime('2009-01-01 18:00'));
-    	$this->assertEquals(strtotime('2009-01-01 12:00'), filectime($this->file));
-    	$this->assertEquals(strtotime('2009-01-01 18:00'), fileatime($this->file));
+    	$this->Fs_Item->touch(new DateTime('2009-01-01 12:00:00'), new DateTime('2009-01-01 18:00:00'));
+    	$this->assertEquals('2009-01-01 12:00:00', date('Y-m-d H:i:s', filemtime($this->file)));
+    	$this->assertEquals('2009-01-01 18:00:00', date('Y-m-d H:i:s', fileatime($this->file)));
     }
+
+    /**
+     * Tests Fs_Item->touch() with strings
+     */
+    public function testTouch_string()
+    {
+    	filemtime($this->file); // Stat cache
+    	
+    	$this->Fs_Item->touch('2009-01-01 12:00:00', '2009-01-01 18:00:00');
+    	$this->assertEquals('2009-01-01 12:00:00', date('Y-m-d H:i:s', filemtime($this->file)));
+    	$this->assertEquals('2009-01-01 18:00:00', date('Y-m-d H:i:s', fileatime($this->file)));
+    }
+    
     
     /**
      * Tests Fs_Item->getAttribute()
@@ -176,33 +234,107 @@ abstract class Fs_ItemTest extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * Tests Fs_Item->getAttribute() for calculated info
+     */
+    public function testGetAttribute_Calculated()
+    {
+    	$mode = fileperms(realpath($this->file));
+    	
+        $this->assertEquals($mode, $this->Fs_Item->getAttribute('mode'), 'mode = fileperms');
+        $this->assertEquals(filetype(realpath($this->file)), $this->Fs_Item->getAttribute('type'), 'type');
+        $this->assertEquals(Fs::mode2perms($mode), $this->Fs_Item->getAttribute('perms'), 'perms');
+        $this->assertEquals(~$mode & 0777, $this->Fs_Item->getAttribute('umask'), 'umask');
+    }
+    
+    /**
+     * Tests Fs_Item->getAttribute() getting posix info
+     */
+    public function testGetAttribute_Posix()
+    {
+    	if (!extension_loaded('posix')) $this->markTestSkipped("Posix methods not available.");
+    	
+    	$userinfo = posix_getpwuid(fileowner($this->file));
+    	$groupinfo = posix_getgrgid(filegroup($this->file));
+    	
+    	$this->assertEquals($userinfo['name'], $this->Fs_Item->getAttribute('owner'), 'owner');
+        $this->assertEquals($groupinfo['name'], $this->Fs_Item->getAttribute('group'), 'group');
+    }
+
+    /**
+     * Tests Fs_Item->getAttribute()
+     */
+    public function testGetAttribute_lstat()
+    {
+    	$stat = lstat($this->file);
+        $this->assertEquals($stat['dev'], $this->Fs_Item->getAttribute('dev', Fs::NO_DEREFERENCE), 'dev');
+        $this->assertEquals($stat['ino'], $this->Fs_Item->getAttribute('ino', Fs::NO_DEREFERENCE), 'ino');
+        $this->assertEquals($stat['mode'], $this->Fs_Item->getAttribute('mode', Fs::NO_DEREFERENCE), 'mode');
+        $this->assertEquals($stat['nlink'], $this->Fs_Item->getAttribute('nlink', Fs::NO_DEREFERENCE), 'nlink');
+        $this->assertEquals($stat['uid'], $this->Fs_Item->getAttribute('uid', Fs::NO_DEREFERENCE), 'uid');
+        $this->assertEquals($stat['gid'], $this->Fs_Item->getAttribute('gid', Fs::NO_DEREFERENCE), 'gid');
+        $this->assertEquals($stat['rdev'], $this->Fs_Item->getAttribute('rdev', Fs::NO_DEREFERENCE), 'rdev');
+        $this->assertEquals($stat['size'], $this->Fs_Item->getAttribute('size', Fs::NO_DEREFERENCE, Fs::NO_DEREFERENCE), 'size');
+        $this->assertEquals($stat['atime'], $this->Fs_Item->getAttribute('atime', Fs::NO_DEREFERENCE), 'atime');
+        $this->assertEquals($stat['mtime'], $this->Fs_Item->getAttribute('mtime', Fs::NO_DEREFERENCE), 'mtime');
+        $this->assertEquals($stat['ctime'], $this->Fs_Item->getAttribute('ctime', Fs::NO_DEREFERENCE), 'ctime');
+        $this->assertEquals($stat['blksize'], $this->Fs_Item->getAttribute('blksize', Fs::NO_DEREFERENCE), 'blksize');
+        $this->assertEquals($stat['blocks'], $this->Fs_Item->getAttribute('blocks', Fs::NO_DEREFERENCE), 'blocks');
+    }
+
+    /**
+     * Tests Fs_Item->getAttribute() for calculated info
+     */
+    public function testGetAttribute_lstat_Calculated()
+    {
+    	$mode = fileperms($this->file);
+    	
+        $this->assertEquals($mode, $this->Fs_Item->getAttribute('mode', Fs::NO_DEREFERENCE), 'mode = fileperms');
+        $this->assertEquals(filetype(realpath($this->file)), $this->Fs_Item->getAttribute('type', Fs::NO_DEREFERENCE), 'type');
+        $this->assertEquals(Fs::mode2perms($mode), $this->Fs_Item->getAttribute('perms', Fs::NO_DEREFERENCE), 'perms');
+        $this->assertEquals(~$mode & 0777, $this->Fs_Item->getAttribute('umask', Fs::NO_DEREFERENCE), 'umask');
+    }
+    
+    /**
+     * Tests Fs_Item->getAttribute() getting posix info
+     */
+    public function testGetAttribute_lstat_Posix()
+    {
+    	if (!extension_loaded('posix')) $this->markTestSkipped("Posix methods not available.");
+    	
+    	$userinfo = posix_getpwuid(fileowner($this->file));
+    	$groupinfo = posix_getgrgid(filegroup($this->file));
+    	
+    	$this->assertEquals($userinfo['name'], $this->Fs_Item->getAttribute('owner'), 'owner');
+        $this->assertEquals($groupinfo['name'], $this->Fs_Item->getAttribute('group'), 'group');
+    }
+    
+    /**
      * Tests Fs_Item->setAttribute()
      */
     public function testSetAttribute()
     {
-    	clearstatcache(false, $this->file);
-    	$this;
+    	fileperms($this->file); // Stat cache
+    	$this->Fs_Item->setAttribute('mode', 0777);
+    	$this->assertEquals('0777', sprintf('%04o', fileperms($this->file) & 07777));
 	}
 
+    /**
+     * Tests Fs_Item->setAttribute() with an attribute that can't be set
+     */
+    public function testSetAttribute_Exception()
+    {
+    	$this->setExpectedException('Exception', "Unable to set attribute 'type'; Attribute is read-only.");
+    	$this->Fs_Item['type'] = 'unknown';
+    }
+	
     /**
      * Tests Fs_Item->offsetExists()
      */
     public function testOffsetExists()
     {
-        $this->assertTrue(isset($this->Fs_Item['dev']), 'dev');
         $this->assertTrue(isset($this->Fs_Item['ino']), 'ino');
-        $this->assertTrue(isset($this->Fs_Item['mode']), 'mode');
-        $this->assertTrue(isset($this->Fs_Item['nlink']), 'nlink');
-        $this->assertTrue(isset($this->Fs_Item['uid']), 'uid');
-        $this->assertTrue(isset($this->Fs_Item['gid']), 'gid');
-        $this->assertTrue(isset($this->Fs_Item['rdev']), 'rdev');
-        $this->assertTrue(isset($this->Fs_Item['size']), 'size');
-        $this->assertTrue(isset($this->Fs_Item['atime']), 'atime');
         $this->assertTrue(isset($this->Fs_Item['mtime']), 'mtime');
-        $this->assertTrue(isset($this->Fs_Item['ctime']), 'ctime');
-        $this->assertTrue(isset($this->Fs_Item['blksize']), 'blksize');
-        $this->assertTrue(isset($this->Fs_Item['blocks']), 'blocks');
-        
+        $this->assertTrue(isset($this->Fs_Item['type']), 'type');
         $this->assertFalse(isset($this->Fs_Item['nonexistent_' . md5(uniqid())]), 'nonexistent_MD5');
     }
 
@@ -212,39 +344,37 @@ abstract class Fs_ItemTest extends PHPUnit_Framework_TestCase
     public function testOffsetGet()
     {
     	$stat = stat($this->file);
-        $this->assertEquals($stat['dev'], $this->Fs_Item['dev'], 'dev');
         $this->assertEquals($stat['ino'], $this->Fs_Item['ino'], 'ino');
-        $this->assertEquals($stat['mode'], $this->Fs_Item['mode'], 'mode');
-        $this->assertEquals($stat['nlink'], $this->Fs_Item['nlink'], 'nlink');
-        $this->assertEquals($stat['uid'], $this->Fs_Item['uid'], 'uid');
-        $this->assertEquals($stat['gid'], $this->Fs_Item['gid'], 'gid');
-        $this->assertEquals($stat['rdev'], $this->Fs_Item['rdev'], 'rdev');
-        $this->assertEquals($stat['size'], $this->Fs_Item['size'], 'size');
-        $this->assertEquals($stat['atime'], $this->Fs_Item['atime'], 'atime');
         $this->assertEquals($stat['mtime'], $this->Fs_Item['mtime'], 'mtime');
-        $this->assertEquals($stat['ctime'], $this->Fs_Item['ctime'], 'ctime');
-        $this->assertEquals($stat['blksize'], $this->Fs_Item['blksize'], 'blksize');
-        $this->assertEquals($stat['blocks'], $this->Fs_Item['blocks'], 'blocks');
-	}
+        $this->assertEquals(filetype($this->file), $this->Fs_Item['type'], 'type');
+    }
 	
     /**
      * Tests Fs_Item->offsetSet()
      */
     public function testOffsetSet()
     {
-        // TODO Auto-generated Fs_ItemTest->testOffsetSet()
-        $this->markTestIncomplete("offsetSet test not implemented");
-        $this->Fs_Item->offsetSet(/* parameters */);
-    }
+    	fileperms($this->file); // Stat cache
+    	$this->Fs_Item['mode'] = 0777;
+    	$this->assertEquals('0777', sprintf('%04o', fileperms($this->file) & 0777));
+	}
 
     /**
-     * Tests Fs_Item->offsetUnset()
+     * Tests Fs_Item->offsetSet() with an attribute that can't be set
      */
-    public function testOffsetUnset()
+    public function testOffsetSet_Exception()
     {
-        // TODO Auto-generated Fs_ItemTest->testOffsetUnset()
-        $this->markTestIncomplete("offsetUnset test not implemented");
-        $this->Fs_Item->offsetUnset(/* parameters */);
+    	$this->setExpectedException('Exception', "Unable to set attribute 'type'; Attribute is read-only.");
+    	$this->Fs_Item['type'] = 'unknown';
+    }
+	
+    /**
+     * Tests Fs_Item->offsetUnset() with an attribute that can't be unset
+     */
+    public function testOffsetUnset_Exception()
+    {
+    	$this->setExpectedException('Exception', "Unable to set attribute 'mode' to null.");
+    	unset($this->Fs_Item['mode']);
     }
 
     /**
@@ -252,9 +382,7 @@ abstract class Fs_ItemTest extends PHPUnit_Framework_TestCase
      */
     public function testExists()
     {
-        // TODO Auto-generated Fs_ItemTest->testExists()
-        $this->markTestIncomplete("exists test not implemented");
-        $this->Fs_Item->exists(/* parameters */);
+        $this->assertTrue($this->Fs_Item->exists());
     }
 
     /**
@@ -262,9 +390,7 @@ abstract class Fs_ItemTest extends PHPUnit_Framework_TestCase
      */
     public function testIsExecutable()
     {
-        // TODO Auto-generated Fs_ItemTest->testIsExecutable()
-        $this->markTestIncomplete("isExecutable test not implemented");
-        $this->Fs_Item->isExecutable(/* parameters */);
+        $this->assertEquals(is_executable($this->file), $this->Fs_Item->isExecutable());
     }
 
     /**
@@ -272,29 +398,15 @@ abstract class Fs_ItemTest extends PHPUnit_Framework_TestCase
      */
     public function testIsReadable()
     {
-        // TODO Auto-generated Fs_ItemTest->testIsReadable()
-        $this->markTestIncomplete("isReadable test not implemented");
-        $this->Fs_Item->isReadable(/* parameters */);
-    }
+        $this->assertEquals(is_readable($this->file), $this->Fs_Item->isReadable());
+	}
 
     /**
      * Tests Fs_Item->isWritable()
      */
     public function testIsWritable()
     {
-        // TODO Auto-generated Fs_ItemTest->testIsWritable()
-        $this->markTestIncomplete("isWritable test not implemented");
-        $this->Fs_Item->isWritable(/* parameters */);
-    }
-
-    /**
-     * Tests Fs_Item->isCreatable()
-     */
-    public function testIsCreatable()
-    {
-        // TODO Auto-generated Fs_ItemTest->testIsCreatable()
-        $this->markTestIncomplete("isCreatable test not implemented");
-        $this->Fs_Item->isCreatable(/* parameters */);
+        $this->assertEquals(is_writable($this->file), $this->Fs_Item->isWritable());
     }
 
     /**
@@ -302,9 +414,7 @@ abstract class Fs_ItemTest extends PHPUnit_Framework_TestCase
      */
     public function testIsDeletable()
     {
-        // TODO Auto-generated Fs_ItemTest->testIsDeletable()
-        $this->markTestIncomplete("isDeletable test not implemented");
-        $this->Fs_Item->isDeletable(/* parameters */);
+        $this->assertEquals(is_writable($this->file) || is_writable(dirname($this->file)), $this->Fs_Item->isDeletable());
     }
 
     /**
@@ -312,9 +422,7 @@ abstract class Fs_ItemTest extends PHPUnit_Framework_TestCase
      */
     public function testIsHidden()
     {
-        // TODO Auto-generated Fs_ItemTest->testIsHidden()
-        $this->markTestIncomplete("isHidden test not implemented");
-        $this->Fs_Item->isHidden(/* parameters */);
+        $this->assertFalse($this->Fs_Item->isHidden());
     }
 
     /**
@@ -322,89 +430,55 @@ abstract class Fs_ItemTest extends PHPUnit_Framework_TestCase
      */
     public function testChmod()
     {
-        // TODO Auto-generated Fs_ItemTest::testChmod()
-        $this->markTestIncomplete("chmod test not implemented");
-        Fs_Item::chmod(/* parameters */);
+    	fileperms($this->file); // Stat cache
+    	
+        $this->Fs_Item->chmod(0766);
+        $this->assertEquals('0766', sprintf('%04o', fileperms($this->file) & 07777));
+
+        $this->Fs_Item->chmod(0740);
+        $this->assertEquals('0740', sprintf('%04o', fileperms($this->file) & 07777), '2nd time');
     }
 
     /**
-     * Tests Fs_Item::chown()
+     * Tests Fs_Item::chmod() with string
      */
-    public function testChown()
+    public function testChmod_string()
     {
-        // TODO Auto-generated Fs_ItemTest::testChown()
-        $this->markTestIncomplete("chown test not implemented");
-        Fs_Item::chown(/* parameters */);
+    	fileperms($this->file); // Stat cache
+    	
+        $this->Fs_Item->chmod('u=rwx,go+rw-x');
+        $this->assertEquals('0766', sprintf('%04o', fileperms($this->file) & 0777));
+        
+        $this->Fs_Item->chmod('g-w,o-rwx');
+        $this->assertEquals('0740', sprintf('%04o', fileperms($this->file) & 0777), '2nd time');
     }
-
+	
     /**
-     * Tests Fs_Item::chgrp()
+     * Tests Fs_Item::chmod() with invalid string
      */
-    public function testChgrp()
+    public function testChmod_invalidString()
     {
-        // TODO Auto-generated Fs_ItemTest::testChgrp()
-        $this->markTestIncomplete("chgrp test not implemented");
-        Fs_Item::chgrp(/* parameters */);
+    	$this->setExpectedException('Q\ExecException');
+    	$this->Fs_Item->chmod('incorrect mode');
     }
-
+    
     /**
-     * Tests Fs_Item->copy()
+     * Tests Fs_Item::chown() with user:group
      */
-    public function testCopy()
+    public function testChown_Security()
     {
-        // TODO Auto-generated Fs_ItemTest->testCopy()
-        $this->markTestIncomplete("copy test not implemented");
-        $this->Fs_Item->copy(/* parameters */);
+    	$this->setExpectedException('Q\SecurityException', "Won't change owner of '{$this->file}' to user 'myusr:mygrp': To change both owner and group, user array(owner, group) instead");
+    	$this->Fs_Item->chown('myusr:mygrp');
     }
-
-    /**
-     * Tests Fs_Item->rename()
-     */
-    public function testRename()
-    {
-        // TODO Auto-generated Fs_ItemTest->testRename()
-        $this->markTestIncomplete("rename test not implemented");
-        $this->Fs_Item->rename(/* parameters */);
-    }
-
-    /**
-     * Tests Fs_Item->move()
-     */
-    public function testMove()
-    {
-        // TODO Auto-generated Fs_ItemTest->testMove()
-        $this->markTestIncomplete("move test not implemented");
-        $this->Fs_Item->move(/* parameters */);
-    }
-
-    /**
-     * Tests Fs_Item->delete()
-     */
-    public function testDelete()
-    {
-        // TODO Auto-generated Fs_ItemTest->testDelete()
-        $this->markTestIncomplete("delete test not implemented");
-        $this->Fs_Item->delete(/* parameters */);
-    }
-
-    /**
-     * Tests Fs_Item->unlink()
-     */
-    public function testUnlink()
-    {
-        // TODO Auto-generated Fs_ItemTest->testUnlink()
-        $this->markTestIncomplete("unlink test not implemented");
-        $this->Fs_Item->unlink(/* parameters */);
-    }
-
+    
+    
     /**
      * Tests Fs_Item->__invoke()
      */
     public function test__invoke()
     {
-        // TODO Auto-generated Fs_ItemTest->test__invoke()
-        $this->markTestIncomplete("__invoke test not implemented");
-        $this->Fs_Item->__invoke(/* parameters */);
+    	$this->setExpectedException('Q\Fs_Exception', "Unable to execute '{$this->file}': This is not a regular file, but a " . filetype(realpath($this->file)));
+        $this->Fs_Item();
     }
 
     /**
@@ -412,9 +486,7 @@ abstract class Fs_ItemTest extends PHPUnit_Framework_TestCase
      */
     public function test__set_state()
     {
-        // TODO Auto-generated Fs_ItemTest::test__set_state()
-        $this->markTestIncomplete("__set_state test not implemented");
-        Fs_Item::__set_state(/* parameters */);
+        $ser = var_export($this->Fs_Item, true);
+        $this->assertEquals($this->Fs_Item, eval("return $ser;"));
     }
 }
-

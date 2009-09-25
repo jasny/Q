@@ -2,6 +2,7 @@
 namespace Q;
 
 require_once 'Q/Fs/Item.php';
+require_once 'Q/ExecException.php';
 
 /**
  * Interface of a regular file.
@@ -42,9 +43,11 @@ class Fs_File extends Fs_Item
 	 * @param int $maxlen  Maximum length of data read.
 	 * @return string
 	 */
-	public function getContents($flags=0, $offset=-1, $maxlen=-1)
+	public function getContents($flags=0, $offset=0, $maxlen=null)
 	{
-		return file_get_contents($flags, $offset, $maxlen);
+		return isset($maxlen) ?
+		 file_get_contents($this->_path, $flags, null, $offset, $maxlen) :
+		 file_get_contents($this->_path, $flags, null, $offset);
 	}
 
 	/**
@@ -57,7 +60,7 @@ class Fs_File extends Fs_Item
 	public function putContents($data, $flags=0)
 	{
 		if ($flags & Fs::RECURSIVE) $this->up->create(0770, Fs::RECURSIVE);
-		return file_put_contents($data, $flags);
+		return file_put_contents($this->_path, $data, $flags);
 	}
 	
 	/**
@@ -67,31 +70,9 @@ class Fs_File extends Fs_Item
 	 */
 	public function output()
 	{
-		readfile($this->name);
+		readfile($this->_path);
 	}
-	
-	
-	/**
-	 * Transformation; Reads entire file into a string.
-	 * 
-	 * @return string
-	 */
-	public function asString()
-	{
-		return $this->getContents();
-	}
-	
-	/**
-	 * Transformation; Reads entire file into an array.
-	 * Each line will be one entry in the array
-	 * 
-	 * @return array
-	 */
-	public function asArray()
-	{
-		return file($this->_path);
-	}
-	
+
 	
 	/**
 	 * Open the file.
@@ -103,12 +84,7 @@ class Fs_File extends Fs_Item
 	public function open($mode='r+')
 	{
 		$resource = @fopen($this->_path, $mode);
-		
-		if (!$resource) {
-			$err = error_get_last();
-			throw new Fs_Exception("Failed to open file; ". $err['message']);
-		}
-		
+		if (!$resource) throw new Fs_Exception("Failed to open file", error_get_last());
 		return $resource;
 	}
 	
@@ -122,19 +98,19 @@ class Fs_File extends Fs_Item
 	 */
 	public function exec()
 	{
-		if (!$this->exists()) throw new Fs_Exception("Unable to execute {$this->_path}; File doesn't exist.");
-		if (!$this->isExecutable()) throw new Fs_Exception("Unable to execute {$this->_path}; No permission to execute file.");
+		if (!$this->exists()) throw new Fs_Exception("Unable to execute '{$this->_path}': File does not exist");
+		if (!$this->isExecutable()) throw new Fs_Exception("Unable to execute '{$this->_path}': No permission to execute file");
 		
 		$args = func_get_args();
 		foreach ($args as $i=>&$arg){
 			if (!isset($arg)) unset($args[$i]);
-			 else $arg = escapeshellarg((string)$arg);
+			  else $arg = escapeshellarg((string)$arg);
 		}
 		$arglist = join(' ', $args);
 
 		$pipes = array();
-		$p = proc_open($this->_path . (!empty($arglist) ? ' ' . $arglist : ''), array(array('file'=>'/dev/null', 'r'), array('pipe', 'w'), array('pipe', 'w'), $pipes));
-		if (!$p) throw new ExecException("Failed to execute {$this->_path}.");
+		$p = @proc_open($this->_path . (!empty($arglist) ? ' ' . $arglist : ''), array(array('file', '/dev/null', 'r'), array('pipe', 'w'), array('pipe', 'w')), $pipes);
+		if (!$p) throw new ExecException("Failed to execute '{$this->_path}'", error_get_last());
 		
 		$out = stream_get_contents($pipes[1]);
 		fclose($pipes[1]);
@@ -142,11 +118,11 @@ class Fs_File extends Fs_Item
 		fclose($pipes[2]);
 
 		foreach (explode("\n", $err) as $line) {
-			if (trim($line) != '') trigger_error("Exec $this->_path: " . trim($line), E_USER_NOTICE);
+			if (trim($line) != '') trigger_error("Exec '{$this->_path}': " . preg_replace('~^\s*([\'"]?' . preg_quote($this->_path, '~') . '[\'"]?\s*(\:\s*)?)?~', '', $line), E_USER_NOTICE);
 		}
 		
 		$return_var = proc_close($p);
-		if ($return_var != 0) throw new ExecException("Execution of {$this->_path} exited with return code $return_var.", $return_var, $out, $err);
+		if ($return_var != 0) throw new ExecException("Execution of '{$this->_path}' exited with return code $return_var", $return_var, $out, $err);
 		
 		return $out;
 	}
@@ -161,6 +137,6 @@ class Fs_File extends Fs_Item
 	public function __invoke()
 	{
 		$args = func_get_args();
-		return call_user_func(array($this, 'exec'), $args);
+		return call_user_func_array(array($this, 'exec'), $args);
 	}
 }
