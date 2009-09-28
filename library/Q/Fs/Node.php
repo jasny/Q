@@ -1,16 +1,18 @@
 <?php
 namespace Q;
 
+require_once 'Q/Fs.php';
+require_once 'Q/ExecException.php';
 require_once 'Q/SecurityException.php';
 
 /**
  * Base class for any type of file on the filesystem.
  * 
- * {@internal An object should only have property $_path so `Fs_item == Fs_item` will give the expected result.}} 
+ * {@internal An object should only have property $_path so `Fs_Node == Fs_Node` will give the expected result.}} 
  * 
  * @package Fs
  */
-abstract class Fs_Item implements \ArrayAccess
+abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
 {
 	/**
 	 * File path.
@@ -61,7 +63,7 @@ abstract class Fs_Item implements \ArrayAccess
 	}
 	
 	/**
-	 * Alias of Fs_Item::up().
+	 * Alias of Fs_Node::up().
 	 * 
 	 * @return Fs_Dir
 	 */
@@ -91,62 +93,225 @@ abstract class Fs_Item implements \ArrayAccess
 	}
 	
 	
+	/**
+	 * Interator; Returns the current file object.
+	 * 
+	 * @return Fs_Node
+	 */
+	public function current()
+	{
+		throw new Fs_Exception("Unable to traverse through '{$this->_path}': File is not a directory");
+	}
+	
+	/**
+	 * Interator; Returns the current filename.
+	 * 
+	 * @return string
+	 */
+	public function key()
+ 	{
+		throw new Fs_Exception("Unable to traverse through '{$this->_path}': File is not a directory");
+	}
+ 	
+	/**
+	 * Interator; Move forward to next item.
+	 */
+ 	public function next()
+ 	{
+ 		throw new Fs_Exception("Unable to traverse through '{$this->_path}': File is not a directory");
+ 	}
+ 	
+	/**
+	 * Interator; Rewind to the first item.
+	 */
+ 	public function rewind()
+ 	{
+ 		throw new Fs_Exception("Unable to traverse through '{$this->_path}': File is not a directory");
+ 	}
+ 	
+	/**
+	 * Interator; Check if there is a current item after calls to rewind() or next(). 
+	 */
+ 	public function valid()
+ 	{
+ 		throw new Fs_Exception("Unable to traverse through '{$this->_path}': File is not a directory");
+ 	}
+ 	
  	/**
- 	 * Magic get method.
+ 	 * Countable; Count files in directory
+ 	 * @return int
+ 	 */
+ 	public function count()
+ 	{
+ 		throw new Fs_Exception("Unable to count items in '{$this->_path}': File is not a directory");
+ 	}	
+	
+ 	
+ 	/**
+ 	 * Magic get method; Get file in directory.
  	 * 
  	 * @param string $name
- 	 * @throws Fs_Exception
+ 	 * @return Fs_Node
  	 */
- 	public function __get($name)
+ 	public final function __get($name)
  	{
- 		throw new Fs_Exception("Unable to get {$this->_path}/$name: File {$this->_path} is not a directory.");
+ 		return $this->get($name);
  	}
-	
+
+ 	/**
+ 	 * Magic get method; Check if file in directory exists.
+ 	 * 
+ 	 * @param string $name
+ 	 * @return Fs_Node
+ 	 */
+ 	public function __isset($name)
+ 	{
+ 		return $this->has($name);
+ 	}
+ 	
  	/**
  	 * Get file in directory.
  	 * 
  	 * @param string $name
- 	 * @throws Fs_Exception
+ 	 * @return Fs_Node
+ 	 */
+ 	public function get($name)
+ 	{
+ 		throw new Fs_Exception("Unable to get '{$this->_path}/$name': File '{$this->_path}' is not a directory");
+ 	}
+ 	
+ 	/**
+ 	 * Check if file in directory exists.
+ 	 * 
+ 	 * @param string $name
+ 	 * @return boolean
+ 	 */
+ 	public function has($name)
+ 	{
+ 		throw new Fs_Exception("Unable to get '{$this->_path}/$name': File '{$this->_path}' is not a directory");
+ 	}
+ 	
+ 	/**
+ 	 * Get file in directory.
+ 	 * 
+ 	 * @param string $name
+ 	 * @return Fs_File
  	 */
  	public function file($name)
  	{
- 		throw new Fs_Exception("Unable to get {$this->_path}/$name: File {$this->_path} is not a directory.");
+ 		throw new Fs_Exception("Unable to get '{$this->_path}/$name': File '{$this->_path}' is not a directory");
  	}
  	
  	/**
  	 * Get subdirectory.
  	 * 
  	 * @param string $name
- 	 * @throws Fs_Exception
+ 	 * @return Fs_Dir
  	 */
  	public function dir($name)
  	{
- 		throw new Fs_Exception("Unable to get {$this->_path}/$name: File {$this->_path} is not a directory.");
+ 		throw new Fs_Exception("Unable to get '{$this->_path}/$name': File '{$this->_path}' is not a directory");
  	}
  	
+ 	/**
+ 	 * Get block device in directory.
+ 	 * 
+ 	 * @param string $name
+ 	 * @return Fs_Block
+ 	 */
+ 	public function block($name)
+ 	{
+ 		throw new Fs_Exception("Unable to get '{$this->_path}/$name': File '{$this->_path}' is not a directory");
+ 	}
+ 	
+ 	/**
+ 	 * Get char device in directory.
+ 	 * 
+ 	 * @param string $name
+ 	 * @return Fs_Char
+ 	 */
+ 	public function char($name)
+ 	{
+ 		throw new Fs_Exception("Unable to get '{$this->_path}/$name': File '{$this->_path}' is not a directory");
+ 	}
+ 	
+ 	/**
+ 	 * Get fifo in directory.
+ 	 * 
+ 	 * @param string $name
+ 	 * @return Fs_Fifo
+ 	 */
+ 	public function fifo($name)
+ 	{
+ 		throw new Fs_Exception("Unable to get '{$this->_path}/$name': File '{$this->_path}' is not a directory");
+ 	}
+ 	
+ 	/**
+ 	 * Get socket in directory.
+ 	 * 
+ 	 * @param string $name
+ 	 * @return Fs_Socket
+ 	 */
+ 	public function socket($name)
+ 	{
+ 		throw new Fs_Exception("Unable to get '{$this->_path}/$name': File '{$this->_path}' is not a directory");
+ 	}
+ 	
+    
+	/**
+	 * Returns the target of the symbolic link.
+	 * 
+	 * @return string
+	 */
+	public function target()
+	{
+		if (!($this instanceof Fs_Symlink)) throw new Fs_Exception("Unable to get target of '{$this->_path}: File is not a symbolic link.");
+		
+		$path = @readlink($this->_path);
+		if ($path === false) throw new Fs_Exception("Unable to read link '{$this->_path}'", error_get_last());
+		return $path;
+	}
+	
 	/**
 	 * Return final path for broken link.
 	 * 
 	 * @param int $count  Counter to break deadloop (max 16)
-	 * @return Fs_Block
+	 * @return Fs_Node
 	 */
 	protected function realpathBestEffort($count=0)
 	{
 		if ($count >= 16) return false;
 		
-		$target = $this->target(); // A bit dodgy, this should only be called by Fs_Symlink classes. 
-		return $target instanceof Fs_Symlink ? $target->realpathBestEffort($count) : $target; 
+		$target = $this->realpath(Fs::NO_DEREFERENCE);
+		return $target instanceof Fs_Symlink ? $target->realpathBestEffort($count+1) : $target;
 	}
 	
- 	/**
-	 * Returns Fs_Item of canonicalized absolute pathname, resolving symlinks.
-	 * Unlike the realpath() function, this returns a best-effort for non-existent files. 
+	/**
+	 * Returns Fs_Node of canonicalized absolute pathname, resolving symlinks.
+	 * Unlike the realpath() function, this returns a best-effort for non-existent files.
 	 * 
-	 * @return Fs_Item
+	 * Use Fs::NO_DEREFERENCE to not dereference if target is a symlink.
+	 * 
+	 * @param int $flags  Fs::% options
+	 * @return Fs_Node
 	 */
-	public function realpath()
+	public function realpath($flags=0)
 	{
-		return $this;
+		if (!($this instanceof Fs_Symlink)) return $this;
+		if ($this instanceof Fs_Symlink_Broken) throw new Fs_Exception("Unable to resolve realpath of '{$this->_path}': File is a broken symlink.");
+		
+		if ($flags & Fs::NO_DEREFERENCE) {
+			$target = Fs::canonicalize($this->target(), dirname($this->_path));
+			return is_link($target) ? new static($target) : call_user_func(array('Fs', Fs::typeOfNode($this, Fs::ALWAYS_FOLLOW)), $target);
+		
+		} else {
+			$path = realpath($this->_path);
+			if ($path) return Fs::get($path);
+			
+			$file = $this->realpathBestEffort();
+			if (!$file) throw new Fs_Exception("Unable to resolve realpath of '{$this->_path}': Too many levels of symbolic links.");
+			return $file;
+		}
 	}
 	
  	/**
@@ -158,7 +323,20 @@ abstract class Fs_Item implements \ArrayAccess
 	{
 		return Fs::dir(dirname($this->_path));
 	}
-
+	
+ 	/**
+ 	 * Find files matching a pattern, relative to this directory.
+ 	 * @see http://www.php.net/glob
+ 	 * 
+ 	 * @param string $pattern
+ 	 * @param int    $flags    GLOB_% options as binary set
+ 	 * @return Fs_Node[]
+ 	 */
+ 	public function glob($pattern, $flags=0)
+ 	{
+ 		throw new Fs_Exception("Unable to glob in '{$this->_path}': File is not a directory");
+ 	}
+ 		
  	/**
  	 * Check if this file is in directory $dir.
  	 * 
@@ -183,7 +361,7 @@ abstract class Fs_Item implements \ArrayAccess
  		Fs::setPath($name, $this);
  	}
  	
- 	
+
 	/**
 	 * Gives information about a file.
 	 * @see http://www.php.net/stat
@@ -205,17 +383,16 @@ abstract class Fs_Item implements \ArrayAccess
 			$err = error_get_last();
 			throw new Fs_Exception("Failed to stat {$this->_path}", error_get_last());
 		}
-
+		
 		$stat['type'] = Fs::mode2type($stat['mode']);
 		$stat['perms'] = Fs::mode2perms($stat['mode']);
-		$stat['umask'] = Fs::mode2umask($stat['mode']);
 		
 		if (extension_loaded('posix')) {
-	    	$stat['owner'] = ($info = posix_getpwuid(fileowner($this->_path))) ? $info['name'] : fileowner($this->_path);
-	    	$stat['group'] = ($info = posix_getgrgid(filegroup($this->_path))) ? $info['name'] : filegroup($this->_path);
+	    	$stat['owner'] = ($info = posix_getpwuid($stat['uid'])) ? $info['name'] : $stat['uid'];
+	    	$stat['group'] = ($info = posix_getgrgid($stat['gid'])) ? $info['name'] : $stat['gid'];
 		} else {
-			$stat['owner'] = fileowner($this->_path);
-			$stat['group'] = filegroup($this->_path);
+			$stat['owner'] = $stat['uid'];
+			$stat['group'] = $stat['gid'];
 		}
 		
 		return $stat;
@@ -232,10 +409,10 @@ abstract class Fs_Item implements \ArrayAccess
 	{
 		if (!extension_loaded('xattr') || !xattr_supported($this->_path, $flags)) throw new Fs_Exception("Unable to get attributes of {$this->_path}; Extended attributes are not supported.");
 		
-		$file = $flags & Fs::NO_DEREFERENCE  ? $this->_path : (string)$this->realpath();
+		$file = $flags & Fs::NO_DEREFERENCE ? $this->_path : (string)$this->realpath();
 		$attr = @xattr_list($file, $flags);
 		
-		if ($attr === false) throw new Fs_Exception("Failed to get extended attributes of {$this->_path}", error_get_last());
+		if ($attr === false) throw new Fs_Exception("Failed to get extended attributes of '{$this->_path}'", error_get_last());
 		return $attr;		
 	}
 	
@@ -270,12 +447,11 @@ abstract class Fs_Item implements \ArrayAccess
 		
     	if ($att == 'type') return Fs::mode2type($stat['mode']);
     	if ($att == 'perms') return Fs::mode2perms($stat['mode']);
-    	if ($att == 'umask') return Fs::mode2umask($stat['mode']);
-    	if ($att == 'owner') return (extension_loaded('posix') && ($info = posix_getpwuid(fileowner($this->_path)))) ? $info['name'] : fileowner($this->_path);
-    	if ($att == 'group') return (extension_loaded('posix') && ($info = posix_getgrgid(filegroup($this->_path)))) ? $info['name'] : filegroup($this->_path);
+    	if ($att == 'owner') return (extension_loaded('posix') && ($info = posix_getpwuid($stat['uid']))) ? $info['name'] : $stat['uid'];
+    	if ($att == 'group') return (extension_loaded('posix') && ($info = posix_getgrgid($stat['gid']))) ? $info['name'] : $stat['gid'];
     	
     	if (!extension_loaded('xattr') || !xattr_supported($this->_path, $flags)) {
-	    	trigger_error("Unable to get attribute '$att' of {$this->_path}: Extended attributes are not supported.", E_USER_NOTICE);
+	    	trigger_error("Unable to get attribute '$att' of '{$this->_path}': Extended attributes are not supported.", E_USER_NOTICE);
 	    	return null;
     	}
     	
@@ -337,7 +513,7 @@ abstract class Fs_Item implements \ArrayAccess
 	 */
 	public function offsetExists($att)
 	{
-		return in_array($att, array('size', 'type', 'atime', 'ctime', 'mtime', 'mode', 'uid', 'owner', 'gid', 'group', 'dev', 'ino', 'nlink', 'rdev', 'blksize', 'blocks'))
+		return in_array($att, array('size', 'type', 'atime', 'ctime', 'mtime', 'mode', 'perms', 'uid', 'owner', 'gid', 'group', 'dev', 'ino', 'nlink', 'rdev', 'blksize', 'blocks'))
 		  || (extension_loaded('xattr') && xattr_supported($this->_path) && xattr_get($this->_path, $att) !== false); 
 	}
 	
@@ -399,7 +575,7 @@ abstract class Fs_Item implements \ArrayAccess
 	 */
 	public function exists($flags=0)
 	{
-		return file_exists($this->_path);
+		return file_exists($this->_path) || ($this instanceof Fs_Symlink && $flags && Fs::NO_DEREFERENCE && is_link($this->_path));
 	}
 	
 	/**
@@ -410,7 +586,9 @@ abstract class Fs_Item implements \ArrayAccess
 	 */
 	public function isExecutable($flags=0)
 	{
-		return is_executable($this->_path);
+		return ($this instanceof Fs_Symlink && $flags && Fs::NO_DEREFERENCE) ?
+		 (bool)(($this->getAttribute('mode', Fs::NO_DEREFERENCE) >> $this->modeBitShift()) & 1) :
+		 is_executable($this->_path);
 	}
 	
 	/**
@@ -421,7 +599,9 @@ abstract class Fs_Item implements \ArrayAccess
 	 */
 	public function isReadable($flags=0)
 	{
-		return is_readable($this->_path);
+		return ($this instanceof Fs_Symlink && $flags && Fs::NO_DEREFERENCE) ?
+		 (bool)(($this->getAttribute('mode', Fs::NO_DEREFERENCE) >> $this->modeBitShift()) & 2) :
+		 is_readable($this->_path);
 	}
 	
 	/**
@@ -432,7 +612,10 @@ abstract class Fs_Item implements \ArrayAccess
 	 */
 	public function isWritable($flags=0)
 	{
-		return is_writable($this->_path) || !$this->exists() && $this->up()->isWritable($flags);
+		return (($this instanceof Fs_Symlink && $flags && Fs::NO_DEREFERENCE) ?
+		  (bool)(($this->getAttribute('mode', Fs::NO_DEREFERENCE) >> $this->modeBitShift()) & 4) :
+		  is_writable($this->_path)) ||
+		 (!$this->exists() && $this->up()->isWritable($flags & ~Fs::NO_DEREFERENCE));
 	}
 	
 	/**
@@ -463,7 +646,38 @@ abstract class Fs_Item implements \ArrayAccess
 		return $this->_path[0] == '.';
 	}
 	
+	/**
+	 * Tells whether the file was uploaded via HTTP POST.
+	 * 
+	 * @return boolean
+	 */
+	public function isUploadedFile()
+	{
+		return is_uploaded_file($this->_path);
+	}
 	
+	
+ 	/**
+ 	 * Return the number of bytes on the corresponding filesystem or disk partition.
+ 	 * 
+ 	 * @return float
+ 	 */
+ 	public function diskTotalSpace()
+ 	{
+ 		return disk_total_space($this->_path);
+ 	}
+ 	
+ 	/**
+ 	 * Return the number of bytes available on the corresponding filesystem or disk partition.
+ 	 * 
+ 	 * @return float
+ 	 */
+ 	public function diskFreeSpace()
+ 	{
+ 		return disk_free_space($this->_path);
+ 	}
+	
+ 	
     /**
      * Sets access and modification time of file.
      * @see http://www.php.net/touch
@@ -473,21 +687,27 @@ abstract class Fs_Item implements \ArrayAccess
      * @param int                  $flags  Fs::% options as binary set
      * @throws Fs_Exception or ExecException if chown fails.
      * 
-     * @todo Implement support for several options of $flags for Fs_Item::touch()
+     * @todo Implement support for several options of $flags for Fs_Node::touch()
      */
     public function touch($time=null, $atime=null, $flags=0)
     {
-		if (!$this->exists()) throw new Fs_Exception("Unable to touch '{$this->_path}': " . ($this instanceof Fs_Symlink && is_link($this->_path) ? "Unable to dereference symlink" : "File does not exist"));
+		if (!$this->exists()) {
+			$dir = $this->realpath()->up();
+			if (!$dir->exists()) {
+				if (~$flags & Fs::RECURSIVE) throw new Fs_Exception("Unable to touch '{$this->_path}': Directory '{$dir->_path}' does not exist");
+				$dir->create(0770, $flags);
+			}
+		}
     	
     	if (!isset($time)) $time = time();
-    	 elseif (is_string($time)) $time = strtotime($time);
-    	 elseif ($time instanceof \DateTime) $time = $time->getTimestamp();
+    	  elseif (is_string($time)) $time = strtotime($time);
+    	  elseif ($time instanceof \DateTime) $time = $time->getTimestamp();
     	 
     	if (!isset($atime)) $atime = $time;
-    	 elseif (is_string($atime)) $atime = strtotime($atime);
-    	 elseif ($atime instanceof \DateTime) $atime = $atime->getTimestamp();
+    	  elseif (is_string($atime)) $atime = strtotime($atime);
+    	  elseif ($atime instanceof \DateTime) $atime = $atime->getTimestamp();
     	
-    	if (!@touch($this->_path, $time, $atime)) throw new Fs_Exception("touch '{$this->_path}' failed", error_get_last());
+    	if (!@touch($this->_path, $time, $atime)) throw new Fs_Exception("Touch '{$this->_path}' failed", error_get_last());
     	$this->clearStatCache();
     }
     
@@ -495,7 +715,6 @@ abstract class Fs_Item implements \ArrayAccess
      * Changes file mode.
      * Use of $flags might cause an exception based on the operation system.
      * 
-     * @param string     $path   Path to the file
      * @param int|string $mode   Octal mode (int) or symbolic mode (string) 
      * @param int        $flags  Fs::% options as binary set
      * @throws Fs_Exception or ExecException if chown fails.
@@ -562,6 +781,16 @@ abstract class Fs_Item implements \ArrayAccess
 	}
 	
 	
+ 	/**
+ 	 * Create this file.
+ 	 * Use Fs::PRESERVE to simply return if file already exists
+ 	 * 
+ 	 * @param int $mode   File permissions, umask applies
+ 	 * @param int $flags  Fs::% options
+ 	 * @throws Fs_Exception if creation fails
+ 	 */
+	abstract public function create($mode=0666, $flags=0);
+	
 	/**
 	 * Copy or rename/move this file.
 	 * 
@@ -569,7 +798,7 @@ abstract class Fs_Item implements \ArrayAccess
 	 * @param Fs_Dir   $dir
 	 * @param string   $name
 	 * @param int      $flags  Fs::% options as binary set
-	 * @return Fs_Item
+	 * @return Fs_Node
 	 */
 	protected function doCopyRename($fn, $dir, $name, $flags)
 	{
@@ -578,7 +807,7 @@ abstract class Fs_Item implements \ArrayAccess
 		if (!($dir instanceof Fs_Dir)) $dir = Fs::dir($dir);
 		
 		if (!$dir->exists()) {
-			if (~$flags & Fs::RECURSIVE) throw new Fs_Exception("Unable to $fn '{$this->_path}' to '$dir/$name': Directory does not exist.");
+			if (~$flags & Fs::RECURSIVE) throw new Fs_Exception("Unable to $fn '{$this->_path}' to '$dir/': Directory does not exist");
 			$dir->create();
 		}
 		
@@ -586,7 +815,7 @@ abstract class Fs_Item implements \ArrayAccess
 			$dest = $dir->$name;
 			if ($flags & Fs::OVERWRITE);
 			  elseif ($flags & Fs::UPDATE && $dest['ctime'] >= $this['ctime']) return $this->_path;
-			  else throw new Fs_Exception("Unable to $fn '{$this->_path}' to '$dir/$name': Target already exists.");
+			  else throw new Fs_Exception("Unable to $fn '{$this->_path}' to '$dir/$name': Target already exists");
 
 			$dest->clearStatCache();
 			$dest->delete();
@@ -601,7 +830,7 @@ abstract class Fs_Item implements \ArrayAccess
 	 * 
 	 * @param string $newname
 	 * @param int    $flags
-	 * @return Fs_Item
+	 * @return Fs_Node
 	 */
 	public function copy($newname, $flags=0)
 	{
@@ -613,7 +842,7 @@ abstract class Fs_Item implements \ArrayAccess
 	 * 
 	 * @param string|Fs_Dir $dir
 	 * @param int           $flags  Fs::% options as binary set
-	 * @return Fs_Item
+	 * @return Fs_Node
 	 */
 	public function copyTo($dir, $flags=0)
 	{
@@ -625,7 +854,7 @@ abstract class Fs_Item implements \ArrayAccess
 	 * 
 	 * @param string $newname
 	 * @param int    $flags  Fs::% options as binary set
-	 * @return Fs_Item
+	 * @return Fs_Node
 	 */
 	public function rename($newname, $flags=0)
 	{
@@ -638,7 +867,7 @@ abstract class Fs_Item implements \ArrayAccess
 	 * 
 	 * @param string|Fs_Dir $dir
 	 * @param int           $flags  Fs::% options as binary set
-	 * @return Fs_Item
+	 * @return Fs_Node
 	 */
 	public final function moveTo($dir, $flags=0)
 	{
@@ -659,23 +888,105 @@ abstract class Fs_Item implements \ArrayAccess
 	
 	
 	/**
-	 * Magic method for when object is used as function.
+	 * Reads entire file into a string.
 	 * 
-	 * @throws Fs_Exception
+	 * @param int $flags   FILE_% flags as binary set.
+	 * @param int $offset  The offset where the reading starts.
+	 * @param int $maxlen  Maximum length of data read.
+	 * @return string
 	 */
-	public function __invoke()
+	public function getContents($flags=0, $offset=0, $maxlen=null)
+	{
+		throw new Fs_Exception("Unable to get the contents of '{$this->_path}': File is a " . $this->getAttribute('type'));
+	}
+
+	/**
+	 * Write a string to a file.
+	 * 
+	 * @param mixed $data   The data to write; Can be either a string, an array or a stream resource. 
+	 * @param int   $flags  Fs::RECURSIVE and/or FILE_% flags as binary set.
+	 * @return int
+	 */
+	public function putContents($data, $flags=0)
+	{
+		throw new Fs_Exception("Unable to write data to '{$this->_path}': File is a " . $this->getAttribute('type'));
+	}
+	
+	/**
+	 * Output contents of the file.
+	 * 
+	 * @return int
+	 */
+	public function output()
+	{
+		throw new Fs_Exception("Unable to get the contents of '{$this->_path}': File is a " . $this->getAttribute('type'));
+	}
+	
+	/**
+	 * Open the file.
+	 * @see http://www.php.net/fopen
+	 * 
+	 * @param string $mode  The mode parameter specifies the type of access you require to the stream.
+	 * @return resource
+	 */
+	public function open($mode='r+')
+	{
+		throw new Fs_Exception("Unable to open '{$this->_path}': File is a " . $this->getAttribute('type'));
+	}
+	
+	
+	/**
+	 * Execute file and return content of stdout.
+	 * 
+	 * @param Parameters will be escaped and passed as arguments.
+	 * @return string
+	 * @throws Fs_Exception if execution is not possible.
+	 * @throws ExecException if execution fails.
+	 */
+	public function exec()
 	{
 		throw new Fs_Exception("Unable to execute {$this->_path}: This is not a regular file, but a " . $this->realpath()->getAttribute('type') . ".");
 	}
+
+	/**
+	 * Magic method for when object is used as function; Calls Fs_Node::exec().
+	 * 
+	 * @param Parameters will be escaped and passed as arguments.
+	 * @return string
+	 * @throws ExecException if execution fails.
+	 */
+	public final function __invoke()
+	{
+		$args = func_get_args();
+		return call_user_func_array(array($this, 'exec'), $args);
+	}
+	
 	
 	/**
 	 * This static method is called for classes exported by var_export(). 
 	 *  
 	 * @param array $props
-	 * @return Fs_Item
+	 * @return Fs_Node
 	 */
 	public static function __set_state($props)
 	{
 		return new static($props['_path']);
+	}
+	
+	/**
+	 * Call added functionality by mixins.
+	 * 
+	 * @param string $method
+	 * @param array  $args
+	 * @return mixed
+	 */
+	public  function __call($method, $args)
+	{
+		if (!ctype_alnum($method)) throw new SecurityException("Won't call '$method' for " . get_class($this) . ": Invalid method name.");
+		
+		foreach (Fs::$mixins as $mixin) {
+			if (is_callable(array($mixin, $method))) return eval("return {$this->mixin}::$method(" . (!empty($args) ? '$args[' . join('], $args[', array_keys($args)) . ']' : '') . ");");
+		}
+		trigger_error("Call to undefined method " . get_class($this) . "::$method()", E_USER_ERROR);
 	}
 }

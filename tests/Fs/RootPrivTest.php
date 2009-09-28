@@ -1,5 +1,5 @@
 <?php
-use Q\Fs, Q\Fs_Item;
+use Q\Fs, Q\Fs_Node;
 
 require_once 'Q/Fs.php';
 require_once 'PHPUnit/Framework/TestCase.php';
@@ -48,12 +48,12 @@ class Fs_RootPrivTest extends PHPUnit_Framework_TestCase
         parent::tearDown();
         
         $this->cleanup($this->file);
-    	$this->Fs_Item = null;
+    	$this->Fs_Node = null;
     }    
     
     
     /**
-     * Tests Fs_Item::chown()
+     * Tests Fs_Node::chown()
      */
     public function testChown()
     {
@@ -64,16 +64,16 @@ class Fs_RootPrivTest extends PHPUnit_Framework_TestCase
     	if (!$sysusr) $this->markTestSkipped("The system has no user with uid 3, which is used in the test.");
     	
         clearstatcache(false, $this->file);
-        $this->Fs_Item->chown($sysusr['name']);
+        $this->Fs_Node->chown($sysusr['name']);
         $this->assertEquals(3, fileowner($this->file));
         
         clearstatcache(false, $this->file);
-        $this->Fs_Item->chown(0);
+        $this->Fs_Node->chown(0);
         $this->assertEquals(0, fileowner($this->file));
     }
 	
     /**
-     * Tests Fs_Item::chgrp()
+     * Tests Fs_Node::chgrp()
      */
     public function testChgrp()
     {
@@ -84,16 +84,16 @@ class Fs_RootPrivTest extends PHPUnit_Framework_TestCase
     	if (!$sysgrp) $this->markTestSkipped("The system has no group with gid 2, which is used in the test.");
     	
         clearstatcache(false, $this->file);
-        $this->Fs_Item->chgrp($sysgrp['name']);
+        $this->Fs_Node->chgrp($sysgrp['name']);
         $this->assertEquals(2, filegroup($this->file));
         
         clearstatcache(false, $this->file);
-        $this->Fs_Item->chown(0);
+        $this->Fs_Node->chown(0);
         $this->assertEquals(0, filegroup($this->file));
 	}
 
     /**
-     * Tests Fs_Item::chown() with user:group
+     * Tests Fs_Node::chown() with user:group
      */
     public function testChown_Chgrp()
     {
@@ -107,12 +107,12 @@ class Fs_RootPrivTest extends PHPUnit_Framework_TestCase
     	if (!$sysgrp) $this->markTestSkipped("The system has no group with gid 2, which is used in the test.");
     	
         clearstatcache(false, $this->file);
-        $this->Fs_Item->chown(array($sysusr['name'], $sysgrp['name']));
+        $this->Fs_Node->chown(array($sysusr['name'], $sysgrp['name']));
         $this->assertEquals(3, fileowner($this->file));
         $this->assertEquals(2, filegroup($this->file));
         
         clearstatcache(false, $this->file);
-        $this->Fs_Item->chown(array(0, 0));
+        $this->Fs_Node->chown(array(0, 0));
         $this->assertEquals(0, fileowner($this->file));
         $this->assertEquals(0, filegroup($this->file));
     }

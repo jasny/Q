@@ -109,10 +109,19 @@ class Fs_Test extends PHPUnit_Framework_TestCase
     	$this->assertEquals('356', sprintf('%03o', Fs::mode2umask(0421)));
     }
     
+
+    /**
+     * Tests Fs::file()
+     */
+    public function testFile()
+    {
+        $file = Fs::file(__FILE__);
+        $this->assertType('Q\Fs_File', $file);
+        $this->assertEquals(__FILE__, (string)$file);
+	}
     
     /**
      * Tests Fs::dir()
-     * More testing in Fs_DirTest.
      */
     public function testDir()
     {
@@ -120,16 +129,45 @@ class Fs_Test extends PHPUnit_Framework_TestCase
         $this->assertType('Q\Fs_Dir', $file);
         $this->assertEquals(__DIR__, (string)$file);
     }
+	
+    /**
+     * Tests Fs::block()
+     */
+    public function testBlock()
+    {
+        $file = Fs::block('/dev/sda');
+        $this->assertType('Q\Fs_Block', $file);
+        $this->assertEquals('/dev/sda', (string)$file);
+	}
 
     /**
-     * Tests Fs::file()
-     * More testing in Fs_FileTest
+     * Tests Fs::char()
      */
-    public function testFile()
+    public function testChar()
     {
-        $file = Fs::file(__FILE__);
-        $this->assertType('Q\Fs_File', $file);
-        $this->assertEquals(__FILE__, (string)$file);
+        $file = Fs::char('/dev/null');
+        $this->assertType('Q\Fs_Char', $file);
+        $this->assertEquals('/dev/null', (string)$file);
+	}
+	
+    /**
+     * Tests Fs::socket()
+     */
+    public function testSocket()
+    {
+        $file = Fs::socket('/does/not/exists');
+        $this->assertType('Q\Fs_Socket', $file);
+        $this->assertEquals('/does/not/exists', (string)$file);
+	}
+
+    /**
+     * Tests Fs::fifo()
+     */
+    public function testFifo()
+    {
+        $file = Fs::fifo('/does/not/exists');
+        $this->assertType('Q\Fs_Fifo', $file);
+        $this->assertEquals('/does/not/exists', (string)$file);
 	}
 	
 	
@@ -154,6 +192,18 @@ class Fs_Test extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * Tests Fs::get() with a block device 
+     */
+    public function testGet_Block()
+    {
+    	if (!file_exists('/dev/sda') || filetype('/dev/sda') != 'block') $this->markTestSkipped("Block device '/dev/sda' does not exist.");
+    	
+    	$file = Fs::get('/dev/sda');
+    	$this->assertType('Q\Fs_Block', $file);
+    	$this->assertEquals('/dev/sda', (string)$file);
+    }
+    
+    /**
      * Tests Fs::get() with a char block device 
      */
     public function testGet_Char()
@@ -166,18 +216,6 @@ class Fs_Test extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * Tests Fs::get() with a block device 
-     */
-    public function testGet_Block()
-    {
-    	if (!file_exists('/dev/sda')) $this->markTestSkipped("Block device '/dev/sda' does not exist.");
-    	
-    	$file = Fs::get('/dev/sda');
-    	$this->assertType('Q\Fs_Block', $file);
-    	$this->assertEquals('/dev/sda', (string)$file);
-    }
-    
-    /**
      * Tests Fs::get() with a unix socket 
      */
     public function testGet_Socket()
@@ -188,6 +226,7 @@ class Fs_Test extends PHPUnit_Framework_TestCase
     	$this->assertType('Q\Fs_Socket', $file);
     	$this->assertEquals('/var/run/mysqld/mysqld.sock', (string)$file);
     }
+    
     
     /**
      * Tests Fs::get() with a symlink to a file

@@ -1,15 +1,14 @@
 <?php
 namespace Q;
 
-require_once 'Q/Fs/Item.php';
-require_once 'Q/ExecException.php';
+require_once 'Q/Fs/Node.php';
 
 /**
  * Interface of a regular file.
  * 
  * @package Fs
  */
-class Fs_File extends Fs_Item
+class Fs_File extends Fs_Node
 {
 	/**
 	 * Class constructor.
@@ -23,17 +22,6 @@ class Fs_File extends Fs_Item
 		parent::__construct($path);
 	}
 	
-	
-	/**
-	 * Tells whether the file was uploaded via HTTP POST.
-	 * 
-	 * @return boolean
-	 */
-	public function isUploadedFile()
-	{
-		return is_uploaded_file($this->_path);
-	}
-
 	
 	/**
 	 * Reads entire file into a string.
@@ -59,7 +47,7 @@ class Fs_File extends Fs_Item
 	 */
 	public function putContents($data, $flags=0)
 	{
-		if ($flags & Fs::RECURSIVE) $this->up->create(0770, Fs::RECURSIVE);
+		if ($flags & Fs::RECURSIVE) $this->up()->create(0770, Fs::RECURSIVE | Fs::PRESERVE);
 		return file_put_contents($this->_path, $data, $flags);
 	}
 	
@@ -72,7 +60,6 @@ class Fs_File extends Fs_Item
 	{
 		readfile($this->_path);
 	}
-
 	
 	/**
 	 * Open the file.
@@ -89,11 +76,38 @@ class Fs_File extends Fs_Item
 	}
 	
 	
+ 	/**
+ 	 * Create this file.
+ 	 * Use Fs::PRESERVE to simply return if file already exists
+ 	 * 
+ 	 * @param int $mode   umask applies
+ 	 * @param int $flags  Fs::% options
+ 	 * @throws Fs_Exception if creating the file fails
+ 	 */
+	public function create($mode=0666, $flags=0)
+ 	{
+ 		if ($this->exists()) {
+ 			if ($flags & Fs::PRESERVE) return;
+ 			throw new Fs_Exception("Unable to create '{$this->_path}': File already exists");
+ 		}
+ 		
+ 		$file = $this->realpath();
+		$dir = $file->up();
+		if (!$dir->exists()) {
+			if (~$flags & Fs::RECURSIVE) throw new Fs_Exception("Unable to touch '{$file->_path}': Directory '{$dir->_path}' does not exist");
+			$dir->create($mode | (($mode & 0444) >> 2), $flags);
+		}
+
+		if (!@touch($this->_path)) throw new Fs_Exception("Creating '{$file->_path}' failed", error_get_last());		
+ 		$this->chmod($mode & ~umask());
+ 	}
+	
 	/**
 	 * Execute file and return content of stdout.
 	 * 
 	 * @param Parameters will be escaped and passed as arguments.
 	 * @return string
+	 * @throws Fs_Exception if execution is not possible.
 	 * @throws ExecException if execution fails.
 	 */
 	public function exec()
@@ -125,18 +139,5 @@ class Fs_File extends Fs_Item
 		if ($return_var != 0) throw new ExecException("Execution of '{$this->_path}' exited with return code $return_var", $return_var, $out, $err);
 		
 		return $out;
-	}
-	
-	/**
-	 * Magic method for when object is used as function; Calls Fs_File::exec().
-	 * 
-	 * @param Parameters will be escaped and passed as arguments.
-	 * @return string
-	 * @throws ExecException if execution fails.
-	 */
-	public function __invoke()
-	{
-		$args = func_get_args();
-		return call_user_func_array(array($this, 'exec'), $args);
 	}
 }

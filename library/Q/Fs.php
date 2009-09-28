@@ -1,29 +1,11 @@
 <?php
 namespace Q;
 
+require_once 'Q/misc.php';
 require_once 'Q/Fs/Exception.php';
-
-require_once 'Q/Fs/Block.php';
-require_once 'Q/Fs/Char.php';
-require_once 'Q/Fs/Dir.php';
-require_once 'Q/Fs/Fifo.php';
-require_once 'Q/Fs/File.php';
-require_once 'Q/Fs/Socket.php';
-require_once 'Q/Fs/Unknown.php';
-
-require_once 'Q/Fs/Symlink/Block.php';
-require_once 'Q/Fs/Symlink/Broken.php';
-require_once 'Q/Fs/Symlink/Char.php';
-require_once 'Q/Fs/Symlink/Dir.php';
-require_once 'Q/Fs/Symlink/Fifo.php';
-require_once 'Q/Fs/Symlink/File.php';
-require_once 'Q/Fs/Symlink/Socket.php';
-require_once 'Q/Fs/Symlink/Unknown.php';
 
 /**
  * Interface to the filesystem.
- * 
- * An Fs_File can be used as a function to execute as shell command.
  * 
  * @package Fs
  * 
@@ -33,7 +15,7 @@ class Fs
 {
 	/**
 	 * Option; Don't dereference symlinks. 
-	 * {@internal Should to have the same value as XATTR_NODEREFERENCE}}
+	 * {@internal Should to have the same value as XATTR_DONTFOLLOW}}
 	 */
 	const NO_DEREFERENCE = 0x0001;
 
@@ -61,7 +43,7 @@ class Fs
 
 	/**
 	 * Class for each type.
-	 * Always extends the default classes of the types (for non link classes).
+	 * Make sure the correct Fs_% interfaces are implemented.
 	 * 
 	 * @var array
 	 */
@@ -100,8 +82,16 @@ class Fs
 	);
 	
 	/**
+	 * Add functionality by using mixings.
+	 * Methods of these classes are callable for an Fs_Node object.
+	 * 
+	 * @var array
+	 */
+	public static $mixins = array();
+	
+	/**
 	 * Registered instances
-	 * @var Fs_Item[]
+	 * @var Fs_Node[]
 	 */
 	protected static $instances;
 	
@@ -117,7 +107,7 @@ class Fs
      *   script          $_SERVER['SCRIPT_NAME']
      * 
      * @param string $name
-     * @return Fs_Item
+     * @return Fs_Node
      */
     protected static function getPath($name)
     {
@@ -144,7 +134,7 @@ class Fs
 	 *
 	 * @param string $name
 	 * @param array  $args  Not used
-	 * @return Fs_Item
+	 * @return Fs_Node
 	 */
 	public static function __callstatic($name, $args)
 	{
@@ -153,7 +143,7 @@ class Fs
 	}
     
 	/**
-	 * Register Fs_Item as named path.
+	 * Register Fs_Node as named path.
 	 * 
 	 * Changing predefined paths:
      *   root   chroot()
@@ -161,11 +151,11 @@ class Fs
      *   cwd    chdir() 
 	 * 
 	 * @param string  $name
-	 * @param Fs_Item $file
+	 * @param Fs_Node $file
 	 */
 	public static function setPath($name, $file)
 	{
-		if (!($file instanceof Fs_Item)) $file = self::get($file);
+		if (!($file instanceof Fs_Node)) $file = self::get($file);
 		$name = strtolower($name);
 		
 		switch ($name) {
@@ -191,7 +181,7 @@ class Fs
 	 */
 	public static function canonicalize($path, $basepath=null)
 	{
-		if ($path instanceof Fs_Item) return (string)$path; // Already canonicalized at construction.
+		if ($path instanceof Fs_Node) return (string)$path; // Already canonicalized at construction.
 		if (!isset($basepath)) $basepath = getcwd();
 		
 		if (!preg_match('%(?:/|^)(?:\.\.?|~)(?:/|$)%', $path)) {
@@ -262,6 +252,20 @@ class Fs
 	
 	
     /**
+     * Get an Fs interface for a regular file.
+     * 
+     * @param string $path
+     * @return Fs_File
+     */
+    public static function file($path)
+    {
+    	$class = self::$types['file'];
+    	if (!load_class($class)) throw new Exception("Unable to create Fs file: Class '$class' can't be loaded.");
+    	
+        return new $class($path);
+    }
+    
+	/**
      * Get an Fs interface for a directory.
      * 
      * @param string $path
@@ -270,6 +274,22 @@ class Fs
     public static function dir($path)
     {
     	$class = self::$types['dir'];
+    	if (!load_class($class)) throw new Exception("Unable to create Fs dir: Class '$class' can't be loaded.");
+    	
+        return new $class($path);
+    }
+
+    /**
+     * Get an Fs interface for a directory.
+     * 
+     * @param string $path
+     * @return Fs_Dir
+     */
+    public static function block($path)
+    {
+    	$class = self::$types['block'];
+    	if (!load_class($class)) throw new Exception("Unable to create Fs block: Class '$class' can't be loaded.");
+    	
         return new $class($path);
     }
 
@@ -279,11 +299,56 @@ class Fs
      * @param string $path
      * @return Fs_File
      */
-    public static function file($path)
+    public static function char($path)
     {
-    	$class = self::$types['file'];
+    	$class = self::$types['char'];
+    	if (!load_class($class)) throw new Exception("Unable to create Fs char: Class '$class' can't be loaded.");
+    	
         return new $class($path);
     }
+    
+    /**
+     * Get an Fs interface for a directory.
+     * 
+     * @param string $path
+     * @return Fs_Dir
+     */
+    public static function fifo($path)
+    {
+    	$class = self::$types['fifo'];
+    	if (!load_class($class)) throw new Exception("Unable to create Fs fifo: Class '$class' can't be loaded.");
+    	
+        return new $class($path);
+    }
+
+    /**
+     * Get an Fs interface for a regular file.
+     * 
+     * @param string $path
+     * @return Fs_File
+     */
+    public static function socket($path)
+    {
+    	$class = self::$types['socket'];
+    	if (!load_class($class)) throw new Exception("Unable to create Fs socket: Class '$class' can't be loaded.");
+    	
+        return new $class($path);
+    }
+
+    /**
+     * Get an Fs interface for a regular file.
+     * 
+     * @param string $path
+     * @return Fs_File
+     */
+    public static function unknown($path)
+    {
+    	$class = self::$types['unknown'];
+    	if (!load_class($class)) throw new Exception("Unable to create Fs unknown: Class '$class' can't be loaded.");
+    	
+        return new $class($path);
+    }
+    
 
     /**
      * Create a symlink and return the Fs interface.
@@ -291,17 +356,13 @@ class Fs
      * @param string $target
      * @param string $link
      * @param int    $flags   Fs::% options as binary set
-     * @return Fs_Item
+     * @return Fs_Node
      */
     public static function symlink($target, $link, $flags=self::RECURSIVE)
     {
     	if (is_link($link) && $flags & self::OVERWRITE) unlink($link);
     	
-    	if (!@symlink($target, $link)) {
-    		$err = error_get_last();
-    		throw new Fs_Exception("Failed to create symlink '$link' to '$target'; {$err['message']}");
-    	}
-    	
+    	if (!@symlink($target, $link)) throw new Fs_Exception("Failed to create symlink '$link' to '$target'", error_get_last());
         return Fs::get($link);
     }
 
@@ -310,7 +371,7 @@ class Fs
      * 
      * @param string $path
      * @param string $default  Type if file does not exist.
-     * @return Fs_Item
+     * @return Fs_Node
      * @throws Fs_Exception is file doesn't exits and $default is not set.
      */
     public static function get($path, $default=null)
@@ -325,7 +386,37 @@ class Fs
     	}
     	
     	$class = self::$types[$type];
+    	if (!load_class($class)) throw new Exception("Unable to create Fs $type: Class '$class' can't be loaded.");
+    	
     	return new $class($path);
+    }
+    
+    /**
+     * Get the type of a node.
+     * 
+     * @param Fs_Node $file
+     * @param int     $flags  Use Fs::ALWAYS_FOLLOW to ignore the fact that the file is a symlink
+     * @return string
+     */
+    public static function typeOfNode(Fs_Node $file, $flags=0)
+    {
+    	if ($file instanceof Fs_File) $type = 'file';
+    	  elseif ($file instanceof Fs_Dir) $type = 'dir';
+    	  elseif ($file instanceof Fs_Block) $type = 'block';
+    	  elseif ($file instanceof Fs_Char) $type = 'char';
+    	  elseif ($file instanceof Fs_Fifo) $type = 'fifo';
+    	  elseif ($file instanceof Fs_Socket) $type = 'socket';
+    	  elseif ($file instanceof Fs_Unknown) $type = 'unknown';
+    	  elseif ($file instanceof Fs_Symlink_Broken) $type = '';
+    	  else throw new Exception("Unable to determine type of '$file': Class '" . get_class($type) . "' is not any of the known types.");
+    	 
+    	if (~$flags & Fs::ALWAYS_FOLLOW && $file instanceof Fs_Symlink) {
+    		$type = "link/$type"; 
+    	} elseif ($type == '') {
+    		throw new Fs_Exception("Unable to determine type of target of '$link': File is a broken link.");
+    	}
+    	
+    	return $type;
     }
     
  	/**
@@ -334,7 +425,7 @@ class Fs
  	 * 
  	 * @param string $pattern
  	 * @param int    $flags    GLOB_% options as binary set
- 	 * @return Fs_Item[]
+ 	 * @return Fs_Node[]
  	 */
  	public static function glob($pattern, $flags=0)
  	{

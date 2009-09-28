@@ -40,7 +40,7 @@ class Transform_Unserialize_Json extends Transform
     {
         if ($this->chainInput) $data = $this->chainInput->process($data);
         
-    	if ($data instanceof Fs_Item) $data = $data->getContents();
+    	if ($data instanceof Fs_Node) $data = $data->getContents();
           else $data = (string)$data;
         
         $data = json_decode($json, $this->assoc);

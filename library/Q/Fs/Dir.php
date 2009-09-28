@@ -1,14 +1,14 @@
 <?php
 namespace Q;
 
-require_once 'Q/Fs/Item.php';
+require_once 'Q/Fs/Node.php';
 
 /**
  * Interface of a directory.
  * 
  * @package Fs
  */
-class Fs_Dir extends Fs_Item implements \Iterator, \Countable
+class Fs_Dir extends Fs_Node
 {
 	/**
 	 * Directory handles for traversing.
@@ -61,7 +61,7 @@ class Fs_Dir extends Fs_Item implements \Iterator, \Countable
 	/**
 	 * Interator; Returns the current file object.
 	 * 
-	 * @return Fs_Item
+	 * @return Fs_Node
 	 */
 	public function current()
 	{
@@ -124,7 +124,7 @@ class Fs_Dir extends Fs_Item implements \Iterator, \Countable
  	 * 
  	 * @param string $pattern
  	 * @param int    $flags    GLOB_% options as binary set
- 	 * @return Fs_Item[]
+ 	 * @return Fs_Node[]
  	 */
  	public function glob($pattern, $flags=0)
  	{
@@ -141,57 +141,18 @@ class Fs_Dir extends Fs_Item implements \Iterator, \Countable
 	 */
 	public function isWritable($flags=0)
 	{
-		return is_writable($this->_path) || $flags & Fs::RECURSIVE && !$this->exists() && $this->up()->isWritable($flags);
+		return (($this instanceof Fs_Symlink && $flags && Fs::NO_DEREFERENCE) ?
+		  (bool)(($this->getAttribute('mode', Fs::NO_DEREFERENCE) >> $this->modeBitShift()) & 4) :
+		  is_writable($this->_path)) ||
+		 ($flags & Fs::RECURSIVE && !$this->exists() && $this->up()->isWritable($flags & ~Fs::NO_DEREFERENCE));		
 	}
  	
- 	/**
- 	 * Return the number of bytes on the corresponding filesystem or disk partition.
- 	 * 
- 	 * @return float
- 	 */
- 	public function diskTotalSpace()
- 	{
- 		return disk_total_space($this->_path);
- 	}
- 	
- 	/**
- 	 * Return the number of bytes available on the corresponding filesystem or disk partition.
- 	 * 
- 	 * @return float
- 	 */
- 	public function diskFreeSpace()
- 	{
- 		return disk_free_space($this->_path);
- 	}
- 	
- 	
- 	/**
- 	 * Magic get method; Get file in directory.
- 	 * 
- 	 * @param string $name
- 	 * @return Fs_Item
- 	 */
- 	public function __get($name)
- 	{
- 		return Fs::get($name[0] == '/' ? $name : "{$this->_path}/$name");
- 	}
-
- 	/**
- 	 * Magic get method; Check if file in directory exists.
- 	 * 
- 	 * @param string $name
- 	 * @return Fs_Item
- 	 */
- 	public function __isset($name)
- 	{
- 		return file_exists($name[0] == '/' ? $name : "{$this->_path}/$name");
- 	}
  	
  	/**
  	 * Get file in directory.
  	 * 
  	 * @param string $name
- 	 * @return Fs_Item
+ 	 * @return Fs_Node
  	 */
  	public function get($name)
  	{
@@ -202,7 +163,7 @@ class Fs_Dir extends Fs_Item implements \Iterator, \Countable
  	 * Check if file in directory exists.
  	 * 
  	 * @param string $name
- 	 * @return Fs_Item
+ 	 * @return Fs_Node
  	 */
  	public function has($name)
  	{
@@ -213,7 +174,7 @@ class Fs_Dir extends Fs_Item implements \Iterator, \Countable
  	 * Get file in directory.
  	 * 
  	 * @param string $name
- 	 * @return Fs_Item
+ 	 * @return Fs_Node
  	 */
  	public function file($name)
  	{
@@ -224,29 +185,76 @@ class Fs_Dir extends Fs_Item implements \Iterator, \Countable
  	 * Get subdirectory.
  	 * 
  	 * @param string $name
- 	 * @return Fs_Item
+ 	 * @return Fs_Node
  	 */
  	public function dir($name)
  	{
  		return Fs::dir($name[0] == '/' ? $name : "{$this->_path}/$name");
  	}
  	
- 	
  	/**
- 	 * Create this directory, if is does not exist.
+ 	 * Get block device in directory.
  	 * 
- 	 * @param int $mode
- 	 * @param int $flags  Optional Fs::RECURSIVE
- 	 * @throws Fs_Exception if creating the directoy fails 
+ 	 * @param string $name
+ 	 * @return Fs_Block
  	 */
- 	public function create($mode=0770, $flags=0)
+ 	public function block($name)
  	{
- 		if (!@mkdir($this->_path, $mode, $flags & Fs::RECURSIVE)) {
- 			$err = error_get_last();
- 			throw new Fs_Exception("Failed to create directory '{$this->_path}'; {$err['message']}");
- 		}
+ 		return Fs::block($name[0] == '/' ? $name : "{$this->_path}/$name");
  	}
  	
+ 	/**
+ 	 * Get char device in directory.
+ 	 * 
+ 	 * @param string $name
+ 	 * @return Fs_Char
+ 	 */
+ 	public function char($name)
+ 	{
+ 		return Fs::char($name[0] == '/' ? $name : "{$this->_path}/$name");
+ 	}
+ 	
+ 	/**
+ 	 * Get fifo in directory.
+ 	 * 
+ 	 * @param string $name
+ 	 * @return Fs_Fifo
+ 	 */
+ 	public function fifo($name)
+ 	{
+ 		return Fs::fifo($name[0] == '/' ? $name : "{$this->_path}/$name");
+ 	}
+ 	
+ 	/**
+ 	 * Get socket in directory.
+ 	 * 
+ 	 * @param string $name
+ 	 * @return Fs_Socket
+ 	 */
+ 	public function socket($name)
+ 	{
+ 		return Fs::socket($name[0] == '/' ? $name : "{$this->_path}/$name");
+ 	}
+ 	
+ 	
+ 	/**
+ 	 * Create this directory.
+ 	 * Use Fs::PRESERVE to simply return if file already exists
+ 	 * 
+ 	 * @param int $mode   File permissions, umask applies
+ 	 * @param int $flags  Fs::% options
+ 	 * @throws Fs_Exception if mkdir fails
+ 	 */
+ 	public function create($mode=0777, $flags=0)
+ 	{
+ 		if ($this->exists()) {
+ 			if ($flags & Fs::PRESERVE) return;
+ 			throw new Fs_Exception("Unable to create '{$this->_path}': Directory already exists");
+ 		}
+ 		
+ 		if (!@mkdir($this->_path, $mode, $flags & Fs::RECURSIVE)) throw new Fs_Exception("Failed to create directory '{$this->_path}'", error_get_last());
+ 		$this->clearStatCache();
+ 	}
  	
  	/**
 	 * Copy or rename/move this file.
@@ -255,7 +263,7 @@ class Fs_Dir extends Fs_Item implements \Iterator, \Countable
 	 * @param Fs_Dir   $dir
 	 * @param string   $name
 	 * @param int      $flags  Fs::% options as binary set
-	 * @return Fs_Item
+	 * @return Fs_Node
 	 */
 	protected function doCopyRename($fn, $dir, $name, $flags)
 	{
@@ -269,7 +277,7 @@ class Fs_Dir extends Fs_Item implements \Iterator, \Countable
 	 * @param Fs_Dir   $dir
 	 * @param string   $name
 	 * @param int      $flags  Fs::% options as binary set
-	 * @return Fs_Item
+	 * @return Fs_Node
 	 */
  	protected function doMerge($fn, $dir, $name, $flags)
  	{
@@ -312,14 +320,11 @@ class Fs_Dir extends Fs_Item implements \Iterator, \Countable
 			
 		} else {
 			if (isset($dest)) {
-				if (~$flags & Fs::OVERWRITE) throw new Fs_Exception("Unable to $fn '{$this->_path}' to '$dir/$name'; Target exists and is not a directory but a {$dir['type']}.");
+				if (~$flags & Fs::OVERWRITE) throw new Fs_Exception("Unable to $fn '{$this->_path}' to '$dir/$name'; Target exists and is not a directory");
 				$dest->delete();
 			}
 			
-			if (!@$fn($this->_path, "$dir/$name")) {
-				$err = error_get_last();
-				throw new Fs_Exception("Failed to $fn '{$this->_path}' to '$dir/$name'; {$error['message']}");
-			}
+			if (!@$fn($this->_path, "$dir/$name")) throw new Fs_Exception("Failed to $fn '{$this->_path}' to '$dir/$name'", error_get_last());
 		}
 		
 		return "$dir/$name";
@@ -344,10 +349,7 @@ class Fs_Dir extends Fs_Item implements \Iterator, \Countable
 				
 				try {
 					if (!is_dir("{$this->_path}/$file)")) {
-						if (!@unlink("{$this->_path}/$file")) {
-							$err = error_get_last();
-							throw new Fs_Exception("Failed to delete '{$this->_path}/$file'; {$error['message']}");
-						}
+						if (!@unlink("{$this->_path}/$file")) throw new Fs_Exception("Failed to delete '{$this->_path}/$file'", error_get_last());
 					} else {
 						$this->$file->delete($flags);
 					}
@@ -357,9 +359,6 @@ class Fs_Dir extends Fs_Item implements \Iterator, \Countable
 			}
 		}
 		
-		if (!@rmdir($this->_path)) {
-			$err = error_get_last();
-			throw new Fs_Exception("Failed to delete '{$this->_path}'; {$error['message']}", $exceptions);
-		}
+		if (!@rmdir($this->_path)) throw new Fs_Exception("Failed to delete '{$this->_path}'", error_get_last(), $exceptions);
 	}
 }
