@@ -3,6 +3,8 @@ namespace Q;
 
 require_once 'Q/Exception.php';
 require_once 'Q/Transform.php';
+require_once 'Q/Transform/Unserialize/Json.php';
+require_once 'Q/Fs.php';
 
 /**
  * Serialize data to a json string.
@@ -17,7 +19,6 @@ class Transform_Serialize_Json extends Transform
 	 */
 	public $assoc = true;
 	
-	
 	/**
 	 * Get a transformer that does the reverse action.
 	 * 
@@ -30,8 +31,7 @@ class Transform_Serialize_Json extends Transform
 		if ($chain) $ob->chainInput($chain);
 		return $this->chainInput ? $this->chainInput->getReverse($ob) : $ob;  
 	}
-	
-	
+		
     /**
      * Serialize data and return result.
      *
@@ -42,7 +42,7 @@ class Transform_Serialize_Json extends Transform
     {
         if ($this->chainInput) $data = $this->chainInput->process($data);
         
-        $data = json_encode($json);
+        $data = json_encode($data);
         if (!isset($data)) throw new Exception('Failed to serialize ' . gettype($data) . ' to json string.');
         
         return $data;

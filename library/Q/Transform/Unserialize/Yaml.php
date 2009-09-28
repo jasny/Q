@@ -11,16 +11,10 @@ require_once 'Q/Transform.php';
  */
 class Transform_Unserialize_Yaml extends Transform
 {
-	/**
-	 * Return associated array instead of value object
-	 * @var boolean
-	 */
-	public $assoc = true;
-	
     /**
      * Transform data and return the result.
      *
-     * @param string $data  Yaml string
+     * @param string $data  Yaml string or file
      * @return array
      */
     public function process($data)

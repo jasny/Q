@@ -41,9 +41,10 @@ class Transform_Unserialize_Json extends Transform
         if ($this->chainInput) $data = $this->chainInput->process($data);
         
     	if ($data instanceof Fs_Item) $data = $data->getContents();
-          else $data = (string)$data;
+    	  elseif(is_string($data) && Fs::file($data)->exists()) $data = Fs::file($data)->getContents();
+            else $data = (string)$data;
         
-        $data = json_decode($json, $this->assoc);
+        $data = json_decode($data, $this->assoc);
         if (!isset($data)) {
 			switch (json_last_error()) {
 				case JSON_ERROR_DEPTH: throw new Exception('Failed to unserialize json; The maximum stack depth has been exceeded.');

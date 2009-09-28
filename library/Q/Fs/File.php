@@ -57,7 +57,7 @@ class Fs_File extends Fs_Item
 	public function putContents($data, $flags=0)
 	{
 		if ($flags & Fs::RECURSIVE) $this->up->create(0770, Fs::RECURSIVE);
-		return file_put_contents($this->_path, $data, $flags);
+		return file_put_contents($this->path(), $data, $flags);
 	}
 	
 	/**

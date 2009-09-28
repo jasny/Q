@@ -136,8 +136,7 @@ class Spyc {
     }
 
     // New YAML document
-    $string = "---\n";
-
+      $string = "";
     // Start at the base of the array and move through it.
     foreach ($array as $key => $value) {
       $string .= $this->_yamlize($key,$value,0);

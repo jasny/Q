@@ -3,13 +3,14 @@ namespace Q;
 
 require_once 'Q/Exception.php';
 require_once 'Q/Transform.php';
+require_once 'Q/Transform/Unserialize/XML.php';
 
 /**
  * Transform a multi dimensional array to an XML
  *
  * @package Transform
  */
-class Transform_Array2XML extends Transform
+class Transform_Serialize_XML extends Transform
 {	
 	/**
 	 * XMLWriter
@@ -24,7 +25,20 @@ class Transform_Array2XML extends Transform
 	public $rootNodeName = 'root';
 		
     /**
-    * Convert a multi dimensional array to an XML
+     * Get a transformer that does the reverse action.
+     * 
+     * @param Transformer $chain
+     * @return Transformer
+     */
+    public function getReverse($chain=null)
+    {
+        $ob = new Transform_Unserialize_XML($this);
+        if ($chain) $ob->chainInput($chain);
+        return $this->chainInput ? $this->chainInput->getReverse($ob) : $ob;  
+    }
+	
+	/**
+    * Convert a multi dimensional array to a XML
     *
     * @param array $data
     * @param string $rootNodeName - root node name - default is 'root'
@@ -72,8 +86,8 @@ class Transform_Array2XML extends Transform
      */
     public function process($data = null)
     {   
-        if ($this->chainNext) $data = $this->chainNext->process($data);
-    	
+        if ($this->chainInput) $data = $this->chainInput->process($data);
+        
         $this->writer = new \xmlWriter();
     	$this->writer->openMemory();
     	$this->exec($data);
@@ -88,8 +102,8 @@ class Transform_Array2XML extends Transform
 	 */
 	public function output($data=null)
 	{
-        if ($this->chainNext) $data = $this->chainNext->process($data);
-		
+        if ($this->chainInput) $data = $this->chainInput->process($data);
+				
         $this->writer = new \xmlWriter();
 		$this->writer->openUri('php://output');
 		$this->exec($data);
@@ -105,8 +119,8 @@ class Transform_Array2XML extends Transform
 	 */
 	function save($filename, $data=null)
 	{
-        if ($this->chainNext) $data = $this->chainNext->process($data);
-		
+        if ($this->chainInput) $data = $this->chainInput->process($data);
+				
         $this->writer = new \xmlWriter();
 		$this->writer->openUri($filename);
 		$this->exec($data);

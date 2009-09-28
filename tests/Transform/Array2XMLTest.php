@@ -1,5 +1,5 @@
 <?php
-use Q\Transform_Array2XML, Q\Transform;
+use Q\Transform_Serialize_XML, Q\Transform;
 
 require_once dirname ( dirname ( dirname ( __FILE__ ) ) ) . '/TestHelper.php';
 require_once 'Q/Transform/Array2XML.php';

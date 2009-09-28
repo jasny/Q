@@ -1,5 +1,4 @@
 <?php
-use Q\Transform_Replace;
 
 require_once 'PHPUnit/Framework/TestSuite.php';
 require_once 'Transform/CreationTest.php';
