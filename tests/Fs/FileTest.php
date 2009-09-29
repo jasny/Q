@@ -16,7 +16,7 @@ class Fs_FileTest extends Fs_NodeTest
     protected function setUp()
     {
         $this->file = sys_get_temp_dir() . '/q-fs_filetest.' . md5(uniqid());
-        if (!file_put_contents($this->file, 'Test case for Fs_Node')) $this->markTestSkipped("Could not write to '$this->file'.");
+        if (!file_put_contents($this->file, 'Test case for Fs_Node')) $this->markTestSkipped("Could not write to '{$this->file}'.");
         $this->Fs_Node = new Fs_File($this->file);
         parent::setUp();
     }
@@ -31,14 +31,39 @@ class Fs_FileTest extends Fs_NodeTest
         $this->Fs_Node = null;
     }
 
+    
     /**
-     * Tests Fs_Node->isUploadedFile()
+     * Test creating an Fs_File for a dir
      */
-    public function testIsUploadedFile()
+    public function testConstruct_Dir()
     {
-        $this->assertFalse($this->Fs_Node->isUploadedFile());
+    	$this->setExpectedException('Q\Fs_Exception', "File '" . __DIR__ . "' is not a regular file, but a directory");
+    	new Fs_File(__DIR__);
     }
 
+    /**
+     * Test creating an Fs_File for a dir
+     */
+    public function testConstruct_Symlink()
+    {
+    	if (!symlink($this->file, "{$this->file}.x")) $this->markTestSkipped("Could not create symlink '{$this->file}.x'");
+    	
+    	$this->setExpectedException('Q\Fs_Exception', "File '" . __DIR__ . "' is a symlink");
+    	new Fs_File(__DIR__);
+    }
+
+    /**
+     * Test creating an Fs_File for a symlink to a dir
+     */
+    public function testConstruct_SymlinkDir()
+    {
+    	if (!symlink(__DIR__, "{$this->file}.x")) $this->markTestSkipped("Could not create symlink '{$this->file}.x'");
+    	    	
+    	$this->setExpectedException('Q\Fs_Exception', "File '{$this->file}.x' is not a regular file, but a symlink to a directory");
+    	new Fs_File(__DIR__);
+    }
+    
+    
     /**
      * Tests Fs_Node->getContents()
      */
@@ -225,8 +250,8 @@ class Fs_FileTest extends Fs_NodeTest
         umask(0022);
     	$new->create(0660);
         
-    	$this->assertTrue($new->exists());
-        $this->assertEquals('', $new->getContents());
+    	$this->assertTrue(is_file($new));
+        $this->assertEquals('', file_get_contents($new));
     	$this->assertEquals('0640', sprintf('%04o', fileperms($new) & 0777));
     }
 
@@ -256,8 +281,8 @@ class Fs_FileTest extends Fs_NodeTest
         umask(0022);
     	$new->create(0660, Fs::RECURSIVE);
         
-    	$this->assertTrue($new->exists());
-        $this->assertEquals('', $new->getContents());
+    	$this->assertTrue(is_file($new));
+        $this->assertEquals('', file_get_contents($new));
     	$this->assertEquals('0640', sprintf('%04o', fileperms($new) & 0777));
     	$this->assertEquals('0750', sprintf('%04o', fileperms(dirname($new)) & 0777));
     }

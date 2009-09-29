@@ -787,10 +787,14 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
  	 * 
  	 * @param int $mode   File permissions, umask applies
  	 * @param int $flags  Fs::% options
- 	 * @throws Fs_Exception if creation fails
+ 	 * @throws Fs_Exception
  	 */
-	abstract public function create($mode=0666, $flags=0);
-	
+	public function create($mode=0666, $flags=0)
+ 	{
+ 		if ($this->exists() && $flags & Fs::PRESERVE) return;
+ 		throw new Fs_Exception("Unable to create '{$this->_path}': File is a " . Fs::typeOfNode($this, Fs::DESCRIPTION));
+ 	}
+		
 	/**
 	 * Copy or rename/move this file.
 	 * 
@@ -804,7 +808,7 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
 	{
 		if (empty($name) || $name == '.' || $name == '..' || strpos('/', $name) !== false) throw new SecurityException("Unable to $fn '{$this->_path}' to '$dir/$name': Invalid filename '$name'");
 		
-		if (!($dir instanceof Fs_Dir)) $dir = Fs::dir($dir);
+		if (!($dir instanceof Fs_Dir)) $dir = Fs::dir($dir, dirname($this->_path));
 		
 		if (!$dir->exists()) {
 			if (~$flags & Fs::RECURSIVE) throw new Fs_Exception("Unable to $fn '{$this->_path}' to '$dir/': Directory does not exist");
@@ -822,7 +826,7 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
 		}
 		
 		if (!@$fn($this->_path, "$dir/$name")) throw new Fs_Exception("Failed to $fn '{$this->_path}' to '$dir/$name'", error_get_last());
-		return "$dir/$name";
+		return new static("$dir/$name");
 	}
 	
 	/**
@@ -834,7 +838,7 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
 	 */
 	public function copy($newname, $flags=0)
 	{
-		return new static($this->doCopyRename('copy', dirname($newname), basename($newname), $flags));
+		return $this->doCopyRename('copy', dirname($newname), basename($newname), $flags);
 	}
 
 	/**
@@ -846,7 +850,7 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
 	 */
 	public function copyTo($dir, $flags=0)
 	{
-		return new static($this->doCopyRename('copy', $dir, $this->basename(), $flags));
+		return $this->doCopyRename('copy', $dir, $this->basename(), $flags);
 	}
 	
 	/**
@@ -858,8 +862,7 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
 	 */
 	public function rename($newname, $flags=0)
 	{
-		$this->_path = $this->doCopyRename('rename', dirname($newname), basename($newname), $flags);
-		return $this;
+		return $this->doCopyRename('rename', dirname($newname), basename($newname), $flags);
 	}
 
 	/**
@@ -871,8 +874,7 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
 	 */
 	public final function moveTo($dir, $flags=0)
 	{
-		$this->_path = $this->doCopyRename('rename', $dir, $this->basename(), $flags);
-		return $this;
+		return $this->doCopyRename('rename', $dir, $this->basename(), $flags);
 	}
 	
 	/**
@@ -897,7 +899,7 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
 	 */
 	public function getContents($flags=0, $offset=0, $maxlen=null)
 	{
-		throw new Fs_Exception("Unable to get the contents of '{$this->_path}': File is a " . $this->getAttribute('type'));
+		throw new Fs_Exception("Unable to get the contents of '{$this->_path}': File is a " . Fs::typeOfNode($this, Fs::DESCRIPTION));
 	}
 
 	/**
@@ -909,7 +911,7 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
 	 */
 	public function putContents($data, $flags=0)
 	{
-		throw new Fs_Exception("Unable to write data to '{$this->_path}': File is a " . $this->getAttribute('type'));
+		throw new Fs_Exception("Unable to write data to '{$this->_path}': File is a " . Fs::typeOfNode($this, Fs::DESCRIPTION));
 	}
 	
 	/**
@@ -919,7 +921,7 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
 	 */
 	public function output()
 	{
-		throw new Fs_Exception("Unable to get the contents of '{$this->_path}': File is a " . $this->getAttribute('type'));
+		throw new Fs_Exception("Unable to get the contents of '{$this->_path}': File is a " . Fs::typeOfNode($this, Fs::DESCRIPTION));
 	}
 	
 	/**
@@ -931,7 +933,7 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
 	 */
 	public function open($mode='r+')
 	{
-		throw new Fs_Exception("Unable to open '{$this->_path}': File is a " . $this->getAttribute('type'));
+		throw new Fs_Exception("Unable to open '{$this->_path}': File is a " . Fs::typeOfNode($this, Fs::DESCRIPTION));
 	}
 	
 	
@@ -945,7 +947,7 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
 	 */
 	public function exec()
 	{
-		throw new Fs_Exception("Unable to execute {$this->_path}: This is not a regular file, but a " . $this->realpath()->getAttribute('type') . ".");
+		throw new Fs_Exception("Unable to execute {$this->_path}: This is not a regular file, but a " . Fs::typeOfNode($this, Fs::DESCRIPTION));
 	}
 
 	/**

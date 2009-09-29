@@ -23,18 +23,4 @@ class Fs_Unknown extends Fs_Node
 		 
 		parent::__construct($path);
 	}
-	
- 	/**
- 	 * Create this file.
- 	 * Use Fs::PRESERVE to simply return if file already exists
- 	 * 
- 	 * @param int $mode   File permissions, umask applies
- 	 * @param int $flags  Fs::% options
- 	 * @throws Fs_Exception
- 	 */
-	public function create($mode=0666, $flags=0)
- 	{
- 		if ($this->exists() && $flags & Fs::PRESERVE) return;
- 		throw new Fs_Exception("Unable to create '{$this->_path}': File has an unkown file type.");
- 	}
 }

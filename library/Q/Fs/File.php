@@ -17,8 +17,9 @@ class Fs_File extends Fs_Node
 	 */
 	public function __construct($path)
 	{
-		if (is_link($path) xor $this instanceof Fs_Symlink) throw new Fs_Exception("File '$path' is " . ($this instanceof Fs_Symlink ? 'not ' : '') . "a symlink.");
-		if (file_exists($path) && !is_file($path)) throw new Fs_Exception("File '$path' is not a regular file, but a " . filetype($path) . "."); 
+		if (file_exists($path) && !is_file($path)) throw new Fs_Exception("File '$path' is not a regular file, but a " . Fs::$typedescs[]); 
+		if (is_link($path) xor $this instanceof Fs_Symlink) throw new Fs_Exception("File '$path' is " . ($this instanceof Fs_Symlink ? 'not ' : '') . "a symlink");
+		
 		parent::__construct($path);
 	}
 	
@@ -34,8 +35,11 @@ class Fs_File extends Fs_Node
 	public function getContents($flags=0, $offset=0, $maxlen=null)
 	{
 		return isset($maxlen) ?
-		 file_get_contents($this->_path, $flags, null, $offset, $maxlen) :
-		 file_get_contents($this->_path, $flags, null, $offset);
+		 @file_get_contents($this->_path, $flags, null, $offset, $maxlen) :
+		 @file_get_contents($this->_path, $flags, null, $offset);
+		
+		if ($ret === false) throw new Fs_Exception("Failed to read file '{$this->_path}'", error_get_last());
+		return $ret;
 	}
 
 	/**
@@ -48,7 +52,10 @@ class Fs_File extends Fs_Node
 	public function putContents($data, $flags=0)
 	{
 		if ($flags & Fs::RECURSIVE) $this->up()->create(0770, Fs::RECURSIVE | Fs::PRESERVE);
-		return file_put_contents($this->_path, $data, $flags);
+		
+		$ret = @file_put_contents($this->_path, $data, $flags);
+		if ($ret === false) throw new Fs_Exception("Failed to write to file '{$this->_path}'", error_get_last());
+		return $ret;
 	}
 	
 	/**
@@ -71,7 +78,7 @@ class Fs_File extends Fs_Node
 	public function open($mode='r+')
 	{
 		$resource = @fopen($this->_path, $mode);
-		if (!$resource) throw new Fs_Exception("Failed to open file", error_get_last());
+		if (!$resource) throw new Fs_Exception("Failed to open file '{$this->_path}'", error_get_last());
 		return $resource;
 	}
 	

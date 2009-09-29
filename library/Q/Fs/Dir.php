@@ -249,7 +249,7 @@ class Fs_Dir extends Fs_Node
  	{
  		if ($this->exists()) {
  			if ($flags & Fs::PRESERVE) return;
- 			throw new Fs_Exception("Unable to create '{$this->_path}': Directory already exists");
+ 			throw new Fs_Exception("Unable to create directory '{$this->_path}': File already exists");
  		}
  		
  		if (!@mkdir($this->_path, $mode, $flags & Fs::RECURSIVE)) throw new Fs_Exception("Failed to create directory '{$this->_path}'", error_get_last());
@@ -306,7 +306,7 @@ class Fs_Dir extends Fs_Node
 						if (file_exists("$destpath/$file")) {
 							if ($flags & Fs::OVERWRITE);
 							  elseif ($flags & Fs::UPDATE && filectime("$destpath/$file") >= filectime("{$this->_path}/$file")) continue;
-							  else { trigger_error("Unable to $fn '{$this->_path}/$file' to '$destpath/$file'; File already exists.", E_USER_WARNING); continue; }
+							  else { trigger_error("Unable to $fn '{$this->_path}/$file' to '$destpath/$file': File already exists.", E_USER_WARNING); continue; }
 							
 							if (is_dir("$destpath/$file")) $dest->dir($file)->delete(Fs::RECURSIVE);
 						}
@@ -320,14 +320,14 @@ class Fs_Dir extends Fs_Node
 			
 		} else {
 			if (isset($dest)) {
-				if (~$flags & Fs::OVERWRITE) throw new Fs_Exception("Unable to $fn '{$this->_path}' to '$dir/$name'; Target exists and is not a directory");
+				if (~$flags & Fs::OVERWRITE) throw new Fs_Exception("Unable to $fn '{$this->_path}' to '$dir/$name': Target exists and is not a directory");
 				$dest->delete();
 			}
 			
 			if (!@$fn($this->_path, "$dir/$name")) throw new Fs_Exception("Failed to $fn '{$this->_path}' to '$dir/$name'", error_get_last());
 		}
 		
-		return "$dir/$name";
+		return new static("$dir/$name");
 	}
  	
 	/**
