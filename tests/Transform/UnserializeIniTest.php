@@ -3,13 +3,43 @@ use Q\Transform_Unserialize_Ini, Q\Transform;
 
 require_once dirname ( dirname ( __FILE__ ) ) . '/TestHelper.php';
 require_once 'Q/Transform/Serialize/Ini.php';
-//require_once 'Q/Fs/File.php';
 
 /**
  * Transform_Unserialize_Ini test case.
  */
 class Transform_Unserialize_IniTest extends PHPUnit_Framework_TestCase 
 {
+    /**
+     * Data to transform
+     * @var array
+     */
+    protected $dataToTransform = '
+[grp1]
+q = "abc"
+b = "27"
+
+[grp2]
+a = "original"
+';
+
+    /**
+     * Data to transform
+     * @var string
+     */
+    protected $dataToTransform_url = 'test/unserialize.ini';
+        
+    /**
+     * Expected result after transformation
+     * @var string
+     */
+    protected $expectedResult = array ('grp1'=>array('q'=>'abc', 'b'=>27), 'grp2'=>array('a'=>'original'));
+
+    /**
+     * The file path where to save the data when run test save() method
+     * @var string
+     */
+    protected $filename = '/tmp/SerializeIniTest.txt';
+	
 	/**
 	 * Run test from php
 	 */
@@ -55,7 +85,7 @@ a = "original"
 
 		$transform = new Transform_Unserialize_Ini();
 		$contents = $transform->process($file);
-		var_dump($contents); exit;
+//		var_dump($contents); exit;
         $this->assertType('Q\Transform_Unserialize_Ini', $transform);
 		$this->assertEquals(array('grp1'=>array('q'=>'abc', 'b'=>27), 'grp2'=>array('a'=>'original')), $contents);
 	}
@@ -101,7 +131,6 @@ b = "27"
 [grp2]
 a = "original"
 ');
-		
         $this->assertType('Q\Transform_Unserialize_Ini', $transform);
 		$this->assertEquals(array('grp1'=>array('q'=>'abc', 'b'=>27), 'grp2'=>array('a'=>'original')), file_get_contents($this->filename));
 	}
@@ -112,14 +141,6 @@ a = "original"
 	public function testGetReverse() 
 	{
 		$transform = new Transform_Unserialize_Ini();
-		$transform->process('
-[grp1]
-q = "abc"
-b = "27"
-
-[grp2]
-a = "original"
-');
         $reverse = $transform->getReverse();
 
         $this->assertType('Q\Transform_Serialize_Ini', $reverse);

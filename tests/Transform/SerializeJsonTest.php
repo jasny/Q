@@ -44,7 +44,7 @@ class Transform_Serialize_JsonTest extends PHPUnit_Framework_TestCase
 		$contents = $transform->process (array('a'=>1,'b'=>2,'c'=>3,'d'=>array('e'=>4, 'f'=>5)));
 
         $this->assertType('Q\Transform_Serialize_Json', $transform);
-		$this->assertEquals({"a":1,"b":2,"c":3,"d":{"e":4,"f":5}}, $contents);
+		$this->assertEquals('{"a":1,"b":2,"c":3,"d":{"e":4,"f":5}}', $contents);
 	}
 	
 	/**
@@ -60,7 +60,7 @@ class Transform_Serialize_JsonTest extends PHPUnit_Framework_TestCase
     	    ob_end_clean();
     	    throw $e;
     	}
-        $contents = ob_get_contents();
+    	$contents = ob_get_contents();
         ob_end_clean();
 
         $this->assertType('Q\Transform_Serialize_Json', $transform);
