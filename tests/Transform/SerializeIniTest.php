@@ -9,31 +9,7 @@ require_once 'Q/Transform/Serialize/Ini.php';
  */
 class Transform_Serialize_IniTest extends PHPUnit_Framework_TestCase 
 {
-    /**
-     * Data to transform
-     * @var array
-     */
-    protected $dataToTransform = array ('grp1'=>array('q'=>'abc', 'b'=>27), 'grp2'=>array('a'=>'original'));
-        
-    /**
-     * Expected result after transformation
-     * @var string
-     */
-    protected $expectedResult = '
-[grp1]
-q = "abc"
-b = "27"
 
-[grp2]
-a = "original"
-';
-
-    /**
-     * The file path where to save the data when run test save() method
-     * @var string
-     */
-    protected $filename = '/tmp/SerializeIniTest.txt';
-	
 	/**
 	 * Run test from php
 	 */
@@ -47,11 +23,18 @@ a = "original"
 	 */
 	public function testProcess() 
 	{
-		$transform = new Transform_Serialize_Ini ();
-		$contents = $transform->process ($this->dataToTransform);
+		$transform = new Transform_Serialize_Ini();
+		$contents = $transform->process(array('grp1'=>array('q'=>'abc', 'b'=>27), 'grp2'=>array('a'=>'original')));
 
         $this->assertType('Q\Transform_Serialize_Ini', $transform);
-		$this->assertEquals($this->expectedResult, $contents);
+		$this->assertEquals('
+[grp1]
+q = "abc"
+b = "27"
+
+[grp2]
+a = "original"
+', $contents);
 	}
 	
 	/**
@@ -62,7 +45,7 @@ a = "original"
 		$transform = new Transform_Serialize_Ini();
 		ob_start();
 		try{
-    		$transform->output($this->dataToTransform);
+    		$transform->output(array('grp1'=>array('q'=>'abc', 'b'=>27), 'grp2'=>array('a'=>'original')));
     	} catch (Expresion $e) {
     	    ob_end_clean();
     	    throw $e;
@@ -71,7 +54,14 @@ a = "original"
         ob_end_clean();
 
         $this->assertType('Q\Transform_Serialize_Ini', $transform);
-        $this->assertEquals($this->expectedResult, $contents);
+        $this->assertEquals('
+[grp1]
+q = "abc"
+b = "27"
+
+[grp2]
+a = "original"
+', $contents);
 	}
 	
 	/**
@@ -79,11 +69,19 @@ a = "original"
 	 */
 	public function testSave() 
 	{
-		$transform = new Transform_Serialize_Ini ();
-		$transform->save ($this->filename, $this->dataToTransform);
+		$transform = new Transform_Serialize_Ini();
+        $this->tmpfile = tempnam(sys_get_temp_dir(), 'Q-');
+		$transform->save($this->tmpfile, array('grp1'=>array('q'=>'abc', 'b'=>27), 'grp2'=>array('a'=>'original')));
 		
         $this->assertType('Q\Transform_Serialize_Ini', $transform);
-		$this->assertEquals($this->expectedResult, file_get_contents($this->filename));
+		$this->assertEquals('
+[grp1]
+q = "abc"
+b = "27"
+
+[grp2]
+a = "original"
+', file_get_contents($this->tmpfile));
 	}
 
 	/**
@@ -92,11 +90,17 @@ a = "original"
 	public function testGetReverse() 
 	{
 		$transform = new Transform_Serialize_Ini();
-		$transform->process($this->dataToTransform);
         $reverse = $transform->getReverse();
 
         $this->assertType('Q\Transform_Unserialize_Ini', $reverse);
-        $this->assertEquals($this->dataToTransform, $reverse->process($this->expectedResult));
+        $this->assertEquals(array('grp1'=>array('q'=>'abc', 'b'=>27), 'grp2'=>array('a'=>'original')), $reverse->process('
+[grp1]
+q = "abc"
+b = "27"
+
+[grp2]
+a = "original"
+'));
 	}
 
 }

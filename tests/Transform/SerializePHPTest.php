@@ -50,8 +50,7 @@ class Transform_Serialize_PHPTest extends PHPUnit_Framework_TestCase
 	public function testProcess() 
 	{
 		$transform = new Transform_Serialize_PHP();
-		$contents = $transform->process ($this->dataToTransform);
-
+		$contents = $transform->process(array('a' => 'TEST','b' => array(0 => 2, 1 => 3.5, 2 => '7'), 'c'=>(object)array('e'=>'test')));
         $this->assertType('Q\Transform_Serialize_PHP', $transform);
 		$this->assertEquals($this->expectedResult, $contents);
 	}

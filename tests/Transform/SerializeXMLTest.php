@@ -9,35 +9,6 @@ require_once 'Q/Transform/Serialize/XML.php';
  */
 class Transform_Serialize_XMLTest extends PHPUnit_Framework_TestCase 
 {
-    /**
-     * Data to transform
-     * @var array
-     */
-    protected $dataToTransform = array ('node1' => '', 'node2' => 'test2', 'node3' => array ('node31' => 'test31', 'node32' => 'test32', 'node33' => array ('node331' => 'test331' ) ) ) ;
-    
-    /**
-     * Expected result after transformation
-     * @var string
-     */
-    protected $expectedResult = '<?xml version="1.0" encoding="ISO-8859-1"?>
-<xml>
- <node1></node1>
- <node2>test2</node2>
- <node3>
-  <node31>test31</node31>
-  <node32>test32</node32>
-  <node33>
-   <node331>test331</node331>
-  </node33>
- </node3>
-</xml>';
-
-    /**
-     * The file path where to save the data when run test save() method
-     * @var string
-     */
-    protected $filename = '/tmp/SerializeXML.txt';
-	
 	/**
 	 * Run test from php
 	 */
@@ -51,11 +22,22 @@ class Transform_Serialize_XMLTest extends PHPUnit_Framework_TestCase
 	 */
 	public function testProcess() 
 	{
-		$transform = new Transform_Serialize_XML ( array ('rootNodeName' => 'xml' ) );
-		$contents = $transform->process ($this->dataToTransform);
-        
-        $this->assertType('Q\Transform_Serialize_XML', $transform);
-		$this->assertXmlStringEqualsXmlString($this->expectedResult, $contents);
+		$transform = new Transform_Serialize_XML( array ('rootNodeName' => 'xml' ) );
+		$contents = $transform->process(array('node1' => '', 'node2' => 'test2', 'node3' => array('node31' => 'test31', 'node32' => 'test32', 'node33' => array('node331' => 'test331'))));
+
+		$this->assertType('Q\Transform_Serialize_XML', $transform);
+		$this->assertXmlStringEqualsXmlString('<?xml version="1.0" encoding="ISO-8859-1"?>
+<xml>
+ <node1></node1>
+ <node2>test2</node2>
+ <node3>
+  <node31>test31</node31>
+  <node32>test32</node32>
+  <node33>
+   <node331>test331</node331>
+  </node33>
+ </node3>
+</xml>', $contents);
 	}
 	
 	/**
@@ -63,10 +45,10 @@ class Transform_Serialize_XMLTest extends PHPUnit_Framework_TestCase
 	 */
 	public function testOutput() 
 	{
-		$transform = new Transform_Serialize_XML(array ('rootNodeName' => 'xml' ));
+		$transform = new Transform_Serialize_XML();
 		ob_start();
 		try{
-    		$transform->output($this->dataToTransform);
+    		$transform->output(array('node1'=>'node1_value', 'node3'=>array('node31'=>array('node311'=>'node311_value'))));
     	} catch (Expresion $e) {
     	    ob_end_clean();
     	    throw $e;
@@ -75,7 +57,15 @@ class Transform_Serialize_XMLTest extends PHPUnit_Framework_TestCase
         ob_end_clean();
 
         $this->assertType('Q\Transform_Serialize_XML', $transform);
-        $this->assertXmlStringEqualsXmlString($this->expectedResult, $contents);
+        $this->assertXmlStringEqualsXmlString('<?xml version="1.0" encoding="ISO-8859-1"?>
+<root>
+ <node1>node1_value</node1>
+ <node3>
+  <node31>
+    <node311>node311_value</node311>
+  </node31>
+  </node3>
+</root>', $contents);
 	}
 	
 	/**
@@ -83,11 +73,16 @@ class Transform_Serialize_XMLTest extends PHPUnit_Framework_TestCase
 	 */
 	public function testSave() 
 	{
-		$transform = new Transform_Serialize_XML ( array ('rootNodeName' => 'xml' ) );
-		$transform->save ($this->filename, $this->dataToTransform);
+		$transform = new Transform_Serialize_XML();
+        $this->tmpfile = tempnam(sys_get_temp_dir(), 'Q-');
+		$transform->save($this->tmpfile, array('node1'=>'value1', 'node2'=>'value2'));
 		
         $this->assertType('Q\Transform_Serialize_XML', $transform);
-		$this->assertXmlStringEqualsXmlString($this->expectedResult, file_get_contents($this->filename));
+		$this->assertXmlStringEqualsXmlString('<?xml version="1.0" encoding="ISO-8859-1"?>
+<root>
+ <node1>value1</node1>
+ <node2>value2</node2>
+</root>', file_get_contents($this->tmpfile));
 	}
 
 	/**
@@ -96,11 +91,14 @@ class Transform_Serialize_XMLTest extends PHPUnit_Framework_TestCase
 	public function testGetReverse() 
 	{
 		$transform = new Transform_Serialize_XML();
-		$transform->process($this->dataToTransform);
         $reverse = $transform->getReverse();
 
         $this->assertType('Q\Transform_Unserialize_XML', $reverse);
-        $this->assertEquals($this->dataToTransform, $reverse->process($this->expectedResult));
+        $this->assertEquals(array('node1'=>'value1', 'node2'=>'value2'), $reverse->process('<?xml version="1.0" encoding="ISO-8859-1"?>
+<root>
+ <node1>value1</node1>
+ <node2>value2</node2>
+</root>'));
 	}
 }
 

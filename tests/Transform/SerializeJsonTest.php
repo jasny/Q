@@ -9,24 +9,6 @@ require_once 'Q/Transform/Serialize/Json.php';
  */
 class Transform_Serialize_JsonTest extends PHPUnit_Framework_TestCase 
 {
-    /**
-     * Data to transform
-     * @var array
-     */
-    protected $dataToTransform = array ('a'=>1,'b'=>2,'c'=>3,'d'=>4,'e'=>5);
-        
-    /**
-     * Expected result after transformation
-     * @var string
-     */
-    protected $expectedResult = '{"a":1,"b":2,"c":3,"d":4,"e":5}';
-
-    /**
-     * The file path where to save the data when run test save() method
-     * @var string
-     */
-    protected $filename = '/tmp/SerializeJsonTest.txt';
-	
 	/**
 	 * Run test from php
 	 */
@@ -41,7 +23,7 @@ class Transform_Serialize_JsonTest extends PHPUnit_Framework_TestCase
 	public function testProcess() 
 	{
 		$transform = new Transform_Serialize_Json ();
-		$contents = $transform->process (array('a'=>1,'b'=>2,'c'=>3,'d'=>array('e'=>4, 'f'=>5)));
+		$contents = $transform->process(array('a'=>1,'b'=>2,'c'=>3,'d'=>(object)array('e'=>4, 'f'=>5)));
 
         $this->assertType('Q\Transform_Serialize_Json', $transform);
 		$this->assertEquals('{"a":1,"b":2,"c":3,"d":{"e":4,"f":5}}', $contents);
@@ -55,7 +37,7 @@ class Transform_Serialize_JsonTest extends PHPUnit_Framework_TestCase
 		$transform = new Transform_Serialize_Json();
 		ob_start();
 		try{
-    		$transform->output($this->dataToTransform);
+    		$transform->output(array('a'=>1,'b'=>2,'c'=>3));
     	} catch (Expresion $e) {
     	    ob_end_clean();
     	    throw $e;
@@ -64,7 +46,7 @@ class Transform_Serialize_JsonTest extends PHPUnit_Framework_TestCase
         ob_end_clean();
 
         $this->assertType('Q\Transform_Serialize_Json', $transform);
-        $this->assertEquals($this->expectedResult, $contents);
+        $this->assertEquals('{"a":1,"b":2,"c":3}', $contents);
 	}
 	
 	/**
@@ -73,10 +55,11 @@ class Transform_Serialize_JsonTest extends PHPUnit_Framework_TestCase
 	public function testSave() 
 	{
 		$transform = new Transform_Serialize_Json ();
-		$transform->save ($this->filename, $this->dataToTransform);
+        $this->tmpfile = tempnam(sys_get_temp_dir(), 'Q-');
+		$transform->save($this->tmpfile, array('a'=>1,'b'=>2,'c'=>3));
 		
         $this->assertType('Q\Transform_Serialize_Json', $transform);
-		$this->assertEquals($this->expectedResult, file_get_contents($this->filename));
+		$this->assertEquals('{"a":1,"b":2,"c":3}', file_get_contents($this->tmpfile));
 	}
 
 	/**
@@ -85,11 +68,10 @@ class Transform_Serialize_JsonTest extends PHPUnit_Framework_TestCase
 	public function testGetReverse() 
 	{
 		$transform = new Transform_Serialize_Json();
-		$transform->process($this->dataToTransform);
         $reverse = $transform->getReverse();
 
         $this->assertType('Q\Transform_Unserialize_Json', $reverse);
-        $this->assertEquals($this->dataToTransform, $reverse->process($this->expectedResult));
+        $this->assertEquals(array('a'=>1,'b'=>2,'c'=>3), $reverse->process('{"a":1,"b":2,"c":3}'));
 	}
 
 }

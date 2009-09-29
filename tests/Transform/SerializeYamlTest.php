@@ -9,31 +9,6 @@ require_once 'Q/Transform/Serialize/Yaml.php';
  */
 class Transform_Serialize_YamlTest extends PHPUnit_Framework_TestCase 
 {
-    /**
-     * Data to transform
-     * @var array
-     */
-    protected $dataToTransform = array ('a'=>1,'b'=>2,'c'=>array('d'=>'e', 'f'=>'d', 'e'=>array('a'=>'v')));
-        
-    /**
-     * Expected result after transformation
-     * @var string
-     */
-    protected $expectedResult = 'a: 1
-b: 2
-c:
- d: e
- f: d
- e:
-  a: v
-';
-
-    /**
-     * The file path where to save the data when run test save() method
-     * @var string
-     */
-    protected $filename = '/tmp/SerializeYamlTest.txt';
-	
 	/**
 	 * Run test from php
 	 */
@@ -48,10 +23,17 @@ c:
 	public function testProcess() 
 	{
 		$transform = new Transform_Serialize_Yaml ();
-		$contents = $transform->process ($this->dataToTransform);
+		$contents = $transform->process(array('a'=>1,'b'=>2,'c'=>array('d'=>'e', 'f'=>'d', 'e'=>array('a'=>'v'))));
 
         $this->assertType('Q\Transform_Serialize_Yaml', $transform);
-		$this->assertEquals($this->expectedResult, $contents);
+		$this->assertEquals('a: 1
+b: 2
+c:
+ d: e
+ f: d
+ e:
+  a: v
+', $contents);
 	}
 	
 	/**
@@ -62,7 +44,7 @@ c:
 		$transform = new Transform_Serialize_Yaml();
 		ob_start();
 		try{
-    		$transform->output($this->dataToTransform);
+    		$transform->output(array('a'=>1,'b'=>2));
     	} catch (Expresion $e) {
     	    ob_end_clean();
     	    throw $e;
@@ -71,7 +53,9 @@ c:
         ob_end_clean();
 
         $this->assertType('Q\Transform_Serialize_Yaml', $transform);
-        $this->assertEquals($this->expectedResult, $contents);
+        $this->assertEquals('a: 1
+b: 2
+', $contents);
 	}
 	
 	/**
@@ -79,11 +63,14 @@ c:
 	 */
 	public function testSave() 
 	{
-		$transform = new Transform_Serialize_Yaml ();
-		$transform->save ($this->filename, $this->dataToTransform);
+		$transform = new Transform_Serialize_Yaml();
+        $this->tmpfile = tempnam(sys_get_temp_dir(), 'Q-');
+		$transform->save ($this->tmpfile, array('a'=>1,'b'=>2));
 		
         $this->assertType('Q\Transform_Serialize_Yaml', $transform);
-		$this->assertEquals($this->expectedResult, file_get_contents($this->filename));
+		$this->assertEquals('a: 1
+b: 2
+', file_get_contents($this->tmpfile));
 	}
 
 	/**
@@ -92,11 +79,17 @@ c:
 	public function testGetReverse() 
 	{
 		$transform = new Transform_Serialize_Yaml();
-		$transform->process($this->dataToTransform);
         $reverse = $transform->getReverse();
 
         $this->assertType('Q\Transform_Unserialize_Yaml', $reverse);
-        $this->assertEquals($this->dataToTransform, $reverse->process($this->expectedResult));
+        $this->assertEquals(array('a'=>1,'b'=>2,'c'=>array('d'=>'e', 'f'=>'d', 'e'=>array('a'=>'v'))), $reverse->process('a: 1
+b: 2
+c:
+ d: e
+ f: d
+ e:
+  a: v
+'));
 	}
 }
 

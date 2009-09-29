@@ -69,7 +69,7 @@ a = "original"
 	/**
 	 * Tests Transform_Unserialize_Ini->process()
 	 */
-	public function testProcess_usingUrl() 
+	public function testProcess_withFs() 
 	{
 		$this->tmpfile = tempnam(sys_get_temp_dir(), 'Q-');
 		file_put_contents($this->tmpfile, '

@@ -9,6 +9,9 @@ require_once 'Q/Fs.php';
 /**
  * Transform array to yaml
  *
+ * Options:
+ *   fastDump   set true to use syck_dump
+ *   
  * @package Transform
  */
 class Transform_Serialize_Yaml extends Transform
