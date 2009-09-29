@@ -17,10 +17,10 @@ class Fs_File extends Fs_Node
 	 */
 	public function __construct($path)
 	{
-		if (file_exists($path) && !is_file($path)) throw new Fs_Exception("File '$path' is not a regular file, but a " . Fs::$typedescs[]); 
-		if (is_link($path) xor $this instanceof Fs_Symlink) throw new Fs_Exception("File '$path' is " . ($this instanceof Fs_Symlink ? 'not ' : '') . "a symlink");
-		
 		parent::__construct($path);
+		
+		if (file_exists($path) && !is_file($path)) throw new Fs_Exception("File '$path' is not a regular file, but a " . Fs::typeOfNode($path, Fs::DESCRIPTION)); 
+		if (is_link($path) xor $this instanceof Fs_Symlink) throw new Fs_Exception("File '$path' is " . ($this instanceof Fs_Symlink ? 'not ' : '') . "a symlink");
 	}
 	
 	

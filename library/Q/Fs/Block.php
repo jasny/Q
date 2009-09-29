@@ -17,10 +17,10 @@ class Fs_Block extends Fs_Node
 	 */
 	public function __construct($path)
 	{
+		parent::__construct($path);
+		
 		if (is_link($path) xor $this instanceof Fs_Symlink) throw new Fs_Exception("File '$path' is " . ($this instanceof Fs_Symlink ? 'not ' : '') . "a symlink.");
 		if (!file_exists($path)) throw new Fs_Exception("Can't load block device '$path'; File doesn't exists."); 
 		if (filetype(realpath($path)) != 'block') throw new Fs_Exception("File '$path' is not a block device, but a " . filetype($path) . ".");
-		 
-		parent::__construct($path);
 	}
 }

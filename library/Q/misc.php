@@ -411,33 +411,47 @@ function running_main()
 }
 
 /**
- * Same as var_export, except that an object will not be serialized but cast to a string instead.
+ * Same as var_export, with better object handling.
  * 
  * @param mixed   $expression
- * @param boolean $return      Return value instead
- * @param boolean $objects     Set to false to skip object with a warning
- * @param array   $passed      Don't use
+ * @param boolean $return         Return value instead
+ * @param boolean $object_string  Cast object to string
+ * @param array   $passed         Don't use
  * @return string
  */
-function var_give($expression, $return=false, $objects=true, &$passed=null)
+function var_give($expression, $return=false, $object_string=false, &$passed=array())
 {
-    if (is_object($expression) && get_class($expression) != 'stdClass') {
-        if (!$objects) {
-            trigger_error("Won't serialize an object: Trying to serialize " . get_class($expression) . '.', E_USER_WARNING);
+    if (in_array($expression, $passed)) {
+    	trigger_error("Skip circular reference", E_USER_WARNING);
+    	return 'null';
+    }
+    	
+	if (is_object($expression) && get_class($expression) != 'stdClass') {
+        if ($object_string) {
+        	$var = 'object(' . get_class($expression) . ')' . (method_exists($expression, '__toString') ? ' ' . (string)$expression : '#' . spl_object_hash($expression));
+        } elseif (method_exists($expression, '__set_state')) {
+	    	$passed[] = $expression;
+	    	
+	        $args = array();
+	        foreach ($expression as $k=>$v) $args[] = ' ' . (is_string($k) ? "'$k'" : $k) . ' => ' . var_give($v, true, $object_string, $passed);
+	        $var = get_class($expression) . '::__set_state( array (' .  join(',', $args) . ' ) )';
+	        
+	        array_pop($passed);
+    	} else {
+            trigger_error("Won't serialize an object: Trying to serialize " . get_class($expression) . ', class doesn\'t have a __set_state() method.', E_USER_WARNING);
             return 'null'; 
         }
-        $var = 'object(' . get_class($expression) . ')' . (method_exists($expression, '__toString') ? ' ' . (string)$expression : '#' . spl_object_hash($expression));
+        
     } elseif (is_array($expression) || is_object($expression)) {
-    	if ($passed && in_array($expression, $passed)) {
-    		trigger_error("Skip circular reference", E_USER_WARNING);
-    		/* ... skip ... */
-    	}
     	$passed[] = $expression;
     	
         $args = array();
-        foreach ($expression as $k=>$v) $args[] = ' ' . (is_string($k) ? "'$k'" : $k) . ' => ' . var_give($v, true);     
+        foreach ($expression as $k=>$v) $args[] = ' ' . (is_string($k) ? "'$k'" : $k) . ' => ' . var_give($v, true, $object_string, $passed);
         $var = 'array (' .  join(',', $args) . ' )';
         if (is_object($expression)) $var = "(object) $var";
+        
+        array_pop($passed);
+        
     } elseif (is_string($expression)) {
         $var = "'" . addcslashes($expression, "'") . "'";
     } else {
@@ -474,7 +488,7 @@ function serialize_trace($trace, $unset_first=0)
 	    
         $args = array();
         if (isset($step['args'])) {
-            foreach ($step['args'] as $arg) $args[] = str_replace("\n", chr(182), var_give($arg, true));
+            foreach ($step['args'] as $arg) $args[] = str_replace("\n", chr(182), var_give($arg, true, true));
         }
 	    
 		$messages[$count] = "#$count {$step['file']} ({$step['line']}): " . (isset($step['class']) ? $step['class'] . $step['type'] : '') . "{$step['function']}(" . join(', ', $args) . ")";

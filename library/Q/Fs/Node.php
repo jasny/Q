@@ -28,6 +28,7 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
 	 */
 	public function __construct($path)
 	{
+		if ($path == '') throw new Exception("Can't create a " . get_class($this) . " object without a path");
 		$this->_path = Fs::canonicalize($path);
 	}
 	

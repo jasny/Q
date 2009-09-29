@@ -1,9 +1,13 @@
 <?php
 use Q\Fs;
 
-require_once 'Q/Fs.php';
 require_once 'TestHelper.php';
 require_once 'PHPUnit/Framework/TestCase.php';
+
+require_once 'Q/Fs.php';
+require_once 'Q/Fs/Unknown.php';
+require_once 'Q/Fs/Symlink/Fifo.php';
+require_once 'Q/Fs/Symlink/Unknown.php';
 
 /**
  * Fs test case.
@@ -445,4 +449,177 @@ class Fs_Test extends PHPUnit_Framework_TestCase
         Fs::clearStatCache();
         $this->assertNotEquals($stat, stat($file));
     }
+    
+    
+    /**
+     * Tests Fs::typeOfNode()
+     */
+    public function testTypeOfNode()
+    {
+    	$this->assertEquals('file', Fs::typeOfNode($this->getMock('Q\Fs_File', array(), array(), '', false)));
+    	$this->assertEquals('dir', Fs::typeOfNode($this->getMock('Q\Fs_Dir', array(), array(), '', false)));
+    	$this->assertEquals('block', Fs::typeOfNode($this->getMock('Q\Fs_Block', array(), array(), '', false)));
+    	$this->assertEquals('char', Fs::typeOfNode($this->getMock('Q\Fs_Char', array(), array(), '', false)));
+    	$this->assertEquals('fifo', Fs::typeOfNode($this->getMock('Q\Fs_Fifo', array(), array(), '', false)));
+    	$this->assertEquals('socket', Fs::typeOfNode($this->getMock('Q\Fs_Socket', array(), array(), '', false)));
+    	$this->assertEquals('unknown', Fs::typeOfNode($this->getMock('Q\Fs_Unknown', array(), array(), '', false)));
+    	
+    	$this->assertEquals('link/', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Broken', array(), array(), '', false)));
+    	$this->assertEquals('link/file', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_File', array(), array(), '', false)));
+    	$this->assertEquals('link/dir', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Dir', array(), array(), '', false)));
+    	$this->assertEquals('link/block', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Block', array(), array(), '', false)));
+    	$this->assertEquals('link/char', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Char', array(), array(), '', false)));
+    	$this->assertEquals('link/fifo', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Fifo', array(), array(), '', false)));
+    	$this->assertEquals('link/socket', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Socket', array(), array(), '', false)));
+    	$this->assertEquals('link/unknown', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Unknown', array(), array(), '', false)));
+	}
+	
+    /**
+     * Tests Fs::typeOfNode() for an illegal Fs_Node type
+     */
+    public function testTypeOfNode_Fail()
+    {
+    	$file = $this->getMock('Q\Fs_Node', array('__toString', 'path'), array(''), 'StrangeFsNode', array(), '', false);
+    	$file->expects($this->any())->method('__toString')->will($this->returnValue('/something'));
+    	$file->expects($this->any())->method('path')->will($this->returnValue('/something'));
+    	
+    	$this->setExpectedException('Q\Fs_Exception', "Unable to determine type of '/something': Class 'StrangeFsNode' is not any of the known types");
+    	Fs::typeOfNode($file);
+    }
+	
+    /**
+     * Tests Fs::typeOfNode() with filenames
+     */
+    public function testTypeOfNode_String()
+    {
+    	$this->assertEquals('file', Fs::typeOfNode(__FILE__));
+    	$this->assertEquals('dir', Fs::typeOfNode(__DIR__));
+    	
+    	$this->tmpfiles[] = $link_file = sys_get_temp_dir() . '/q-fs_test.' . md5(uniqid());
+    	$this->tmpfiles[] = $link_dir = sys_get_temp_dir() . '/q-fs_test.' . md5(uniqid());
+    	if (symlink(__FILE__, $link_file)) $this->assertEquals('link/file', Fs::typeOfNode($link_file));
+    	if (symlink(__DIR__, $link_dir)) $this->assertEquals('link/dir', Fs::typeOfNode($link_dir));
+	}
+    
+    /**
+     * Tests Fs::typeOfNode() with ALWAYS_FOLLOW option
+     */
+    public function testTypeOfNode_AlwayFollow()
+    {
+    	$this->assertEquals('file', Fs::typeOfNode($this->getMock('Q\Fs_File', array(), array(), '', false), Fs::ALWAYS_FOLLOW));
+    	$this->assertEquals('dir', Fs::typeOfNode($this->getMock('Q\Fs_Dir', array(), array(), '', false), Fs::ALWAYS_FOLLOW));
+    	$this->assertEquals('block', Fs::typeOfNode($this->getMock('Q\Fs_Block', array(), array(), '', false), Fs::ALWAYS_FOLLOW));
+    	$this->assertEquals('char', Fs::typeOfNode($this->getMock('Q\Fs_Char', array(), array(), '', false), Fs::ALWAYS_FOLLOW));
+    	$this->assertEquals('fifo', Fs::typeOfNode($this->getMock('Q\Fs_Fifo', array(), array(), '', false), Fs::ALWAYS_FOLLOW));
+    	$this->assertEquals('socket', Fs::typeOfNode($this->getMock('Q\Fs_Socket', array(), array(), '', false), Fs::ALWAYS_FOLLOW));
+    	$this->assertEquals('unknown', Fs::typeOfNode($this->getMock('Q\Fs_Unknown', array(), array(), '', false), Fs::ALWAYS_FOLLOW));
+    	
+    	$this->assertEquals('file', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_File', array(), array(), '', false), Fs::ALWAYS_FOLLOW));
+    	$this->assertEquals('dir', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Dir', array(), array(), '', false), Fs::ALWAYS_FOLLOW));
+    	$this->assertEquals('block', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Block', array(), array(), '', false), Fs::ALWAYS_FOLLOW));
+    	$this->assertEquals('char', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Char', array(), array(), '', false), Fs::ALWAYS_FOLLOW));
+    	$this->assertEquals('fifo', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Fifo', array(), array(), '', false), Fs::ALWAYS_FOLLOW));
+    	$this->assertEquals('socket', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Socket', array(), array(), '', false), Fs::ALWAYS_FOLLOW));
+    	$this->assertEquals('unknown', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Unknown', array(), array(), '', false), Fs::ALWAYS_FOLLOW));
+	}
+	
+    /**
+     * Tests Fs::typeOfNode() with ALWAYS_FOLLOW option for broken symlink
+     */
+    public function testTypeOfNode_AlwayFollow_BrokenSymlink()
+    {
+    	$file = $this->getMock('Q\Fs_Symlink_Broken', array('__toString', 'path'), array(), array(), '', false);
+    	$file->expects($this->any())->method('__toString')->will($this->returnValue('/broken/link'));
+    	$file->expects($this->any())->method('path')->will($this->returnValue('/broken/link'));
+    	
+    	$this->setExpectedException('Fs_Exception', "Unable to determine type of target of '/broken/link': File is a broken link");
+    	Fs::typeOfNode($file, Fs::ALWAYS_FOLLOW);
+    }
+
+    /**
+     * Tests Fs::typeOfNode() with filenames
+     */
+    public function testTypeOfNode_String_AlwayFollow()
+    {
+    	$this->assertEquals('file', Fs::typeOfNode(__FILE__, Fs::ALWAYS_FOLLOW));
+    	$this->assertEquals('dir', Fs::typeOfNode(__DIR__, Fs::ALWAYS_FOLLOW));
+    	
+    	$this->tmpfiles[] = $link_file = sys_get_temp_dir() . '/q-fs_test.' . md5(uniqid());
+    	$this->tmpfiles[] = $link_dir = sys_get_temp_dir() . '/q-fs_test.' . md5(uniqid());
+    	if (symlink(__FILE__, $link_file)) $this->assertEquals('file', Fs::typeOfNode($link_file, Fs::ALWAYS_FOLLOW));
+    	if (symlink(__DIR__, $link_dir)) $this->assertEquals('dir', Fs::typeOfNode($link_dir, Fs::ALWAYS_FOLLOW));
+	}
+    
+	/**
+     * Tests Fs::typeOfNode() with DESCRIPTION option
+     */
+    public function testTypeOfNode_Description()
+    {
+    	$this->assertEquals('file', Fs::typeOfNode($this->getMock('Q\Fs_File', array(), array(), '', false), Fs::DESCRIPTION));
+    	$this->assertEquals('directory', Fs::typeOfNode($this->getMock('Q\Fs_Dir', array(), array(), '', false), Fs::DESCRIPTION));
+    	$this->assertEquals('block device', Fs::typeOfNode($this->getMock('Q\Fs_Block', array(), array(), '', false), Fs::DESCRIPTION));
+    	$this->assertEquals('char device', Fs::typeOfNode($this->getMock('Q\Fs_Char', array(), array(), '', false), Fs::DESCRIPTION));
+    	$this->assertEquals('named pipe', Fs::typeOfNode($this->getMock('Q\Fs_Fifo', array(), array(), '', false), Fs::DESCRIPTION));
+    	$this->assertEquals('socket', Fs::typeOfNode($this->getMock('Q\Fs_Socket', array(), array(), '', false), Fs::DESCRIPTION));
+    	$this->assertEquals('unknown filetype', Fs::typeOfNode($this->getMock('Q\Fs_Unknown', array(), array(), '', false), Fs::DESCRIPTION));
+    	
+    	$this->assertEquals('broken symlink', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Broken', array(), array(), '', false), Fs::DESCRIPTION));
+    	$this->assertEquals('symlink to a file', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_File', array(), array(), '', false), Fs::DESCRIPTION));
+    	$this->assertEquals('symlink to a directory', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Dir', array(), array(), '', false), Fs::DESCRIPTION));
+    	$this->assertEquals('symlink to a block device', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Block', array(), array(), '', false), Fs::DESCRIPTION));
+    	$this->assertEquals('symlink to a char device', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Char', array(), array(), '', false), Fs::DESCRIPTION));
+    	$this->assertEquals('symlink to a named pipe', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Fifo', array(), array(), '', false), Fs::DESCRIPTION));
+    	$this->assertEquals('symlink to a socket', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Socket', array(), array(), '', false), Fs::DESCRIPTION));
+    	$this->assertEquals('symlink to an unknown filetype', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Unknown', array(), array(), '', false), Fs::DESCRIPTION));
+	}
+	
+    /**
+     * Tests Fs::typeOfNode() with filenames
+     */
+    public function testTypeOfNode_Description_String()
+    {
+    	$this->assertEquals('file', Fs::typeOfNode(__FILE__, Fs::DESCRIPTION));
+    	$this->assertEquals('directory', Fs::typeOfNode(__DIR__, Fs::DESCRIPTION));
+    	
+    	$this->tmpfiles[] = $link_file = sys_get_temp_dir() . '/q-fs_test.' . md5(uniqid());
+    	$this->tmpfiles[] = $link_dir = sys_get_temp_dir() . '/q-fs_test.' . md5(uniqid());
+    	if (symlink(__FILE__, $link_file)) $this->assertEquals('symlink to a file', Fs::typeOfNode($link_file, Fs::DESCRIPTION));
+    	if (symlink(__DIR__, $link_dir)) $this->assertEquals('symlink to a directory', Fs::typeOfNode($link_dir, Fs::DESCRIPTION));
+	}
+	
+    /**
+     * Tests Fs::typeOfNode() with ALWAYS_FOLLOW and DESCRIPTION options
+     */
+    public function testTypeOfNode_Description_AlwayFollow()
+    {
+    	$this->assertEquals('file', Fs::typeOfNode($this->getMock('Q\Fs_File', array(), array(), '', false), Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
+    	$this->assertEquals('directory', Fs::typeOfNode($this->getMock('Q\Fs_Dir', array(), array(), '', false), Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
+    	$this->assertEquals('block device', Fs::typeOfNode($this->getMock('Q\Fs_Block', array(), array(), '', false), Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
+    	$this->assertEquals('char device', Fs::typeOfNode($this->getMock('Q\Fs_Char', array(), array(), '', false), Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
+    	$this->assertEquals('named pipe', Fs::typeOfNode($this->getMock('Q\Fs_Fifo', array(), array(), '', false), Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
+    	$this->assertEquals('socket', Fs::typeOfNode($this->getMock('Q\Fs_Socket', array(), array(), '', false), Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
+    	$this->assertEquals('unknown filetype', Fs::typeOfNode($this->getMock('Q\Fs_Unknown', array(), array(), '', false), Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
+    	
+    	$this->assertEquals('file', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_File', array(), array(), '', false), Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
+    	$this->assertEquals('directory', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Dir', array(), array(), '', false), Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
+    	$this->assertEquals('block device', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Block', array(), array(), '', false), Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
+    	$this->assertEquals('char device', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Char', array(), array(), '', false), Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
+    	$this->assertEquals('named pipe', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Fifo', array(), array(), '', false), Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
+    	$this->assertEquals('socket', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Socket', array(), array(), '', false), Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
+    	$this->assertEquals('unknown filetype', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Unknown', array(), array(), '', false), Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
+	}
+	
+    /**
+     * Tests Fs::typeOfNode() with filenames
+     */
+    public function testTypeOfNode_String_Description_AlwayFollow()
+    {
+    	$this->assertEquals('file', Fs::typeOfNode(__FILE__, Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
+    	$this->assertEquals('directory', Fs::typeOfNode(__DIR__, Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
+    	
+    	$this->tmpfiles[] = $link_file = sys_get_temp_dir() . '/q-fs_test.' . md5(uniqid());
+    	$this->tmpfiles[] = $link_dir = sys_get_temp_dir() . '/q-fs_test.' . md5(uniqid());
+    	if (symlink(__FILE__, $link_file)) $this->assertEquals('file', Fs::typeOfNode($link_file, Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
+    	if (symlink(__DIR__, $link_dir)) $this->assertEquals('directory', Fs::typeOfNode($link_dir, Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
+	}
 }

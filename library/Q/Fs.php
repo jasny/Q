@@ -408,7 +408,7 @@ class Fs
      */
     public static function typeOfNode($file, $flags=0)
     {
-    	if (is_string($file)) {
+    	if (!($file instanceof Fs_Node)) {
     		return (~$flags & Fs::ALWAYS_FOLLOW && is_link($file) ? 'link/' : '') . filetype(realpath($file));
     	}
     	
@@ -420,12 +420,12 @@ class Fs
     	  elseif ($file instanceof Fs_Socket) $type = 'socket';
     	  elseif ($file instanceof Fs_Unknown) $type = 'unknown';
     	  elseif ($file instanceof Fs_Symlink_Broken) $type = '';
-    	  else throw new Exception("Unable to determine type of '$file': Class '" . get_class($type) . "' is not any of the known types.");
+    	  else throw new Exception("Unable to determine type of '$file': Class '" . get_class($file) . "' is not any of the known types");
     	 
     	if (~$flags & Fs::ALWAYS_FOLLOW && $file instanceof Fs_Symlink) {
     		$type = "link/$type"; 
     	} elseif ($type == '') {
-    		throw new Fs_Exception("Unable to determine type of target of '$file': File is a broken link.");
+    		throw new Fs_Exception("Unable to determine type of target of '$file': File is a broken link");
     	}
     	
     	return $flags & self::DESCRIPTION ? self::$typedescs[$type] : $type;
