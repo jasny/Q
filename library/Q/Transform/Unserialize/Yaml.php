@@ -24,12 +24,7 @@ class Transform_Unserialize_Yaml extends Transform
     	if ($data instanceof Fs_Item) $data = $data->getContents();
           else $data = (string)$data;
         
-        if (extension_loaded('syck')) {
-            $data = syck_load($data);
-        } else {
-            require_once('spyc.php');
-            $data = \Spyc::YAMLLoad($data);
-        }
+        $data = syck_load($data);
           
         return $data;
     }

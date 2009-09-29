@@ -3,6 +3,7 @@ namespace Q;
 
 require_once 'Q/Exception.php';
 require_once 'Q/Transform.php';
+require_once 'Q/Transform/Serialize/Ini.php';
 require_once 'Q/Fs.php';
 
 /**
@@ -12,12 +13,19 @@ require_once 'Q/Fs.php';
  */
 class Transform_Unserialize_Ini extends Transform
 {
-	/**
-	 * Return associated array instead of value object
-	 * @var boolean
-	 */
-	public $assoc = true;
-	
+    /**
+     * Get a transformer that does the reverse action.
+     * 
+     * @param Transformer $chain
+     * @return Transformer
+     */
+    public function getReverse($chain=null)
+    {
+        $ob = new Transform_Serialize_Ini($this);
+        if ($chain) $ob->chainInput($chain);
+        return $this->chainInput ? $this->chainInput->getReverse($ob) : $ob;  
+    }
+		
     /**
      * Transform data and return the result.
      *
@@ -27,8 +35,7 @@ class Transform_Unserialize_Ini extends Transform
     public function process($data)
     {
         if ($this->chainInput) $data = $this->chainInput->process($data);
-        $file_object = new Fs_File($data);
-    	if ($file_object->exists()) $data = parse_ini_file($data, true);
+        if ($data instanceof Fs_Item) $data = parse_ini_file($data, true);
           else $data = parse_ini_string((string)$data, true);
           
         return $data;
