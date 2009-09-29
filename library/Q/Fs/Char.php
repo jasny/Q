@@ -1,14 +1,14 @@
 <?php
 namespace Q;
 
-require_once 'Q/Fs/Item.php';
+require_once 'Q/Fs/Node.php';
 
 /**
  * Interface of a char device (eg /dev/null, /dev/zero).
  * 
  * @package Fs
  */
-class Fs_Char extends Fs_Item
+class Fs_Char extends Fs_Node
 {
 	/**
 	 * Class constructor.
@@ -48,4 +48,19 @@ class Fs_Char extends Fs_Item
 	{
 		return file_put_contents($data, $flags);
 	}
+	
+	
+ 	/**
+ 	 * Create this file.
+ 	 * Use Fs::PRESERVE to simply return if file already exists
+ 	 * 
+ 	 * @param int $mode   File permissions, umask applies
+ 	 * @param int $flags  Fs::% options
+ 	 * @throws Fs_Exception
+ 	 */
+	public function create($mode=0666, $flags=0)
+ 	{
+ 		if ($this->exists() && $flags & Fs::PRESERVE) return;
+ 		throw new Fs_Exception("Unable to create '{$this->_path}': File is a char device");
+ 	}
 }

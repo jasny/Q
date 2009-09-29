@@ -179,14 +179,23 @@ class MiscTest extends PHPUnit_Framework_TestCase
 		
 		$x = Q\refsort(array('ch1'=>null, 'ch3'=>null, 'p2'=>array('ch1', 'ch3', 'ch4'), 'p1'=>array('ch1', 'p2')), SORT_DESC);
 		$this->assertSame(array('p1'=>array('ch1', 'p2'), 'p2'=>array('ch1', 'ch3', 'ch4'), 'ch1'=>null, 'ch3'=>null), $x);
-		
-		// Should give warning and not hang
-		$x = @Q\refsort(array('ch1'=>null, 'ch3'=>array('p2'), 'p2'=>array('ch1', 'ch3', 'ch4'), 'p1'=>array('ch1', 'p2')));
-		if (function_exists('error_get_last')) {
-		    $err = error_get_last();
-		    $this->assertEquals("Unable to sort array because of cross-reference.", $err['message']);
-		}
 	}
+
+	/**
+	 * Test refsort() with cross-reference.
+	 * Should give warning and not hang.
+	 */
+    function test_refsort_crossreference()
+    {
+    	set_time_limit(5); // Should not deadloop, but..
+		$order = array('ch1'=>null, 'ch3'=>array('p2'), 'p2'=>array('ch1', 'ch3', 'ch4'), 'p1'=>array('ch1', 'p2'));
+		$x = @Q\refsort($order);
+		set_time_limit(0);
+		
+	    $err = error_get_last();
+	    $this->assertEquals("Unable to sort array because of cross-reference.", $err['message']);
+	    $this->assertEquals($order, $x);
+    }
 	
 	/**
 	 * Test array_chunk_assoc()

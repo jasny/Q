@@ -15,7 +15,7 @@ interface Multiton
      * @param string $name
      * @return object|Mock
      */
-    static public function getInterface($name);
+    public static function getInterface($name);
     
 	/**
 	 * Magic method to retun specific instance.
@@ -25,7 +25,7 @@ interface Multiton
 	 * @param string $args
 	 * @return object|Mock
 	 */
-	static public function __callstatic($name, $args);
+	public static function __callstatic($name, $args);
     
 	/**
 	 * Register object as instance.
