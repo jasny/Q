@@ -2,7 +2,6 @@
 namespace Q;
 
 require_once 'Q/Config/Files.php';
-require_once 'Q/PHPParser.php';
 
 /**
  * Load and parse .json config files from a directory.
@@ -22,34 +21,28 @@ class Config_Json extends Config_Files
 	/**
 	 * File extension.
 	 * Change this value in child classes.
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_ext="json";
 
 	/**
 	 * Load a config file or dir (no caching)
-	 * 
-	 * @param string $path
+	 *
+	 * @param Fs_Item $file_object
 	 * @param string $group
 	 * @return array
 	 */
-	protected function loadFile($path, $group=null)
+	protected function loadFile($file_object, $group=null)
 	{
-		$file = isset($group) ? "$path/" . $this->groupName($group) . "." . $this->_ext : $path;
         $settings = array();
-		
-		if (is_file($file)) {
-			if (!empty($this->_options['php'])) $json = PHPParser::load($file, $this->preparseParams);
-		      else $json = file_get_contents($file);
-			
-			if (!empty($json)) $settings = json_decode($json, true);
+		if ($file_object instanceof Fs_File) {
+            $settings = Transform::with('unserialize-json')->process($file_object->path());
 			if (!isset($settings)) trigger_error("Failed to parse json file '$file'.", E_USER_WARNING);
-			
-		} elseif (!empty($this->_options['recursive']) && is_dir("$path/$group")) {
-			$settings = $this->loadDir("$path/$group");
+		} elseif (!empty($this->_options['recursive']) && $file_object instanceof Fs_Dir) {
+			$settings = $this->loadDir($file_object);
 		}
-		
+
 		return $settings;
 	}
 }

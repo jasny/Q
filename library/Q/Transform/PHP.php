@@ -80,7 +80,7 @@ class Transform_PHP extends Transform
 		}
 		
 		ob_end_clean ();
-		$this->stopErrorHandler ();
+		$this->stopErrorHandler();
 		
 		return $contents;
 	}
@@ -93,7 +93,7 @@ class Transform_PHP extends Transform
 	 */
 	public function output($data) 
 	{
-		echo $this->process ( $data );
+		echo $this->process($data);
 	}
 	
     /**

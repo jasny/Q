@@ -63,12 +63,16 @@ class Transform_Serialize_PHPTest extends PHPUnit_Framework_TestCase
 	{
 		$transform = new Transform_Serialize_PHP();
 		ob_start();
+<<<<<<< HEAD:tests/Transform/SerializePHPTest.php
 		try{
     		$transform->output($this->dataToTransform);
     	} catch (Expresion $e) {
     	    ob_end_clean();
     	    throw $e;
     	}
+=======
+		$transform->output ($this->dataToTransform);
+>>>>>>> ac34dbb77c3a3611c0b0224528b88eabc3c35be8:tests/Transform/SerializePHPTest.php
         $contents = ob_get_contents();
         ob_end_clean();
 

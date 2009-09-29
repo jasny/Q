@@ -1,7 +1,11 @@
 <?php
 namespace Q;
 
+<<<<<<< HEAD:library/Q/Transform/Serialize/Yaml.php
 require_once 'Q/Transform/Exception.php';
+=======
+require_once 'Q/Exception.php';
+>>>>>>> ac34dbb77c3a3611c0b0224528b88eabc3c35be8:library/Q/Transform/Serialize/Yaml.php
 require_once 'Q/Transform.php';
 require_once 'Q/Transform/Unserialize/Yaml.php';
 require_once 'Q/Fs.php';

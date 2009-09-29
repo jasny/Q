@@ -1,7 +1,7 @@
 <?php
 namespace Q;
 
-require_once 'Test/Config/Main.php';
+require_once dirname(__FILE__) . '/MainTest.php';
 require_once 'Q/Config/None.php';
 
 class Config_NoneTest extends Config_MainTest
@@ -16,7 +16,7 @@ class Config_NoneTest extends Config_MainTest
     	
 	public function testConfigEmpty()
     {
-    	$config = new Q\Config_None();
+    	$config = new Config_None();
     	$config->set(null, array('grp1'=>array('q'=>'abc', 'b'=>27), 'grp2'=>array('a'=>'original')));
     	$this->setgetTest($config);
     }

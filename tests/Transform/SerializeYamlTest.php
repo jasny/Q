@@ -61,12 +61,16 @@ c:
 	{
 		$transform = new Transform_Serialize_Yaml();
 		ob_start();
+<<<<<<< HEAD:tests/Transform/SerializeYamlTest.php
 		try{
     		$transform->output($this->dataToTransform);
     	} catch (Expresion $e) {
     	    ob_end_clean();
     	    throw $e;
     	}
+=======
+		$transform->output ($this->dataToTransform);
+>>>>>>> ac34dbb77c3a3611c0b0224528b88eabc3c35be8:tests/Transform/SerializeYamlTest.php
         $contents = ob_get_contents();
         ob_end_clean();
 

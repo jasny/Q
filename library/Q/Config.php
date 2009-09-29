@@ -2,6 +2,7 @@
 namespace Q;
 
 require_once 'Q/misc.php';
+require_once 'Q/Cache.php';
 require_once 'Q/Exception.php';
 
 /**
@@ -178,6 +179,8 @@ abstract class Config
 	 */
 	public function __construct($options=array())
 	{
+		 if (!isset($options['caching'])) $options['caching'] = 'off';
+		
 		// Init caching
 		if ((int)$options['caching'] == 1 || $options['caching'] === 'on') {
 		    if (!isset($options['cache_id'])) trigger_error("Unable to cache configuration: No 'cache_id' option.", E_USER_NOTICE);

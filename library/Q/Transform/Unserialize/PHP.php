@@ -1,7 +1,11 @@
 <?php
 namespace Q;
 
+<<<<<<< HEAD:library/Q/Transform/Unserialize/PHP.php
 require_once 'Q/Transform/Exception.php';
+=======
+require_once 'Q/Exception.php';
+>>>>>>> ac34dbb77c3a3611c0b0224528b88eabc3c35be8:library/Q/Transform/Unserialize/PHP.php
 require_once 'Q/Transform.php';
 require_once 'Q/Transform/PHP.php';
 require_once 'Q/Fs.php';
@@ -48,7 +52,11 @@ class Transform_Unserialize_PHP extends Transform
 	{
         if ($this->chainInput) $data = $this->chainInput->process($data);
 		
+<<<<<<< HEAD:library/Q/Transform/Unserialize/PHP.php
         if (!is_string($data) && !($data instanceof Fs_Item)) throw new Transform_Exception("Wrong parameter type : " . gettype($data) . " given when string should be pass");
+=======
+        if (!is_string($data) && !($data instanceof Fs_Item)) throw new Exception("Wrong parameter type : " . gettype($data) . " given when string should be pass");
+>>>>>>> ac34dbb77c3a3611c0b0224528b88eabc3c35be8:library/Q/Transform/Unserialize/PHP.php
         
 		$this->startErrorHandler();
         		
@@ -67,7 +75,11 @@ class Transform_Unserialize_PHP extends Transform
             ob_end_clean ();
             $this->stopErrorHandler ();
             
+<<<<<<< HEAD:library/Q/Transform/Unserialize/PHP.php
             throw new Transform_Exception ( "Could not unserialize data", $exception->getMessage());
+=======
+            throw new Exception ( "Could not unserialize data", $exception->getMessage());
+>>>>>>> ac34dbb77c3a3611c0b0224528b88eabc3c35be8:library/Q/Transform/Unserialize/PHP.php
         }
         
         ob_end_clean ();
