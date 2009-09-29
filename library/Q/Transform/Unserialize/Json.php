@@ -1,8 +1,9 @@
 <?php
 namespace Q;
 
-require_once 'Q/Exception.php';
+require_once 'Q/Transform/Exception.php';
 require_once 'Q/Transform.php';
+require_once 'Q/Transform/Serialize/Json.php';
 
 /**
  * Unserialize a json string.
@@ -16,19 +17,19 @@ class Transform_Unserialize_Json extends Transform
 	 * @var boolean
 	 */
 	public $assoc = true;
-	
-	
-	/**
-	 * Get a transformer that does the reverse action.
-	 * 
-	 * @param Transformer $chain
-	 * @return Transform
-	 */
-	public function getReverse($chain=null)
-	{
-		return new Transform_Serialize_Json($this);
-	}
-
+		
+    /**
+     * Get a transformer that does the reverse action.
+     * 
+     * @param Transformer $chain
+     * @return Transformer
+     */
+    public function getReverse($chain=null)
+    {
+        $ob = new Transform_Serialize_Json($this);
+        if ($chain) $ob->chainInput($chain);
+        return $this->chainInput ? $this->chainInput->getReverse($ob) : $ob;  
+    }
 	
     /**
      * Transform data and return the result.
@@ -40,15 +41,15 @@ class Transform_Unserialize_Json extends Transform
     {
         if ($this->chainInput) $data = $this->chainInput->process($data);
         
-    	if ($data instanceof Fs_Node) $data = $data->getContents();
+    	if ($data instanceof Fs_Item) $data = $data->getContents();
           else $data = (string)$data;
         
         $data = json_decode($data, $this->assoc);
         if (!isset($data)) {
 			switch (json_last_error()) {
-				case JSON_ERROR_DEPTH: throw new Exception('Failed to unserialize json; The maximum stack depth has been exceeded.');
-				case JSON_ERROR_CTRL_CHAR: throw new Exception('Failed to unserialize json; Control character error, possibly incorrectly encoded.');
-				case JSON_ERROR_SYNTAX: throw new Exception('Failed to unserialize json; Invalid json syntax.');
+				case JSON_ERROR_DEPTH: throw new Transform_Exception('Failed to unserialize json; The maximum stack depth has been exceeded.');
+				case JSON_ERROR_CTRL_CHAR: throw new Transform_Exception('Failed to unserialize json; Control character error, possibly incorrectly encoded.');
+				case JSON_ERROR_SYNTAX: throw new Transform_Exception('Failed to unserialize json; Invalid json syntax.');
 			}
         }
         

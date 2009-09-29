@@ -1,7 +1,7 @@
 <?php
 namespace Q;
 
-require_once 'Q/Exception.php';
+require_once 'Q/Transform/Exception.php';
 require_once 'Q/Transform.php';
 require_once 'Q/Transform/Unserialize/XML.php';
 
@@ -66,7 +66,7 @@ class Transform_Serialize_XML extends Transform
      */
     protected function exec($data=null) 
     {
-        if (!is_array($data)) throw new Exception('Unable to transform Array to XML: data is not array');
+        if (!is_array($data)) throw new Transform_Exception('Unable to transform Array to XML: data is not array');
         
 		$this->writer->setIndent(true);
         $this->writer->startDocument('1.0', 'ISO-8859-1');

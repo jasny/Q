@@ -61,7 +61,12 @@ a = "original"
 	{
 		$transform = new Transform_Serialize_Ini();
 		ob_start();
-		$transform->output ($this->dataToTransform);
+		try{
+    		$transform->output($this->dataToTransform);
+    	} catch (Expresion $e) {
+    	    ob_end_clean();
+    	    throw $e;
+    	}
         $contents = ob_get_contents();
         ob_end_clean();
 

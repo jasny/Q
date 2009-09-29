@@ -41,10 +41,10 @@ class Transform_Serialize_JsonTest extends PHPUnit_Framework_TestCase
 	public function testProcess() 
 	{
 		$transform = new Transform_Serialize_Json ();
-		$contents = $transform->process ($this->dataToTransform);
+		$contents = $transform->process (array('a'=>1,'b'=>2,'c'=>3,'d'=>array('e'=>4, 'f'=>5)));
 
         $this->assertType('Q\Transform_Serialize_Json', $transform);
-		$this->assertEquals($this->expectedResult, $contents);
+		$this->assertEquals({"a":1,"b":2,"c":3,"d":{"e":4,"f":5}}, $contents);
 	}
 	
 	/**
@@ -54,7 +54,12 @@ class Transform_Serialize_JsonTest extends PHPUnit_Framework_TestCase
 	{
 		$transform = new Transform_Serialize_Json();
 		ob_start();
-		$transform->output ($this->dataToTransform);
+		try{
+    		$transform->output($this->dataToTransform);
+    	} catch (Expresion $e) {
+    	    ob_end_clean();
+    	    throw $e;
+    	}
         $contents = ob_get_contents();
         ob_end_clean();
 

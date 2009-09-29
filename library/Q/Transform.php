@@ -2,7 +2,7 @@
 namespace Q;
 
 require_once 'Q/misc.php';
-require_once 'Q/Exception.php';
+require_once 'Q/Transform/Exception.php';
 require_once 'Q/Transformer.php';
 
 /**
@@ -71,9 +71,9 @@ abstract class Transform implements Transformer
 		    $driver = pathinfo($driver, PATHINFO_EXTENSION);
 		}
 
-		if (!isset(self::$drivers[$driver])) throw new Exception("Unable to create Transform object: Unknown driver '$driver'");
+		if (!isset(self::$drivers[$driver])) throw new Transform_Exception("Unable to create Transform object: Unknown driver '$driver'");
 		$class = self::$drivers[$driver];
-		if (!load_class($class)) throw new Exception("Unable to create $class object: Class does not exist.");
+		if (!load_class($class)) throw new Transform_Exception("Unable to create $class object: Class does not exist.");
 
 		return new $class($options);
 	}
@@ -123,7 +123,7 @@ abstract class Transform implements Transformer
 	 */
 	public function getReverse($chain=null)
 	{
-		throw new Exception("There is no reverse transformation defined.");
+		throw new Transform_Exception("There is no reverse transformation defined.");
 	}
 	
     /**
@@ -157,7 +157,7 @@ abstract class Transform implements Transformer
 	public function output($data)
 	{
 		$out = $this->process($data);
-        if (!is_scalar($out) && !(is_object($out) && method_exists($out, '__toString'))) throw new Exception("Unable to output data: Transformation returned a non-scalar value of type '" . gettype($out) . "'.");
+        if (!is_scalar($out) && !(is_object($out) && method_exists($out, '__toString'))) throw new Transform_Exception("Unable to output data: Transformation returned a non-scalar value of type '" . gettype($out) . "'.");
         
         echo $out;
 	}
@@ -172,9 +172,9 @@ abstract class Transform implements Transformer
 	function save($filename, $data=null, $flags=0)
 	{
 		$out = $this->process($data);
-        if (!is_scalar($out) && !(is_object($out) && method_exists($out, '__toString'))) throw new Exception("Unable to save data to '$filename': Transformation returned a non-scalar value of type '" . gettype($out) . "'.");
+        if (!is_scalar($out) && !(is_object($out) && method_exists($out, '__toString'))) throw new Transform_Exception("Unable to save data to '$filename': Transformation returned a non-scalar value of type '" . gettype($out) . "'.");
 		
-        if (!Fs::file($filename)->putContents((string)$out, $flags)) throw new Exception("Failed to create file {$filename}.");		
+        if (!Fs::file($filename)->putContents((string)$out, $flags)) throw new Transform_Exception("Failed to create file {$filename}.");		
 	}
 
 }
