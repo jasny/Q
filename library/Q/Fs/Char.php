@@ -17,11 +17,11 @@ class Fs_Char extends Fs_Node
 	 */
 	public function __construct($path)
 	{
+		parent::__construct($path);
+		
 		if (is_link($path) xor $this instanceof Fs_Symlink) throw new Fs_Exception("File '$path' is " . ($this instanceof Fs_Symlink ? 'not ' : '') . "a symlink.");
 		if (!file_exists($path)) throw new Fs_Exception("Can't load char device '$path'; File doesn't exists."); 
 		if (filetype(realpath($path)) != 'char') throw new Fs_Exception("File '$path' is not a char device, but a " . filetype($path) . ".");
-		 
-		parent::__construct($path);
 	}
 	
 	/**
@@ -34,7 +34,9 @@ class Fs_Char extends Fs_Node
 	 */
 	public function getContents($flags=0, $offset=-1, $maxlen=1)
 	{
-		return file_get_contents($flags, $offset, $maxlen);
+		$ret = @file_get_contents($this->_path, $flags, null, $offset, $maxlen);
+		if ($ret === false) throw new Fs_Exception("Failed to read from char device '{$this->_path}'", error_get_last());
+		return $ret;
 	}
 
 	/**
@@ -46,21 +48,22 @@ class Fs_Char extends Fs_Node
 	 */
 	public function putContents($data, $flags=0)
 	{
-		return file_put_contents($data, $flags);
+		$ret = @file_put_contents($this->_path, $data, $flags);
+		if ($ret === false) throw new Fs_Exception("Failed to write to char device '{$this->_path}'", error_get_last());
+		return $ret;
 	}
 	
-	
- 	/**
- 	 * Create this file.
- 	 * Use Fs::PRESERVE to simply return if file already exists
- 	 * 
- 	 * @param int $mode   File permissions, umask applies
- 	 * @param int $flags  Fs::% options
- 	 * @throws Fs_Exception
- 	 */
-	public function create($mode=0666, $flags=0)
- 	{
- 		if ($this->exists() && $flags & Fs::PRESERVE) return;
- 		throw new Fs_Exception("Unable to create '{$this->_path}': File is a char device");
- 	}
+	/**
+	 * Open the file.
+	 * @see http://www.php.net/fopen
+	 * 
+	 * @param string $mode  The mode parameter specifies the type of access you require to the stream.
+	 * @return resource
+	 */
+	public function open($mode='r+')
+	{
+		$resource = @fopen($this->_path, $mode);
+		if (!$resource) throw new Fs_Exception("Failed to open char device '{$this->_path}'", error_get_last());
+		return $resource;
+	}
 }

@@ -16,7 +16,7 @@ class Fs_FileTest extends Fs_NodeTest
     protected function setUp()
     {
         $this->file = sys_get_temp_dir() . '/q-fs_filetest.' . md5(uniqid());
-        if (!file_put_contents($this->file, 'Test case for Fs_Node')) $this->markTestSkipped("Could not write to '$this->file'.");
+        if (!file_put_contents($this->file, 'Test case for Fs_Node')) $this->markTestSkipped("Could not write to '{$this->file}'.");
         $this->Fs_Node = new Fs_File($this->file);
         parent::setUp();
     }
@@ -31,14 +31,39 @@ class Fs_FileTest extends Fs_NodeTest
         $this->Fs_Node = null;
     }
 
+    
     /**
-     * Tests Fs_Node->isUploadedFile()
+     * Test creating an Fs_File for a dir
      */
-    public function testIsUploadedFile()
+    public function testConstruct_Dir()
     {
-        $this->assertFalse($this->Fs_Node->isUploadedFile());
+    	$this->setExpectedException('Q\Fs_Exception', "File '" . __DIR__ . "' is not a regular file, but a directory");
+    	new Fs_File(__DIR__);
     }
 
+    /**
+     * Test creating an Fs_File for a dir
+     */
+    public function testConstruct_Symlink()
+    {
+    	if (!symlink($this->file, "{$this->file}.x")) $this->markTestSkipped("Could not create symlink '{$this->file}.x'");
+    	
+    	$this->setExpectedException('Q\Fs_Exception', "File '" . __DIR__ . "' is a symlink");
+    	new Fs_File(__DIR__);
+    }
+
+    /**
+     * Test creating an Fs_File for a symlink to a dir
+     */
+    public function testConstruct_SymlinkDir()
+    {
+    	if (!symlink(__DIR__, "{$this->file}.x")) $this->markTestSkipped("Could not create symlink '{$this->file}.x'");
+    	    	
+    	$this->setExpectedException('Q\Fs_Exception', "File '{$this->file}.x' is not a regular file, but a symlink to a directory");
+    	new Fs_File(__DIR__);
+    }
+    
+    
     /**
      * Tests Fs_Node->getContents()
      */
@@ -225,8 +250,8 @@ class Fs_FileTest extends Fs_NodeTest
         umask(0022);
     	$new->create(0660);
         
-    	$this->assertTrue($new->exists());
-        $this->assertEquals('', $new->getContents());
+    	$this->assertTrue(is_file($new));
+        $this->assertEquals('', file_get_contents($new));
     	$this->assertEquals('0640', sprintf('%04o', fileperms($new) & 0777));
     }
 
@@ -244,7 +269,7 @@ class Fs_FileTest extends Fs_NodeTest
      */
     public function testCreate_Preserve()
     {
-    	$this->Fs_Node->create(Fs::PRESERVE);
+    	$this->Fs_Node->create(0660, Fs::PRESERVE);
     }
     
     /**
@@ -256,8 +281,8 @@ class Fs_FileTest extends Fs_NodeTest
         umask(0022);
     	$new->create(0660, Fs::RECURSIVE);
         
-    	$this->assertTrue($new->exists());
-        $this->assertEquals('', $new->getContents());
+    	$this->assertTrue(is_file($new));
+        $this->assertEquals('', file_get_contents($new));
     	$this->assertEquals('0640', sprintf('%04o', fileperms($new) & 0777));
     	$this->assertEquals('0750', sprintf('%04o', fileperms(dirname($new)) & 0777));
     }
@@ -268,9 +293,12 @@ class Fs_FileTest extends Fs_NodeTest
     public function testCopy()
     {
         $new = $this->Fs_Node->copy("{$this->file}.x");
+        
         $this->assertType('Q\Fs_File', $new);
         $this->assertEquals("{$this->file}.x", (string)$new);
-        $this->assertEquals('Test case for Fs_Node', $new->getContents());
+        $this->assertTrue(file_exists("{$this->file}.x"));
+        $this->assertTrue(file_exists($this->file));
+        $this->assertEquals('Test case for Fs_Node', file_get_contents("{$this->file}.x"));
     }
 
     /**
@@ -281,6 +309,9 @@ class Fs_FileTest extends Fs_NodeTest
         file_put_contents("{$this->file}.x", "Another file");
         $this->setExpectedException("Q\Fs_Exception", "Unable to copy '{$this->file}' to '{$this->file}.x': Target already exists");
         $this->Fs_Node->copy("{$this->file}.x");
+        
+        $this->assertTrue(file_exists("{$this->file}.x"));
+        $this->assertTrue(file_exists($this->file));
     }
 
     /**
@@ -292,9 +323,10 @@ class Fs_FileTest extends Fs_NodeTest
         $new = $this->Fs_Node->copy("{$this->file}.x", Fs::OVERWRITE);
         
         $this->assertType('Q\Fs_File', $new);
-        $this->assertEquals("{$this->file}.x", (string)$new);
-        $this->assertEquals('Test case for Fs_Node', $new->getContents());
-    }
+        $this->assertTrue(file_exists("{$this->file}.x"));
+        $this->assertTrue(file_exists($this->file));
+        $this->assertEquals('Test case for Fs_Node', file_get_contents("{$this->file}.x"));
+	}
     
     /**
      * Tests Fs_Node->copyTo()
@@ -305,8 +337,10 @@ class Fs_FileTest extends Fs_NodeTest
         $new = $this->Fs_Node->copyTo("{$this->file}.y");
         
         $this->assertType('Q\Fs_File', $new);
-        $this->assertEquals($this->file . '.y/' . basename($this->file), (string)$new);
-        $this->assertEquals('Test case for Fs_Node', $new->getContents());
+        $this->assertEquals("{$this->file}.y/" . basename($this->file), (string)$new);
+        $this->assertTrue(file_exists("{$this->file}.y/" . basename($this->file)));
+        $this->assertTrue(file_exists($this->file));
+        $this->assertEquals('Test case for Fs_Node', file_get_contents("{$this->file}.y/" . basename($this->file)));
     }
 
     /**
@@ -316,19 +350,22 @@ class Fs_FileTest extends Fs_NodeTest
     {
 		$this->setExpectedException('Q\Fs_Exception', "Unable to copy '{$this->file}' to '{$this->file}.y/': Directory does not exist");
         $new = $this->Fs_Node->copyTo("{$this->file}.y");
-    }
+        
+        $this->assertTrue(file_exists($this->file));
+	}
 
     /**
-     * Tests Fs_Node->copyTo()
+     * Tests Fs_Node->copyTo() creating dir
      */
     public function testCopyTo_Recursive()
     {
         $new = $this->Fs_Node->copyTo("{$this->file}.y", Fs::RECURSIVE);
         
         $this->assertType('Q\Fs_File', $new);
-        $this->assertEquals($this->file . '.y/' . basename($this->file), (string)$new);
-        $this->assertEquals('Test case for Fs_Node', $new->getContents());
-    }
+        $this->assertTrue(file_exists("{$this->file}.y/" . basename($this->file)));
+        $this->assertTrue(file_exists($this->file));
+        $this->assertEquals('Test case for Fs_Node', file_get_contents("{$this->file}.y/" . basename($this->file)));
+	}
     
     /**
      * Tests Fs_Node->rename()
@@ -336,23 +373,76 @@ class Fs_FileTest extends Fs_NodeTest
     public function testRename()
     {
         $new = $this->Fs_Node->rename("{$this->file}.x");
-        $this->assertSame($this->Fs_Node, $new);
-        $this->assertEquals("{$this->file}.x", (string)$this->Fs_Node);
-        $this->assertEquals('Test case for Fs_Node', $this->Fs_Node->getContents());
-    }
 
+        $this->assertEquals("{$this->file}.x", (string)$new);
+        $this->assertTrue(file_exists("{$this->file}.x"));
+        $this->assertFalse(file_exists($this->file));
+        $this->assertEquals('Test case for Fs_Node', file_get_contents("{$this->file}.x"));
+    }
+	
     /**
-     * Tests Fs_Node->rename()
+     * Tests Fs_Node->rename() with existing file
+     */
+    public function testRename_Exitst()
+    {
+        file_put_contents("{$this->file}.x", "Another file");
+        $this->setExpectedException("Q\Fs_Exception", "Unable to move '{$this->file}' to '{$this->file}.x': Target already exists");
+        $this->Fs_Node->rename("{$this->file}.x");
+
+        $this->assertTrue(file_exists("{$this->file}.x"));
+        $this->assertFalse(file_exists($this->file));
+    }
+	
+    /**
+     * Tests Fs_Node->rename() overwriting existing file
+     */
+    public function testRename_Overwrite()
+    {
+    	file_put_contents("{$this->file}.x", "Another file");
+        $new = $this->Fs_Node->rename("{$this->file}.x", Fs::OVERWRITE);
+        
+        $this->assertType('Q\Fs_File', $new);
+        $this->assertTrue(file_exists("{$this->file}.x"));
+        $this->assertFalse(file_exists($this->file));
+        $this->assertEquals('Test case for Fs_Node', file_get_contents("{$this->file}.x"));
+    }
+    
+    /**
+     * Tests Fs_Node->moveTo()
      */
     public function testMoveTo()
     {
         mkdir("{$this->file}.y");
         $new = $this->Fs_Node->moveTo("{$this->file}.y");
-        $this->assertSame($this->Fs_Node, $new);
-        $this->assertEquals("{$this->file}.y/" . basename($this->file), (string)$this->Fs_Node);
-        $this->assertEquals('Test case for Fs_Node', $this->Fs_Node->getContents());
+        
+        $this->assertEquals("{$this->file}.y/" . basename($this->file), (string)$new);
+        $this->assertTrue(file_exists("{$this->file}.y/" . basename($this->file)));
+        $this->assertFalse(file_exists($this->file));
+        $this->assertEquals('Test case for Fs_Node', file_get_contents("{$this->file}.y/" . basename($this->file)));
     }
 
+    /**
+     * Tests Fs_Node->moveTo() with missing dir
+     */
+    public function testMoveTo_NoDir()
+    {
+		$this->setExpectedException('Q\Fs_Exception', "Unable to move '{$this->file}' to '{$this->file}.y/': Directory does not exist");
+        $new = $this->Fs_Node->moveTo("{$this->file}.y");
+    }
+    
+    /**
+     * Tests Fs_Node->moveTo() creating dir
+     */
+    public function testMoveTo_Recursive()
+    {
+        $new = $this->Fs_Node->moveTo("{$this->file}.y", Fs::RECURSIVE);
+        
+        $this->assertEquals("{$this->file}.y/" . basename($this->file), (string)$new);
+        $this->assertTrue(file_exists("{$this->file}.y/" . basename($this->file)));
+        $this->assertFalse(file_exists($this->file));
+        $this->assertEquals('Test case for Fs_Node', file_get_contents("{$this->file}.y/" . basename($this->file)));
+    }
+    
     /**
      * Tests Fs_Node::delete()
      */

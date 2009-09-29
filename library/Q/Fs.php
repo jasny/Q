@@ -39,6 +39,9 @@ class Fs
 	
 	/** Option; Overwrite if item is newer. */
 	const UPDATE = 0x1000;
+
+	/** Option; Get description. */
+	const DESCRIPTION = 0x8000;
 	
 
 	/**
@@ -64,6 +67,25 @@ class Fs
 		'link/file' => 'Q\Fs_Symlink_File',
 		'link/socket' => 'Q\Fs_Symlink_Socket',
 		'link/unknown' => 'Q\Fs_Symlink_Unknown'		
+	);
+	
+	public static $typedescs = array(
+		'block' => 'block device',
+		'char' => 'char device',
+		'dir' => 'directory',
+		'fifo' => 'named pipe',
+		'file' => 'file',
+		'socket' => 'socket',
+		'unknown' => 'unknown filetype',
+
+		'link/' => 'broken symlink',
+		'link/block' => 'symlink to a block device',
+		'link/char' => 'symlink to a char device',
+		'link/dir' => 'symlink to a directory',
+		'link/fifo' => 'symlink to a named path',
+		'link/file' => 'symlink to a file',
+		'link/socket' => 'symlink to a socket',
+		'link/unknown' => 'symlink to an unknown filetype'		
 	);
 	
 	/**
@@ -259,7 +281,7 @@ class Fs
      */
     public static function file($path)
     {
-    	$class = self::$types['file'];
+    	$class = self::$types[is_link($path) ? 'link/file' : 'file'];
     	if (!load_class($class)) throw new Exception("Unable to create Fs file: Class '$class' can't be loaded.");
     	
         return new $class($path);
@@ -273,7 +295,7 @@ class Fs
      */
     public static function dir($path)
     {
-    	$class = self::$types['dir'];
+    	$class = self::$types[is_link($path) ? 'link/dir' : 'dir'];
     	if (!load_class($class)) throw new Exception("Unable to create Fs dir: Class '$class' can't be loaded.");
     	
         return new $class($path);
@@ -287,7 +309,7 @@ class Fs
      */
     public static function block($path)
     {
-    	$class = self::$types['block'];
+    	$class = self::$types[is_link($path) ? 'link/block' : 'block'];
     	if (!load_class($class)) throw new Exception("Unable to create Fs block: Class '$class' can't be loaded.");
     	
         return new $class($path);
@@ -301,7 +323,7 @@ class Fs
      */
     public static function char($path)
     {
-    	$class = self::$types['char'];
+    	$class = self::$types[is_link($path) ? 'link/char' : 'char'];
     	if (!load_class($class)) throw new Exception("Unable to create Fs char: Class '$class' can't be loaded.");
     	
         return new $class($path);
@@ -315,40 +337,26 @@ class Fs
      */
     public static function fifo($path)
     {
-    	$class = self::$types['fifo'];
+    	$class = self::$types[is_link($path) ? 'link/fifo' : 'fifo'];
     	if (!load_class($class)) throw new Exception("Unable to create Fs fifo: Class '$class' can't be loaded.");
     	
         return new $class($path);
     }
 
     /**
-     * Get an Fs interface for a regular file.
+     * Get an Fs interface for a socket file.
      * 
      * @param string $path
      * @return Fs_File
      */
     public static function socket($path)
     {
-    	$class = self::$types['socket'];
+    	$class = self::$types[is_link($path) ? 'link/socket' : 'socket'];
     	if (!load_class($class)) throw new Exception("Unable to create Fs socket: Class '$class' can't be loaded.");
     	
         return new $class($path);
     }
 
-    /**
-     * Get an Fs interface for a regular file.
-     * 
-     * @param string $path
-     * @return Fs_File
-     */
-    public static function unknown($path)
-    {
-    	$class = self::$types['unknown'];
-    	if (!load_class($class)) throw new Exception("Unable to create Fs unknown: Class '$class' can't be loaded.");
-    	
-        return new $class($path);
-    }
-    
 
     /**
      * Create a symlink and return the Fs interface.
@@ -394,12 +402,16 @@ class Fs
     /**
      * Get the type of a node.
      * 
-     * @param Fs_Node $file
-     * @param int     $flags  Use Fs::ALWAYS_FOLLOW to ignore the fact that the file is a symlink
+     * @param Fs_Node|string $file
+     * @param int            $flags  Use Fs::ALWAYS_FOLLOW to ignore the fact that the file is a symlink
      * @return string
      */
-    public static function typeOfNode(Fs_Node $file, $flags=0)
+    public static function typeOfNode($file, $flags=0)
     {
+    	if (!($file instanceof Fs_Node)) {
+    		return (~$flags & Fs::ALWAYS_FOLLOW && is_link($file) ? 'link/' : '') . filetype(realpath($file));
+    	}
+    	
     	if ($file instanceof Fs_File) $type = 'file';
     	  elseif ($file instanceof Fs_Dir) $type = 'dir';
     	  elseif ($file instanceof Fs_Block) $type = 'block';
@@ -408,15 +420,15 @@ class Fs
     	  elseif ($file instanceof Fs_Socket) $type = 'socket';
     	  elseif ($file instanceof Fs_Unknown) $type = 'unknown';
     	  elseif ($file instanceof Fs_Symlink_Broken) $type = '';
-    	  else throw new Exception("Unable to determine type of '$file': Class '" . get_class($type) . "' is not any of the known types.");
+    	  else throw new Exception("Unable to determine type of '$file': Class '" . get_class($file) . "' is not any of the known types");
     	 
     	if (~$flags & Fs::ALWAYS_FOLLOW && $file instanceof Fs_Symlink) {
     		$type = "link/$type"; 
     	} elseif ($type == '') {
-    		throw new Fs_Exception("Unable to determine type of target of '$link': File is a broken link.");
+    		throw new Fs_Exception("Unable to determine type of target of '$file': File is a broken link");
     	}
     	
-    	return $type;
+    	return $flags & self::DESCRIPTION ? self::$typedescs[$type] : $type;
     }
     
  	/**

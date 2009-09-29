@@ -24,17 +24,18 @@ abstract class Fs_NodeTest extends PHPUnit_Framework_TestCase
     /**
      * Remove tmp files (recursively)
      * 
-     * @param string  $path
+     * @param string $path
      */
     protected static function cleanup($path)
     {
-    	if (file_exists($path) || is_link($path)) unlink($path);
-    	if (file_exists("$path.x") || is_link("$path.x")) unlink("$path.x");
-    	
-    	if (is_dir("$path.y")) {
-    		static::cleanup("$path.y/" . basename($path));
-    		rmdir("$path.y");
-		}
+    	foreach (array('', '.x', '.y') as $suffix) {
+	    	if (is_dir($path . $suffix)) {
+	    		static::cleanup($path . $suffix . '/' . basename($path));
+	    		rmdir($path . $suffix);
+			} elseif (file_exists($path . $suffix) || is_link($path . $suffix)) {
+				unlink($path . $suffix);
+			}
+    	}
     } 
     
     
@@ -372,7 +373,16 @@ abstract class Fs_NodeTest extends PHPUnit_Framework_TestCase
     	$this->setExpectedException('Exception', "Unable to set attribute 'mode' to null.");
     	unset($this->Fs_Node['mode']);
     }
-
+	
+    
+    /**
+     * Tests Fs_Node->isUploadedFile()
+     */
+    public function testIsUploadedFile()
+    {
+        $this->assertFalse($this->Fs_Node->isUploadedFile());
+    }
+    
     /**
      * Tests Fs_Node->exists()
      */
