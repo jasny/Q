@@ -1,7 +1,7 @@
 <?php
 namespace Q;
 
-require_once 'Test/Config/Main.php';
+require_once dirname(__FILE__) . '/MainTest.php';
 require_once 'Q/Config/Ini.php';
 
 class Config_IniTest extends Config_MainTest
@@ -16,13 +16,13 @@ class Config_IniTest extends Config_MainTest
     
 	public function testConfigFile()
     {
-    	$config = new Q\Config_Ini(array('path'=>$this->getPath() . '/test.ini'));
+    	$config = new Config_Ini(array('path'=>$this->getPath() . '/test.ini'));
     	$this->setgetTest($config);
     }
     
 	public function testConfigDir()
     {
-    	$config = new Q\Config_Ini(array('path'=>$this->getPath() . '/test'));
+    	$config = new Config_Ini(array('path'=>$this->getPath() . '/test'));
 
     	$this->assertEquals(array('q'=>'abc', 'b'=>27), $config->get('grp1'));
     	$this->assertEquals(array('grp1'=>array('q'=>'abc', 'b'=>27), 'grp2'=>array('a'=>'original')), $config->get());

@@ -7,6 +7,22 @@ require_once 'Q/Transformer.php';
 
 /**
  * Base class for Transform interfaces.
+ * 
+ * {@example
+ * $type = 'json';
+ * $transformer = Transform::from($type);
+ * $data = $transformer->process($_POST['data']);
+ * $transformer->getReverse()->output($data);
+ * }}
+ * 
+ * {@example
+ * Transform::width('xml:' .$path)->process($_POST['data']); // $path is the path to the file that will be transformed
+ * }}
+ * 
+ * Available drivers :
+ * xsl, replace, php, text2html, serialize-jason, serialize-xml, serialize-php, 
+ * serialize-yaml, serialize-ini, unserialize-json, unserialize-xml, 
+ * unserialize-php, unserialize-yaml, unserialize-ini
  *  * @package Transform
  */
 abstract class Transform implements Transformer
@@ -23,10 +39,12 @@ abstract class Transform implements Transformer
 	
 	  'serialize-json' => 'Q\Transform_Serialize_Json',
 	  'serialize-xml' => 'Q\Transform_Array2XML',
-	  'serialize-php' => 'Q\Transform_PHP',
+	  'serialize-php' => 'Q\Transform_Serialize_PHP',
 	  'unserialize-json' => 'Q\Transform_Unserialize_Json',
-	  'unserialize-xml' => 'Q\Transform_XML2Array',
-	  'unserialize-php' => 'Q\Transform_PHP',
+	  'unserialize-xml' => 'Q\Transform_Unserialize_XML',
+	  'unserialize-php' => 'Q\Transform_Unserialize_PHP',
+      'unserialize-yaml' => 'Q\Transform_Unserialize_Yaml',
+      'unserialize-ini' => 'Q\Transform_Unserialize_Ini',
 	);
 	
     /**
@@ -139,7 +157,7 @@ abstract class Transform implements Transformer
 	public function output($data)
 	{
 		$out = $this->process($data);
-        if (!is_scaler($out) && !(is_object($out) && method_exists($out, '__toString'))) throw new Exception("Unable to output data: Transformation returned a non-scalar value of type '" . gettype($out) . "'.");
+        if (!is_scalar($out) && !(is_object($out) && method_exists($out, '__toString'))) throw new Exception("Unable to output data: Transformation returned a non-scalar value of type '" . gettype($out) . "'.");
         
         echo $out;
 	}
@@ -149,12 +167,14 @@ abstract class Transform implements Transformer
 	 *
 	 * @param string $filename File name
 	 * @param mixed  $data
+     * @param int    $flags    Fs::RECURSIVE and/or FILE_% flags as binary set.
 	 */
-	function save($filename, $data=null)
+	function save($filename, $data=null, $flags=0)
 	{
 		$out = $this->process($data);
-        if (!is_scaler($out) && !(is_object($out) && method_exists($out, '__toString'))) throw new Exception("Unable to save data to '$filename': Transformation returned a non-scalar value of type '" . gettype($out) . "'.");
+        if (!is_scalar($out) && !(is_object($out) && method_exists($out, '__toString'))) throw new Exception("Unable to save data to '$filename': Transformation returned a non-scalar value of type '" . gettype($out) . "'.");
 		
-		if (!file_put_contents($filename, (string)$out)) throw new Exception("Failed to create file {$filename}.");
+        if (!Fs::file($filename)->putContents((string)$out, $flags)) throw new Exception("Failed to create file {$filename}.");		
 	}
+
 }

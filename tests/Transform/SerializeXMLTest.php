@@ -1,14 +1,13 @@
 <?php
 use Q\Transform_Serialize_XML, Q\Transform;
 
-require_once dirname ( dirname ( dirname ( __FILE__ ) ) ) . '/TestHelper.php';
-require_once 'Q/Transform/Array2XML.php';
-require_once 'PHPUnit/Framework/TestCase.php';
+require_once dirname ( dirname ( __FILE__ ) ) . '/TestHelper.php';
+require_once 'Q/Transform/Serialize/XML.php';
 
 /**
- * Transform_Array2XMl test case.
+ * Transform_Serialize_XML test case.
  */
-class Transform_Array2XMLTest extends PHPUnit_Framework_TestCase 
+class Transform_Serialize_XMLTest extends PHPUnit_Framework_TestCase 
 {
     /**
      * Data to transform
@@ -37,7 +36,7 @@ class Transform_Array2XMLTest extends PHPUnit_Framework_TestCase
      * The file path where to save the data when run test save() method
      * @var string
      */
-    protected $filename = '/tmp/array2xml.txt';
+    protected $filename = '/tmp/SerializeXML.txt';
 	
 	/**
 	 * Run test from php
@@ -48,43 +47,56 @@ class Transform_Array2XMLTest extends PHPUnit_Framework_TestCase
 	}
 		
 	/**
-	 * Tests Transform_Array2XML->process()
+	 * Tests Transform_Serialize_XML->process()
 	 */
 	public function testProcess() 
 	{
-		$transform = new Transform_Array2XML ( array ('rootNodeName' => 'xml' ) );
+		$transform = new Transform_Serialize_XML ( array ('rootNodeName' => 'xml' ) );
 		$contents = $transform->process ($this->dataToTransform);
         
-        $this->assertType('Q\Transform_Array2XML', $transform);
+        $this->assertType('Q\Transform_Serialize_XML', $transform);
 		$this->assertXmlStringEqualsXmlString($this->expectedResult, $contents);
 	}
 	
 	/**
-	 * Tests Transform_XSL->output()
+	 * Tests Transform_Serialize_XML->output()
 	 */
 	public function testOutput() 
 	{
-		$transform = new Transform_Array2XML(array ('rootNodeName' => 'xml' ));
+		$transform = new Transform_Serialize_XML(array ('rootNodeName' => 'xml' ));
 		ob_start();
 		$transform->output ($this->dataToTransform);
         $contents = ob_get_contents();
         ob_end_clean();
 
-        $this->assertType('Q\Transform_Array2XML', $transform);
+        $this->assertType('Q\Transform_Serialize_XML', $transform);
         $this->assertXmlStringEqualsXmlString($this->expectedResult, $contents);
 	}
 	
 	/**
-	 * Tests Transform_Array2XML->save()
+	 * Tests Transform_Serialize_XML->save()
 	 */
 	public function testSave() 
 	{
-		$transform = new Transform_Array2XML ( array ('rootNodeName' => 'xml' ) );
+		$transform = new Transform_Serialize_XML ( array ('rootNodeName' => 'xml' ) );
 		$transform->save ($this->filename, $this->dataToTransform);
 		
-        $this->assertType('Q\Transform_Array2XML', $transform);
+        $this->assertType('Q\Transform_Serialize_XML', $transform);
 		$this->assertXmlStringEqualsXmlString($this->expectedResult, file_get_contents($this->filename));
+	}
+
+	/**
+	 * Tests Transform_Serialize_XML->getReverse()
+	 */
+	public function testGetReverse() 
+	{
+		$transform = new Transform_Serialize_XML();
+		$transform->process($this->dataToTransform);
+        $reverse = $transform->getReverse();
+
+        $this->assertType('Q\Transform_Unserialize_XML', $reverse);
+        $this->assertEquals($this->dataToTransform, $reverse->process($this->expectedResult));
 	}
 }
 
-if (PHPUnit_MAIN_METHOD == 'Transform_Array2XMLTest::main') Transform_Array2XMLTest::main ();
+if (PHPUnit_MAIN_METHOD == 'Transform_Serialize_XMLTest::main') Transform_Serialize_XMLTest::main();

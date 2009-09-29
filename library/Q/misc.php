@@ -428,7 +428,10 @@ function var_give($expression, $return=false, $objects=true, &$passed=null)
         }
         $var = 'object(' . get_class($expression) . ')' . (method_exists($expression, '__toString') ? ' ' . (string)$expression : '#' . spl_object_hash($expression));
     } elseif (is_array($expression) || is_object($expression)) {
-    	if (in_array($expression, $passed)) ;
+    	if ($passed && in_array($expression, $passed)) {
+    		trigger_error("Skip circular reference", E_USER_WARNING);
+    		/* ... skip ... */
+    	}
     	$passed[] = $expression;
     	
         $args = array();

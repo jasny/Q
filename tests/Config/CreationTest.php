@@ -1,7 +1,7 @@
 <?php
 namespace Q;
 
-require_once 'TestHelper.php';
+require_once dirname(dirname(__FILE__)) . '/TestHelper.php';
 require_once 'PHPUnit/Framework/TestCase.php';
 require_once 'PHPUnit/TextUI/TestRunner.php';
 
@@ -31,7 +31,7 @@ class Config_CreationTest extends \PHPUnit_Framework_TestCase
         $config = Config::with('yaml:' . __DIR__ . '/settings/test.yaml');
         $this->assertType('Q\Config_Yaml', $config);
         
-        $refl = new ReflectionProperty($config, '_options');
+        $refl = new \ReflectionProperty($config, '_options');
         $refl->setAccessible(true);
         $options = $refl->getValue($config);
         
@@ -44,7 +44,7 @@ class Config_CreationTest extends \PHPUnit_Framework_TestCase
         $config = Config::with('yaml:{$MYDIR}/settings/test.yaml');
         $this->assertType('Q\Config_Yaml', $config);
         
-        $refl = new ReflectionProperty($config, '_options');
+        $refl = new \ReflectionProperty($config, '_options');
         $refl->setAccessible(true);
         $options = $refl->getValue($config);
         
@@ -56,7 +56,7 @@ class Config_CreationTest extends \PHPUnit_Framework_TestCase
         $config = Config::with(__DIR__ . '/settings/test.yaml');
         $this->assertType('Q\Config_Yaml', $config);
         
-        $refl = new ReflectionProperty($config, '_options');
+        $refl = new \ReflectionProperty($config, '_options');
         $refl->setAccessible(true);
         $options = $refl->getValue($config);
         
@@ -68,7 +68,7 @@ class Config_CreationTest extends \PHPUnit_Framework_TestCase
         $config = Config::with('yaml:' . __DIR__ . '/settings/test.yaml;abc=22', array('xyz'=>'test'));
         $this->assertType('Q\Config_Yaml', $config);
         
-        $refl = new ReflectionProperty($config, '_options');
+        $refl = new \ReflectionProperty($config, '_options');
         $refl->setAccessible(true);
         $options = $refl->getValue($config);
         
@@ -84,7 +84,7 @@ class Config_CreationTest extends \PHPUnit_Framework_TestCase
         $config = Config::with('none');
         $this->assertType('Q\Config_None', $config);
 
-        $refl = new ReflectionProperty($config, '_options');
+        $refl = new \ReflectionProperty($config, '_options');
         $refl->setAccessible(true);
         $options = $refl->getValue($config);
         

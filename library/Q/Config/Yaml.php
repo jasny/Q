@@ -2,25 +2,7 @@
 namespace Q;
 
 require_once 'Q/Config/Files.php';
-require_once 'Q/PHPParser.php';
-
-$conf = Config::with('yaml:/etc/myapp');
-$conf['abc']['10'] = "hello";
-$conf['abc']['12'] = "hello";
-$conf->save();
-
-'/etc/myapp/abc.yaml';
-
-$c2 = Config::with('yaml:/etc/myapp');
-$c2['abc']['arnold'] = 'daniels';
-var_dump((array)$c2['abc']);
-// array (10=>"hello", 12=>"hello", 'arnold'=>"danies")
-unset($c2);
-
-$c3 = Config::with('yaml:/etc/myapp');
-var_dump((array)$c3['abc']);
-// array (10=>"hello", 12=>"hello")
-
+require_once 'Q/Transform.php';
 /**
  * Load and parse YAML config files.
  * Uses the syck extension.
@@ -51,73 +33,25 @@ class Config_Yaml extends Config_Files
 	 */
 	function __construct($options=array())
 	{
-		if (!extension_loaded('syck')) throw new Exception("Unable to parse YAML files: The syck extension is not loaded.");
 		parent::__construct($options);
 	}
 
 	/**
 	 * Load a config file or dir (no caching)
 	 * 
-	 * @param string $path
+	 * @param Fs_Item $file_object
 	 * @param string $group
 	 * @return array
 	 */
-	protected function loadFile($path, $group=null)
+	protected function loadFile($file_object, $group=null)
 	{
-		$file = $path->{$group . '.' . $this->ext};
-		if (!$file->exists()) return null;
 
-		if ($file instanceof Fs_Dir) return new self($file, $this->_options);
-		
-		return $this->getUnserializer()->process($file);
-
-		// ---
-		
-		$file = isset($group) ? "$path/" . $this->groupName($group) . "." . $this->_ext : $path;
-		
-		if (is_file($file)) {
-    		return (array)syck_load(file_get_contents($file));
-		} elseif (!empty($this->_options['recursive']) && is_dir("$path/$group")) {
-			return $this->loadDir("$path/$group");
+		if ($file_object instanceof Fs_File) {
+			return Transform::with('unserialize-yaml')->process($file_object->path());
+		}elseif($file_object instanceof Fs_Dir){
+            return $this->loadDir($file_object);
 		}
-		
+
 		return array();
 	}
-
-	
-	/**
-	 * Searialize setting as YAML config.
-	 * The yaml config will be nicely formatted, contrary to syck_dump. 
-	 *
-	 * @param array $settings
-	 * @param int   $level     Indent level
-	 * @return string
-	 */
-    static public function serialize(array $settings, $level=0)
-    {
-        if (empty($settings)) return '';
-        
-        $maxlen = 0;
-        foreach (array_keys($settings) as $key) {
-            $maxlen = max($maxlen, is_int($key) ? 1 : (preg_match('/[^\w-\.]/', $key) ? strlen(addcslashes($key, "'")) + 2 : strlen($key)));
-        }
-        
-        $indent = str_repeat('  ', $level);
-        $yaml = "";
-        foreach ($settings as $key=>$value) {
-            if ($value === null) continue;
-            
-            if (is_int($key)) $key = '-';
-              elseif (preg_match('/[^\w-\.]/', $key)) $key = "'" . addcslashes($key, "'") . "'";
-            
-            if (is_array($value)) {
-                $yaml .=  str_repeat('  ', $level) . "$key:\n" . Config_Yaml::serialize($value, $level+1) . "\n";
-            } else {
-                if (is_string($value) && ($value === '' || preg_match('/[^\w-\.]/', $value))) $value = '"' . addcslashes($value, '"') . '"';
-                $yaml .=  $indent . str_pad($key . ':', $maxlen+1, ' ', STR_PAD_RIGHT) . " $value\n";
-            }
-        }
-        
-        return preg_replace(array('/\n{3,}/', '/\n\n$/'), array("\n\n", "\n"), $yaml);
-    }	
 }
