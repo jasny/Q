@@ -62,14 +62,14 @@ class Transform_Unserialize_PHP extends Transform
         if ($this->chainInput) $data = $this->chainInput->process($data);
 		
         if (!is_string($data) && !($data instanceof Fs_Node)) throw new Transform_Exception("Wrong parameter type : " . gettype($data) . " given when string should be pass");
-        
+            	
 		$this->startErrorHandler();
-        		
+
 		try {
             ob_start ();
 	        if ($data instanceof Fs_Node) {
-	            $return = include (string)$data->path;
-	            if ($return === true) {
+	            $return = include (string)$data;
+	            if ($return === true || $return === 1) {
 	            	$data = ob_get_contents();
 	            	$return = eval('return ' . $data . ';');
 	            }

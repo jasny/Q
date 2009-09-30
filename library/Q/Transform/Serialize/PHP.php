@@ -15,6 +15,11 @@ class Transform_Serialize_PHP extends Transform
 {
 
     /**
+     * @param boolean $castObjectToString  Cast object to string
+     */
+	public $castObjectToString = false;
+	
+	/**
      * Get a transformer that does the reverse action.
      * 
      * @param Transformer $chain
@@ -37,7 +42,7 @@ class Transform_Serialize_PHP extends Transform
 	{
         if ($this->chainInput) $data = $this->chainInput->process($data);
 		        
-        return var_give($data, true);
+        return var_give($data, true, $this->castObjectToString);
 	}
 		
 }

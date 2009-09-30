@@ -24,9 +24,9 @@ class Transform_Serialize_IniTest extends PHPUnit_Framework_TestCase
 	public function testProcess() 
 	{
 		$transform = new Transform_Serialize_Ini();
-		$contents = $transform->process(array('grp1'=>array('q'=>'abc', 'b'=>27), 'grp2'=>array('a'=>'original')));
+		$contents = $transform->process(array('grp1'=>array('q'=>'abc', 'b'=>27), 'grp2'=>array('a'=>'original', 'b'=>array('w', 'x', 'y'))));
 
-        $this->assertType('Q\Transform_Serialize_Ini', $transform);
+		$this->assertType('Q\Transform_Serialize_Ini', $transform);
 		$this->assertEquals('
 [grp1]
 q = "abc"
@@ -34,8 +34,21 @@ b = "27"
 
 [grp2]
 a = "original"
+b[] = "w"
+b[] = "x"
+b[] = "y"
 ', $contents);
 	}
+
+    /**
+     * Tests Transform_Serialize_Ini->process() with an invalid array
+     */
+    public function testProcess_Exception_InvalidArray() 
+    {
+        $this->setExpectedException('Q\Transform_Exception', "Unable to serialize data to a ini string: Invalid array structure.");
+    	$transform = new Transform_Serialize_Ini();
+        $contents = $transform->process(array('grp1'=>array('q'=>'abc', 'b'=>array('c'=>'d'))));
+    }
 	
 	/**
 	 * Tests Transform_Serialize_Ini->output()

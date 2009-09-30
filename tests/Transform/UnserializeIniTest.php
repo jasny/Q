@@ -9,37 +9,6 @@ require_once 'Q/Transform/Serialize/Ini.php';
  */
 class Transform_Unserialize_IniTest extends PHPUnit_Framework_TestCase 
 {
-    /**
-     * Data to transform
-     * @var array
-     */
-    protected $dataToTransform = '
-[grp1]
-q = "abc"
-b = "27"
-
-[grp2]
-a = "original"
-';
-
-    /**
-     * Data to transform
-     * @var string
-     */
-    protected $dataToTransform_url = 'test/unserialize.ini';
-        
-    /**
-     * Expected result after transformation
-     * @var string
-     */
-    protected $expectedResult = array ('grp1'=>array('q'=>'abc', 'b'=>27), 'grp2'=>array('a'=>'original'));
-
-    /**
-     * The file path where to save the data when run test save() method
-     * @var string
-     */
-    protected $filename = '/tmp/SerializeIniTest.txt';
-	
 	/**
 	 * Run test from php
 	 */
@@ -80,12 +49,13 @@ b = "27"
 [grp2]
 a = "original"
 ');
-		$file = $this->getMock('Q\Fs_File', array('__toString'), array($this->tmpfile));
+
+        $file = $this->getMock('Q\Fs_Node', array('__toString'), array(), '', false);
 		$file->expects($this->any())->method('__toString')->will($this->returnValue($this->tmpfile));
 
 		$transform = new Transform_Unserialize_Ini();
 		$contents = $transform->process($file);
-//		var_dump($contents); exit;
+
         $this->assertType('Q\Transform_Unserialize_Ini', $transform);
 		$this->assertEquals(array('grp1'=>array('q'=>'abc', 'b'=>27), 'grp2'=>array('a'=>'original')), $contents);
 	}
@@ -95,9 +65,8 @@ a = "original"
 	 */
 	public function testOutput() 
 	{
+        $this->setExpectedException('Q\Transform_Exception', "Transformation returned a non-scalar value of type 'array'");
 		$transform = new Transform_Unserialize_Ini();
-		ob_start();
-		try{
     		$transform->output('
 [grp1]
 q = "abc"
@@ -106,15 +75,6 @@ b = "27"
 [grp2]
 a = "original"
 ');
-    	} catch (Expresion $e) {
-    	    ob_end_clean();
-    	    throw $e;
-    	}
-        $contents = ob_get_contents();
-        ob_end_clean();
-
-        $this->assertType('Q\Transform_Unserialize_Ini', $transform);
-        $this->assertEquals(array('grp1'=>array('q'=>'abc', 'b'=>27), 'grp2'=>array('a'=>'original')), $contents);
 	}
 	
 	/**
@@ -122,8 +82,11 @@ a = "original"
 	 */
 	public function testSave() 
 	{
-		$transform = new Transform_Unserialize_Ini ();
-		$transform->save ('/tmp/SerializeIniTest.txt', '
+        $this->setExpectedException('Q\Transform_Exception', "Transformation returned a non-scalar value of type 'array'");
+        $this->tmpfile = tempnam(sys_get_temp_dir(), 'Q-');
+		
+        $transform = new Transform_Unserialize_Ini();
+		$transform->save($this->tmpfile, '
 [grp1]
 q = "abc"
 b = "27"
@@ -131,8 +94,6 @@ b = "27"
 [grp2]
 a = "original"
 ');
-        $this->assertType('Q\Transform_Unserialize_Ini', $transform);
-		$this->assertEquals(array('grp1'=>array('q'=>'abc', 'b'=>27), 'grp2'=>array('a'=>'original')), file_get_contents($this->filename));
 	}
 
 	/**
