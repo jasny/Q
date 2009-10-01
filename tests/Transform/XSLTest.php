@@ -1,9 +1,8 @@
 <?php
 use Q\Transform_XSL, Q\Transform;
 
-require_once dirname(dirname(dirname(__FILE__))) . '/TestHelper.php';
+require_once dirname(dirname(__FILE__)) . '/TestHelper.php';
 require_once 'Q/Transform/XSL.php';
-require_once 'PHPUnit/Framework/TestCase.php';
 
 /**
  * Transform_XSL test case.
@@ -145,7 +144,7 @@ class Transform_XSLTest extends PHPUnit_Framework_TestCase
     public function testChain()
     {
     	$transform = Transform::with('xsl:/home/carmen/projects/Q/tests/Q/Transform/test/myxsl.xsl');
-		$transform->chain(Transform::with('php:/home/carmen/projects/Q/tests/Q/Transform/test/data2xml.php'));		
+		$transform->chainInput(Transform::with('php:/home/carmen/projects/Q/tests/Q/Transform/test/data2xml.php'));		
         ob_start();
 		$transform->output(array('data' => array('title'=>'A Short Example', 'section' => 'Section #1', 'para' => 'A short example of a Simplified DocBook file.')));
 	    $contents = ob_get_contents();

@@ -97,7 +97,7 @@ class Transform_Serialize_XML extends Transform
 	 * @param mixed $needle The key to check for
 	 * @param mixed $data The array to search
 	 */ 
-    private function mapArray($needle, &$data) {
+    protected function mapArray($needle, &$data) {
         global $map;
         foreach ($data as $key => &$value) {
             if ($needle == $key) {

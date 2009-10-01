@@ -13,12 +13,6 @@ require_once 'Q/Fs.php';
  */
 class Transform_Serialize_Ini extends Transform
 {
-	/**
-	 * Ini writer
-	 * @var string
-	 */
-	protected $writer = "";
-		
     /**
      * Get a transformer that does the reverse action.
      *
@@ -41,34 +35,30 @@ class Transform_Serialize_Ini extends Transform
     public function process($data)
     {
         if ($this->chainInput) $data = $this->chainInput->process($data);
-
-        $this->writer = "";
-        foreach($data as $key =>&$value) {
-            if (is_array($value)) {
-                $this->writer .= "\n[{$key}]\n";
-                    foreach($value as $k=>$v) {
-                        $this->ProcessIniSetting($k, $v);
-                    }
+        if(is_scalar($data) || is_resource($data)) throw new Transform_Exception("Unable to serialize to a ini string : incorrect data type");
+        
+        $writer = "";
+        foreach($data as $k0 =>&$v0) {
+            if (is_array($v0)) {
+                $writer .= "\n[{$k0}]\n";
+                foreach($v0 as $k1=>$v1) {
+			        if (is_array($v1)) {
+			            foreach($v1 as $k2=>$v2) {
+			                if (!is_int($k2) || is_array($v2)) {
+			                    trigger_error("Unable to serialize data to a ini string: Invalid array structure.", E_USER_WARNING);                                	
+			                    continue;
+			                }
+			                $writer .= "{$k1}[] = \"$v2\"\n";
+			            }
+			        } else {
+			            $writer .= "{$k1} = \"$v1\"\n";
+			        }    
+                }
             }else {
-                $this->writer .= "{$key} = \"$value\"\n";
+                $writer .= "{$k0} = \"$v0\"\n";
             }
         }
-        return $this->writer;
+        
+        return $writer;
     }
-
-    /**
-    * Transform a setting from array to ini format
-    *
-    * @param mixed $key
-    * @param mixed $value
-    */
-    protected function ProcessIniSetting($key, $value)
-    {
-        if (is_array($value))
-        foreach($value as $k=>$v) {
-          if (!is_int($k) || is_array($v)) throw new Transform_Exception("Unable to serialize data to a ini string: Invalid array structure.");
-          $this->writer .= "{$key}[] = \"$v\"\n";
-        }
-        else $this->writer .= "{$key} = \"$value\"\n";
-   }
 }
