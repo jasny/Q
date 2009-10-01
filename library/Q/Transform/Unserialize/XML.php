@@ -35,7 +35,7 @@ class Transform_Unserialize_XML extends Transform
     {
         $ob = new Transform_Serialize_XML($this);
         if ($chain) $ob->chainInput($chain);
-        if (isset($this->mapkey)) throw new Exception("Unable to to get the reverse transformer: mapkey is not supported by Transform_Serialize_XML");
+        if (isset($this->mapkey)) throw new Transform_Exception("Unable to get the reverse transformer: mapkey is not supported by Transform_Serialize_XML");
         return $this->chainInput ? $this->chainInput->getReverse($ob) : $ob;  
     }
 	
@@ -52,9 +52,12 @@ class Transform_Unserialize_XML extends Transform
         
         if (!is_string($data) && !($data instanceof Fs_Node)) throw new Transform_Exception('Unable to transform XML into Array: ' . gettype($data) . ' incorect data type');
 
+        
         if ($data instanceof Fs_Node) $sxml = simplexml_load_file((string)$data); 
 		  else $sxml = simplexml_load_string($data);
-
+        //keep the root node name of the xml document; needed when reverse action to keep the same structure of the document    
+        $this->rootNodeName = dom_import_simplexml($sxml)->tagName;
+		  
 		 if (isset($this->map)) $this->_options['map'] = $this->map;
          if (isset($this->mapkey)) $this->_options['mapkey'] = $this->mapkey;
 		 
@@ -131,16 +134,17 @@ class Transform_Unserialize_XML extends Transform
         } 
         
         if (strpos($item, '.') !== false) {
-            $items = split_set($item, '.', false);
-            if (count($items) > 1) {
+        	$items = split_set('.', $item, false);
+        	
+        	if (count($items) > 1) {
                 $value = '';
                 foreach ($items as $item) $value .= $this->sxmlGetMapped($node, null, $item);
                 return $value;
             }
         }
-        
+
         if (($item[0] == '"' || $item[0] == "'") && preg_match('/^([\'"]).*\\1$/', $item)) {
-            return substr($item, 1, -1); 
+        	return substr($item, 1, -1);
         }
 
         if ($item[0] == '@') {
@@ -151,7 +155,7 @@ class Transform_Unserialize_XML extends Transform
             }
             return (string)$node[$item];
         }
-        
+
         if (!isset($node->$item)) {
             trigger_error("Mapping of config node '" . $node->getName() . "' failed. Child node '$item' was not found.(2)", E_USER_WARNING);
             return null;

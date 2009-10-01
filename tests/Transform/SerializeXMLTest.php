@@ -40,6 +40,27 @@ class Transform_Serialize_XMLTest extends PHPUnit_Framework_TestCase
 </xml>', $contents);
 	}
 	
+    /**
+     * Tests Transform_Serialize_XML->process()
+     */
+    public function testProcess_Maping() 
+    {
+        $transform = new Transform_Serialize_XML( array ('rootNodeName' => 'settings', 'map'=>array('test' =>'val', 'a'=>'x') ) );
+        $contents = $transform->process(array('test' => 'aha', 'a' => 'bla', 'b' => 'c'));
+
+        $this->assertType('Q\Transform_Serialize_XML', $transform);
+        $this->assertXmlStringEqualsXmlString('<?xml version="1.0" encoding="ISO-8859-1"?>
+<settings>
+ <test>
+  <val>aha</val>
+ </test>
+ <a>
+  <x>bla</x>
+ </a>
+ <b>c</b>
+</settings>
+', $contents);
+    }
 	/**
 	 * Tests Transform_Serialize_XML->output()
 	 */
@@ -100,6 +121,19 @@ class Transform_Serialize_XMLTest extends PHPUnit_Framework_TestCase
  <node2>value2</node2>
 </root>'));
 	}
+    /**
+     * Tests Transform_Serialize_XML->getReverse()
+     */
+    public function testGetReverse_Maping() 
+    {
+        $transform = new Transform_Serialize_XML( array ('rootNodeName' => 'settings', 'map'=>array('test' =>'val', 'a'=>'x') ) );
+        $contents = $transform->process(array('test' => 'aha', 'a' => 'bla', 'b' => 'c'));
+        $reverse = $transform->getReverse();
+        
+        $this->assertType('Q\Transform_Serialize_XML', $transform);
+        $this->assertEquals(array('test' => 'aha', 'a' => 'bla', 'b' => 'c'), $reverse->process($transform->process(array('test' => 'aha', 'a' => 'bla', 'b' => 'c'))));
+    }
+
 }
 
 if (PHPUnit_MAIN_METHOD == 'Transform_Serialize_XMLTest::main') Transform_Serialize_XMLTest::main();

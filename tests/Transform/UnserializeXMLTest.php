@@ -113,28 +113,7 @@ class Transform_Unserialize_XMLTest extends PHPUnit_Framework_TestCase
         $transform = new Transform_Unserialize_XML(array(
             'map' => array('extra'=>'value'), 
             'mapkey' => array('table_def'=>"'#table'", 'field'=>'@name', 'alias'=>"'#alias:'.@name", 'def'=>'@id')));
-        
-var_dump($transform->process('<?xml version="1.0" encoding="UTF-8"?>
-<config>
-    <table_def>
-        <description>Alias</description>
-        <filter>status = 1</filter>
-    </table_def>
-    
-    <field name="description">
-        <type>string</type>
-        <datatype>alphanumeric</datatype>
-        <description>Name</description>
-        <extra><value>yup</value></extra>
-    </field>
-    
-    <alias name="xyz">
-        <description>Description XYZ</description>
-    </alias>
-</config>
-')); exit;        
-        
-        
+
         $this->assertEquals(array('#table'=>array('description'=>'Alias', 'filter'=>'status = 1'), 'description'=>array('name'=>'description', 'type'=>'string', 'datatype'=>'alphanumeric', 'description'=>'Name', 'extra'=>'yup'), '#alias:xyz'=>array('name'=>'xyz', 'description'=>'Description XYZ')), $transform->process('<?xml version="1.0" encoding="UTF-8"?>
 <config>
     <table_def>
@@ -177,6 +156,52 @@ var_dump($transform->process('<?xml version="1.0" encoding="UTF-8"?>
 </settings>
 ', $reverse->process(array('grp1'=>array('q'=>'abc', 'b'=>27), 'grp2'=>array('a'=>'original'))));
 	}
+
+    /**
+     * Tests Transform_Unserialize_XML->getReverse() using the map and root node setted by process in the reverse action
+     */
+    public function testGetReverse_use_map() {
+        $transform = new Transform_Unserialize_XML(array('map' => array('a'=>'value')));
+        $transform->process('<?xml version="1.0" encoding="ISO-8859-1"?>
+<settings>
+ <grp1>
+  <q>abc</q>
+  <b>27</b>
+ </grp1>
+ <grp2>
+  <a>
+    <value>original</value>
+  </a>
+ </grp2>
+</settings>
+');
+        $reverse = $transform->getReverse();
+        
+        $this->assertType('Q\Transform_Serialize_XML', $reverse);
+        $this->assertEquals('<?xml version="1.0" encoding="ISO-8859-1"?>
+<settings>
+ <grp1>
+  <q>abc</q>
+  <b>27</b>
+ </grp1>
+ <grp2>
+  <a>
+   <value>original</value>
+  </a>
+ </grp2>
+</settings>
+', $reverse->process(array('grp1'=>array('q'=>'abc', 'b'=>27), 'grp2'=>array('a'=>'original'))));
+    }
+	
+    /**
+     * Tests Transform_Unserialize_XML->getReverse()
+     */
+    public function testGetReverse_Exception_mapkey() {
+        $this->setExpectedException('Q\Transform_Exception', "Unable to get the reverse transformer: mapkey is not supported by Transform_Serialize_XML");
+    	
+        $transform = new Transform_Unserialize_XML(array('mapkey' => array('table_def'=>"'#table'", 'field'=>'@name', 'alias'=>"'#alias:'.@name", 'def'=>'@id')));
+        $reverse = $transform->getReverse();
+    }
 }
 
 if (PHPUnit_MAIN_METHOD == 'Transform_Unserialize_XMLTest::main') Transform_Unserialize_XMLTest::main();
