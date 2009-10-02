@@ -382,6 +382,22 @@ abstract class Fs_NodeTest extends PHPUnit_Framework_TestCase
     {
         $this->assertFalse($this->Fs_Node->isUploadedFile());
     }
+
+ 	/**
+ 	 * Tests Fs_Node->diskTotalSpace()
+ 	 */
+ 	public function testDiskTotalSpace()
+ 	{
+ 		$this->assertEquals(disk_total_space($this->file), $this->Fs_Node->diskTotalSpace());
+ 	}
+ 	
+ 	/**
+ 	 * Tests Fs_Node->diskFreeSpace()
+ 	 */
+ 	public function testDiskFreeSpace()
+ 	{
+ 		$this->assertEquals(disk_free_space($this->file), $this->Fs_Node->diskFreeSpace());
+ 	}
     
     /**
      * Tests Fs_Node->exists()
@@ -495,4 +511,101 @@ abstract class Fs_NodeTest extends PHPUnit_Framework_TestCase
         $ser = var_export($this->Fs_Node, true);
         $this->assertEquals($this->Fs_Node, eval("return $ser;"));
     }
+    
+    
+ 	/**
+ 	 * Magic get method; Get file in directory.
+ 	 * 
+ 	 * @param string $name
+ 	 * @return Fs_Node
+ 	 */
+ 	public function test__get($name)
+ 	{
+    	$this->setExpectedException('Q\Fs_Exception', "Unable to get '{$this->file}/test': '{$this->file}' is not a directory, but a " . Fs::typeOfNode($this->Fs_Node, Fs::DESCRIPTION));
+        $this->Fs_Node->get('test');
+	}
+
+ 	/**
+ 	 * Magic get method; Check if file in directory exists.
+ 	 * 
+ 	 * @param string $name
+ 	 * @return Fs_Node
+ 	 */
+ 	public function test__isset($name)
+ 	{
+    	$this->setExpectedException('Q\Fs_Exception', "Unable to get '{$this->file}/test': '{$this->file}' is not a directory, but a " . Fs::typeOfNode($this->Fs_Node, Fs::DESCRIPTION));
+        $this->Fs_Node->has('test');
+	}
+ 	
+    /**
+     * Tests Fs_Node->get()
+     */
+    public function testGet()
+    {
+    	$this->setExpectedException('Q\Fs_Exception', "Unable to get '{$this->file}/test': '{$this->file}' is not a directory, but a " . Fs::typeOfNode($this->Fs_Node, Fs::DESCRIPTION));
+        $this->Fs_Node->get('test');
+	}
+
+    /**
+     * Tests Fs_Node->has()
+     */
+    public function testHas()
+    {
+    	$this->setExpectedException('Q\Fs_Exception', "Unable to get '{$this->file}/test': '{$this->file}' is not a directory, but a " . Fs::typeOfNode($this->Fs_Node, Fs::DESCRIPTION));
+        $this->Fs_Node->has('test');
+	}
+	
+    /**
+     * Tests Fs_Node->file()
+     */
+    public function testFile()
+    {
+    	$this->setExpectedException('Q\Fs_Exception', "Unable to get '{$this->file}/test': '{$this->file}' is not a directory, but a " . Fs::typeOfNode($this->Fs_Node, Fs::DESCRIPTION));
+        $this->Fs_Node->file('test');
+	}
+    
+    /**
+     * Tests Fs_Node->dir()
+     */
+    public function testDir()
+    {
+    	$this->setExpectedException('Q\Fs_Exception', "Unable to get '{$this->file}/test': '{$this->file}' is not a directory, but a " . Fs::typeOfNode($this->Fs_Node, Fs::DESCRIPTION));
+        $this->Fs_Node->dir('test');
+	}
+	
+    /**
+     * Tests Fs_Node->block()
+     */
+    public function testBlock()
+    {
+    	$this->setExpectedException('Q\Fs_Exception', "Unable to get '{$this->file}/test': '{$this->file}' is not a directory, but a " . Fs::typeOfNode($this->Fs_Node, Fs::DESCRIPTION));
+        $this->Fs_Node->block('test');
+	}
+
+    /**
+     * Tests Fs_Node->char()
+     */
+    public function testChar()
+    {
+    	$this->setExpectedException('Q\Fs_Exception', "Unable to get '{$this->file}/test': '{$this->file}' is not a directory, but a " . Fs::typeOfNode($this->Fs_Node, Fs::DESCRIPTION));
+        $this->Fs_Node->char('test');
+	}
+	
+    /**
+     * Tests Fs_Node->socket()
+     */
+    public function testSocket()
+    {
+    	$this->setExpectedException('Q\Fs_Exception', "Unable to get '{$this->file}/test': '{$this->file}' is not a directory, but a " . Fs::typeOfNode($this->Fs_Node, Fs::DESCRIPTION));
+        $this->Fs_Node->socket('test');
+	}
+    
+    /**
+     * Tests Fs_Node->fifo()
+     */
+    public function testFifo()
+    {
+    	$this->setExpectedException('Q\Fs_Exception', "Unable to get '{$this->file}/test': '{$this->file}' is not a directory, but a " . Fs::typeOfNode($this->Fs_Node, Fs::DESCRIPTION));
+        $this->Fs_Node->fifo('test');
+	}
 }

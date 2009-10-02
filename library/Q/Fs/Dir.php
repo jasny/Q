@@ -69,7 +69,8 @@ class Fs_Dir extends Fs_Node
 		$handle = $this->getHandle(); 
 		while (!isset($handle->current) || $handle->current == '.' || $handle->current == '..') $handle->current = readdir($handle->resource);
 		
-		return Fs::open($this->getHandle()->current);
+		if ($handle->current === false) return false;
+		return Fs::get("{$this->_path}/" . $handle->current);
 	}
 	
 	/**
@@ -87,7 +88,7 @@ class Fs_Dir extends Fs_Node
 	 */
  	public function next()
  	{
- 		$handle = $this->getHandle(); 
+ 		$handle = $this->getHandle();
  		$handle->current = readdir($handle->resource);
  	}
  	
@@ -98,6 +99,7 @@ class Fs_Dir extends Fs_Node
  	{
  		$handle = $this->getHandle();
  		$handle->current = rewinddir($handle->resource);
+		while (!isset($handle->current) || $handle->current == '.' || $handle->current == '..') $handle->current = readdir($handle->resource);
  	}
  	
 	/**
@@ -150,6 +152,18 @@ class Fs_Dir extends Fs_Node
  	
  	
  	/**
+ 	 * Check if file in directory exists (or is broken link).
+ 	 * 
+ 	 * @param string $name
+ 	 * @return Fs_Node
+ 	 */
+ 	public function has($name)
+ 	{
+ 		if ($name[0] == '/') throw new Exception("Unable to get '$name' for '{$this->_path}': Expecting a relative path.");
+ 		return Fs::has("{$this->_path}/$name");
+ 	}
+ 	
+	/**
  	 * Get file in directory.
  	 * 
  	 * @param string $name
@@ -157,18 +171,8 @@ class Fs_Dir extends Fs_Node
  	 */
  	public function get($name)
  	{
- 		return Fs::get($name[0] == '/' ? $name : "{$this->_path}/$name");
- 	}
- 	
- 	/**
- 	 * Check if file in directory exists.
- 	 * 
- 	 * @param string $name
- 	 * @return Fs_Node
- 	 */
- 	public function has($name)
- 	{
- 		return file_exists($name[0] == '/' ? $name : "{$this->_path}/$name");
+ 		if ($name[0] == '/') throw new Exception("Unable to get '$name' for '{$this->_path}': Expecting a relative path.");
+ 		return Fs::get("{$this->_path}/$name");
  	}
  	
  	/**
@@ -179,7 +183,8 @@ class Fs_Dir extends Fs_Node
  	 */
  	public function file($name)
  	{
- 		return Fs::file($name[0] == '/' ? $name : "{$this->_path}/$name");
+ 		if ($name[0] == '/') throw new Exception("Unable to get '$name' for '{$this->_path}': Expecting a relative path.");
+ 		return Fs::file("{$this->_path}/$name");
  	}
  	
  	/**
@@ -190,7 +195,8 @@ class Fs_Dir extends Fs_Node
  	 */
  	public function dir($name)
  	{
- 		return Fs::dir($name[0] == '/' ? $name : "{$this->_path}/$name");
+ 		if ($name[0] == '/') throw new Exception("Unable to get '$name' for '{$this->_path}': Expecting a relative path.");
+ 		return Fs::dir("{$this->_path}/$name");
  	}
  	
  	/**
@@ -201,7 +207,8 @@ class Fs_Dir extends Fs_Node
  	 */
  	public function block($name)
  	{
- 		return Fs::block($name[0] == '/' ? $name : "{$this->_path}/$name");
+ 		if ($name[0] == '/') throw new Exception("Unable to get '$name' for '{$this->_path}': Expecting a relative path.");
+ 		return Fs::block("{$this->_path}/$name");
  	}
  	
  	/**
@@ -212,7 +219,8 @@ class Fs_Dir extends Fs_Node
  	 */
  	public function char($name)
  	{
- 		return Fs::char($name[0] == '/' ? $name : "{$this->_path}/$name");
+ 		if ($name[0] == '/') throw new Exception("Unable to get '$name' for '{$this->_path}': Expecting a relative path.");
+ 		return Fs::char("{$this->_path}/$name");
  	}
  	
  	/**
@@ -223,7 +231,8 @@ class Fs_Dir extends Fs_Node
  	 */
  	public function fifo($name)
  	{
- 		return Fs::fifo($name[0] == '/' ? $name : "{$this->_path}/$name");
+ 		if ($name[0] == '/') throw new Exception("Unable to get '$name' for '{$this->_path}': Expecting a relative path.");
+ 		return Fs::fifo("{$this->_path}/$name");
  	}
  	
  	/**
@@ -234,7 +243,8 @@ class Fs_Dir extends Fs_Node
  	 */
  	public function socket($name)
  	{
- 		return Fs::socket($name[0] == '/' ? $name : "{$this->_path}/$name");
+ 		if ($name[0] == '/') throw new Exception("Unable to get '$name' for '{$this->_path}': Expecting a relative path.");
+ 		return Fs::socket("{$this->_path}/$name");
  	}
  	
  	
@@ -268,66 +278,46 @@ class Fs_Dir extends Fs_Node
 	 */
 	protected function doCopyRename($fn, $dir, $name, $flags)
 	{
-		return $flags & Fs::MERGE ? $this->doMerge($fn, $dir, $name, $flags) : parent::doCopyRename($fn, $dir, $name, $flags);  
-	}
-	
-	/**
-	 * Copy or rename/move this file, merging where possible.
-	 * 
-	 * @param callback $fn     Function name; copy or rename
-	 * @param Fs_Dir   $dir
-	 * @param string   $name
-	 * @param int      $flags  Fs::% options as binary set
-	 * @return Fs_Node
-	 */
- 	protected function doMerge($fn, $dir, $name, $flags)
- 	{
+		if (($fn == 'move' && ~$flags & Fs::MERGE) || $this instanceof Fs_Symlink) return parent::doCopyRename($fn, $dir, $name, $flags);  
+		
 		if (empty($name) || $name == '.' || $name == '..' || strpos('/', $name) !== false) throw new SecurityException("Unable to $fn '{$this->_path}' to '$dir/$name'; Invalid filename '$name'.");
 		
-		if (!($dir instanceof Fs_Dir)) $dir = Fs::dir($dir);
+		if (!($dir instanceof Fs_Dir)) $dir = new static($dir);
+		if (!$dir->exists() && ~$flags & Fs::RECURSIVE) throw new Fs_Exception("Unable to " . ($fn == 'rename' ? 'move' : $fn) . " '{$this->_path}' to '$dir/': Directory does not exist");
+
+		$files = @scandir($this->_path);
+		if ($files === false) throw new Fs_Exception("Failed to read directory to $fn '{$this->_path}' to '$dir/$name'", error_get_last());
 		
-		if (!$dir->exists()) {
-			if (~$flags & Fs::RECURSIVE) throw new Fs_Exception("Unable to $fn '{$this->_path}' to '$dir/$name'; Directory does not exist.");
-			$dir->create();
+		if ($dir->has($name) && (~$flags & Fs::MERGE || !($dir->$name instanceof Fs_Dir))) {
+			$dest = $dir->$name;
+			if ($dest instanceof Fs_Dir && !($dest instanceof Fs_Symlink) && count($dest) != 0) throw new Fs_Exception("Unable to $fn '{$this->_path}' to '{$dest->_path}': Target is a non-empty directory");
+			if (~$flags & Fs::OVERWRITE) throw new Fs_Exception("Unable to $fn '{$this->_path}' to '{$dest->_path}': Target already exists");
+			$dest->delete();
 		}
 		
-		if ($dir->has($name)) $dest = $dir->$name;
+		$dest = Fs::dir("$dir/$name");
+		$dest->create($this->getAttribute('mode'), Fs::RECURSIVE | Fs::PRESERVE);
+		
+		foreach ($files as $file) {
+			if ($file == '.' || $file == '..') continue;
 			
-		if (isset($dest) && $dest instanceof Fs_Dir) {
-			$destpath = (string)$dest;
-			$files = scandir($this->_path);
-			
-			foreach ($files as $file) {
-				if ($file == '.' || $file == '..') continue;
-				
-				try {
-					if (is_dir("{$this->_path}/$file)") && is_dir("$destpath/$file")) {
-						$this->$file->doMerge($fn, $dest, $file, $flags);
-					} else {
-						if (file_exists("$destpath/$file")) {
-							if ($flags & Fs::OVERWRITE);
-							  elseif ($flags & Fs::UPDATE && filectime("$destpath/$file") >= filectime("{$this->_path}/$file")) continue;
-							  else { trigger_error("Unable to $fn '{$this->_path}/$file' to '$destpath/$file': File already exists.", E_USER_WARNING); continue; }
-							
-							if (is_dir("$destpath/$file")) $dest->dir($file)->delete(Fs::RECURSIVE);
-						}
-						
-						$fn("{$this->_path}/$file)", "$destpath/$file");
+			try {
+				if (is_dir("{$this->_path}/$file)")) {
+					$this->$file->doCopyRename($fn, $dest, $file, $flags);
+				} else {
+					if ($dest->has($file)) {
+						if ($flags & Fs::UPDATE == Fs::UPDATE && $dest->$file['ctime'] >= $this->$file['ctime']) continue;
+						if (~$flags & Fs::OVERWRITE) throw new Fs_Exception("Unable to $fn '{$this->_path}/$file' to '{$dest->_path}/$file': Target already exists");
 					}
-				} catch (Fs_Exception $e) {
-					trigger_error($e->getMessage(), E_USER_WARNING);
+					
+					$fn("{$this->_path}/$file", "{$dest->_path}/$file");
 				}
+			} catch (Fs_Exception $e) {
+				trigger_error($e->getMessage(), E_USER_WARNING);
 			}
-			
-		} else {
-			if (isset($dest)) {
-				if (~$flags & Fs::OVERWRITE) throw new Fs_Exception("Unable to $fn '{$this->_path}' to '$dir/$name': Target exists and is not a directory");
-				$dest->delete();
-			}
-			
-			if (!@$fn($this->_path, "$dir/$name")) throw new Fs_Exception("Failed to $fn '{$this->_path}' to '$dir/$name'", error_get_last());
 		}
 		
+		if ($fn == 'rename') rmdir($this->_path);
 		return new static("$dir/$name");
 	}
  	
@@ -349,10 +339,10 @@ class Fs_Dir extends Fs_Node
 				if ($file == '.' || $file == '..') continue;
 				
 				try {
-					if (!is_dir("{$this->_path}/$file)")) {
-						if (!@unlink("{$this->_path}/$file")) throw new Fs_Exception("Failed to delete '{$this->_path}/$file'", error_get_last());
-					} else {
+					if (is_dir("{$this->_path}/$file")) {
 						$this->$file->delete($flags);
+					} else {
+						if (!@unlink("{$this->_path}/$file")) throw new Fs_Exception("Failed to delete '{$this->_path}/$file'", error_get_last());
 					}
 				} catch (Fs_Exception $e) {
 					$exceptions[] = $e;

@@ -20,8 +20,7 @@ class Fs_Char extends Fs_Node
 		parent::__construct($path);
 		
 		if (is_link($path) xor $this instanceof Fs_Symlink) throw new Fs_Exception("File '$path' is " . ($this instanceof Fs_Symlink ? 'not ' : '') . "a symlink.");
-		if (!file_exists($path)) throw new Fs_Exception("Can't load char device '$path'; File doesn't exists."); 
-		if (filetype(realpath($path)) != 'char') throw new Fs_Exception("File '$path' is not a char device, but a " . filetype($path) . ".");
+		if (file_exists($path) && filetype(realpath($path)) != 'char') throw new Fs_Exception("File '$path' is not a char device, but a " . filetype($path) . ".");
 	}
 	
 	/**
@@ -48,6 +47,8 @@ class Fs_Char extends Fs_Node
 	 */
 	public function putContents($data, $flags=0)
 	{
+		if (!$this->exists()) throw new Fs_Exception("Can't write data to char device '{$this->_path}': File doesn't exists."); 
+		
 		$ret = @file_put_contents($this->_path, $data, $flags);
 		if ($ret === false) throw new Fs_Exception("Failed to write to char device '{$this->_path}'", error_get_last());
 		return $ret;
@@ -62,6 +63,8 @@ class Fs_Char extends Fs_Node
 	 */
 	public function open($mode='r+')
 	{
+		if (!$this->exists()) throw new Fs_Exception("Can't open char device '{$this->_path}': File doesn't exists.");
+		
 		$resource = @fopen($this->_path, $mode);
 		if (!$resource) throw new Fs_Exception("Failed to open char device '{$this->_path}'", error_get_last());
 		return $resource;
