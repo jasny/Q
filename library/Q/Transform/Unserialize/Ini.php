@@ -4,7 +4,6 @@ namespace Q;
 require_once 'Q/Transform/Exception.php';
 require_once 'Q/Transform.php';
 require_once 'Q/Transform/Serialize/Ini.php';
-require_once 'Q/Fs.php';
 
 /**
  * Load a ini file into an array

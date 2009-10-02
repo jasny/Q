@@ -47,7 +47,7 @@ class Transform_Unserialize_JsonTest extends PHPUnit_Framework_TestCase
 	/**
 	 * Tests Transform_Unserialize_Json->process()
 	 */
-	public function testProcess_withFs() 
+	public function testProcess_Fs() 
 	{
 		$this->tmpfile = tempnam(sys_get_temp_dir(), 'Q-');
 		file_put_contents($this->tmpfile, '{"a":"t1","b":"t2"}');

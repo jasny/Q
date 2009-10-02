@@ -4,7 +4,6 @@ namespace Q;
 require_once 'Q/Transform/Exception.php';
 require_once 'Q/Transform.php';
 require_once 'Q/Transform/Serialize/PHP.php';
-require_once 'Q/Fs.php';
 
 /**
  * Execute PHP file and return output as string.

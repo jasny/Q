@@ -4,6 +4,7 @@ namespace Q;
 require_once 'Q/misc.php';
 require_once 'Q/Transform/Exception.php';
 require_once 'Q/Transformer.php';
+require_once 'Q/Fs.php';
 
 /**
  * Base class for Transform interfaces.
@@ -38,9 +39,11 @@ abstract class Transform implements Transformer
 	  'text2html' => 'Q\Transform_Text2HTML',
 	
 	  'serialize-json' => 'Q\Transform_Serialize_Json',
-	  'serialize-xml' => 'Q\Transform_Array2XML',
+	  'serialize-xml' => 'Q\Transform_Serialize_XML',
 	  'serialize-php' => 'Q\Transform_Serialize_PHP',
-	  'unserialize-json' => 'Q\Transform_Unserialize_Json',
+      'serialize-yaml' => 'Q\Transform_Serialize_Yaml',
+      'serialize-ini' => 'Q\Transform_Serialize_Ini',
+      'unserialize-json' => 'Q\Transform_Unserialize_Json',
 	  'unserialize-xml' => 'Q\Transform_Unserialize_XML',
 	  'unserialize-php' => 'Q\Transform_Unserialize_PHP',
       'unserialize-yaml' => 'Q\Transform_Unserialize_Yaml',
@@ -176,5 +179,4 @@ abstract class Transform implements Transformer
 		
         if (!Fs::file($filename)->putContents((string)$out, $flags)) throw new Transform_Exception("Failed to create file {$filename}.");		
 	}
-
 }
