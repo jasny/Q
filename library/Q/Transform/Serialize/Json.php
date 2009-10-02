@@ -13,11 +13,6 @@ require_once 'Q/Fs.php';
  */
 class Transform_Serialize_Json extends Transform
 {
-	/**
-	 * Only used for unserialize.
-	 * @var boolean
-	 */
-	public $assoc = true;
 	
 	/**
 	 * Get a transformer that does the reverse action.

@@ -50,7 +50,7 @@ class Transform_Unserialize_XML extends Transform
     {   
         if ($this->chainInput) $data = $this->chainInput->process($data);
         
-        if (!is_string($data) && !($data instanceof Fs_Node)) throw new Transform_Exception('Unable to transform XML into Array: ' . gettype($data) . ' incorect data type');
+        if (!is_string($data) && !($data instanceof Fs_Node)) throw new Transform_Exception('Unable to transform XML into Array: Incorect data type');
 
         
         if ($data instanceof Fs_Node) $sxml = simplexml_load_file((string)$data); 

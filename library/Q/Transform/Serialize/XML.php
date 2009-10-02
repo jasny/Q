@@ -74,7 +74,7 @@ class Transform_Serialize_XML extends Transform
         if (!is_array($data)) throw new Transform_Exception('Unable to transform Array to XML: data is not array');
         
         if (isset($this->map)) {
-        	if (!is_array($this->map)) throw new Transform_Exception("Unable to transform Array to XML. map type " . gettype($this->map) . "is incorect. Array is expected."); 
+        	if (!is_array($this->map)) throw new Transform_Exception("Unable to transform Array to XML. map type " . gettype($this->map) . " is incorect. Array is expected."); 
         	
             foreach($this->map as $key=>$value) {
             	$this->mapArray($key, $data);
