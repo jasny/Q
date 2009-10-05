@@ -28,8 +28,8 @@ abstract class Fs_NodeTest extends PHPUnit_Framework_TestCase
      */
     protected static function cleanup($path)
     {
-    	foreach (array('', '.x', '.y') as $suffix) {
-	    	if (is_dir($path . $suffix)) {
+    	foreach (array('', '.orig', '.x', '.y') as $suffix) {
+	    	if (is_dir($path . $suffix) && !is_link($path . $suffix)) {
 	    		static::cleanup($path . $suffix . '/' . basename($path));
 	    		rmdir($path . $suffix);
 			} elseif (file_exists($path . $suffix) || is_link($path . $suffix)) {
@@ -284,11 +284,10 @@ abstract class Fs_NodeTest extends PHPUnit_Framework_TestCase
      */
     public function testGetAttribute_lstat_Calculated()
     {
-    	$mode = fileperms($this->file);
+    	$stat = lstat($this->file);
     	
-        $this->assertEquals($mode, $this->Fs_Node->getAttribute('mode', Fs::NO_DEREFERENCE), 'mode = fileperms');
-        $this->assertEquals(filetype(realpath($this->file)), $this->Fs_Node->getAttribute('type', Fs::NO_DEREFERENCE), 'type');
-        $this->assertEquals(Fs::mode2perms($mode), $this->Fs_Node->getAttribute('perms', Fs::NO_DEREFERENCE), 'perms');
+        $this->assertEquals(is_link($this->file) ? 'link' : filetype($this->file), $this->Fs_Node->getAttribute('type', Fs::NO_DEREFERENCE), 'type');
+        $this->assertEquals(Fs::mode2perms($stat['mode']), $this->Fs_Node->getAttribute('perms', Fs::NO_DEREFERENCE), 'perms');
     }
     
     /**
@@ -343,7 +342,7 @@ abstract class Fs_NodeTest extends PHPUnit_Framework_TestCase
     	$stat = stat($this->file);
         $this->assertEquals($stat['ino'], $this->Fs_Node['ino'], 'ino');
         $this->assertEquals($stat['mtime'], $this->Fs_Node['mtime'], 'mtime');
-        $this->assertEquals(filetype($this->file), $this->Fs_Node['type'], 'type');
+        $this->assertEquals(filetype(realpath($this->file)), $this->Fs_Node['type'], 'type');
     }
 	
     /**
@@ -519,7 +518,7 @@ abstract class Fs_NodeTest extends PHPUnit_Framework_TestCase
  	 * @param string $name
  	 * @return Fs_Node
  	 */
- 	public function test__get($name)
+ 	public function test__get()
  	{
     	$this->setExpectedException('Q\Fs_Exception', "Unable to get '{$this->file}/test': '{$this->file}' is not a directory, but a " . Fs::typeOfNode($this->Fs_Node, Fs::DESCRIPTION));
         $this->Fs_Node->get('test');
@@ -531,7 +530,7 @@ abstract class Fs_NodeTest extends PHPUnit_Framework_TestCase
  	 * @param string $name
  	 * @return Fs_Node
  	 */
- 	public function test__isset($name)
+ 	public function test__isset()
  	{
     	$this->setExpectedException('Q\Fs_Exception', "Unable to get '{$this->file}/test': '{$this->file}' is not a directory, but a " . Fs::typeOfNode($this->Fs_Node, Fs::DESCRIPTION));
         $this->Fs_Node->has('test');

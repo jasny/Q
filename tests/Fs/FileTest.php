@@ -18,7 +18,6 @@ class Fs_FileTest extends Fs_NodeTest
         $this->file = sys_get_temp_dir() . '/q-fs_filetest-' . md5(uniqid());
         if (!file_put_contents($this->file, 'Test case for Fs_File')) $this->markTestSkipped("Could not write to '{$this->file}'.");
         $this->Fs_Node = new Fs_File($this->file);
-        parent::setUp();
     }
 
     /**
@@ -26,7 +25,6 @@ class Fs_FileTest extends Fs_NodeTest
      */
     protected function tearDown()
     {
-        parent::tearDown();
         $this->cleanup($this->file);
         $this->Fs_Node = null;
     }
@@ -42,7 +40,7 @@ class Fs_FileTest extends Fs_NodeTest
     }
 
     /**
-     * Test creating an Fs_File for a dir
+     * Test creating an Fs_File for a symlink
      */
     public function testConstruct_Symlink()
     {

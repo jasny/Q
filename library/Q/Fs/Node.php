@@ -178,7 +178,7 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
  	 */
  	public function get($name)
  	{
- 		throw new Fs_Exception("Unable to get '{$this->_path}/$name': '{$this->_path}' is not a directory, but a " . Fs::typeOfNode($this) );
+ 		throw new Fs_Exception("Unable to get '{$this->_path}/$name': '{$this->_path}' is not a directory, but a " . Fs::typeOfNode($this, Fs::DESCRIPTION));
  	}
  	
  	/**
@@ -189,7 +189,7 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
  	 */
  	public function has($name)
  	{
- 		throw new Fs_Exception("Unable to get '{$this->_path}/$name': '{$this->_path}' is not a directory, but a " . Fs::typeOfNode($this) );
+ 		throw new Fs_Exception("Unable to get '{$this->_path}/$name': '{$this->_path}' is not a directory, but a " . Fs::typeOfNode($this, Fs::DESCRIPTION));
  	}
  	
  	/**
@@ -200,7 +200,7 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
  	 */
  	public function file($name)
  	{
- 		throw new Fs_Exception("Unable to get '{$this->_path}/$name': '{$this->_path}' is not a directory, but a " . Fs::typeOfNode($this) );
+ 		throw new Fs_Exception("Unable to get '{$this->_path}/$name': '{$this->_path}' is not a directory, but a " . Fs::typeOfNode($this, Fs::DESCRIPTION));
  	}
  	
  	/**
@@ -211,7 +211,7 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
  	 */
  	public function dir($name)
  	{
- 		throw new Fs_Exception("Unable to get '{$this->_path}/$name': '{$this->_path}' is not a directory, but a " . Fs::typeOfNode($this) );
+ 		throw new Fs_Exception("Unable to get '{$this->_path}/$name': '{$this->_path}' is not a directory, but a " . Fs::typeOfNode($this, Fs::DESCRIPTION));
  	}
  	
  	/**
@@ -222,7 +222,7 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
  	 */
  	public function block($name)
  	{
- 		throw new Fs_Exception("Unable to get '{$this->_path}/$name': '{$this->_path}' is not a directory, but a " . Fs::typeOfNode($this) );
+ 		throw new Fs_Exception("Unable to get '{$this->_path}/$name': '{$this->_path}' is not a directory, but a " . Fs::typeOfNode($this, Fs::DESCRIPTION));
  	}
  	
  	/**
@@ -233,7 +233,7 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
  	 */
  	public function char($name)
  	{
- 		throw new Fs_Exception("Unable to get '{$this->_path}/$name': '{$this->_path}' is not a directory, but a " . Fs::typeOfNode($this) );
+ 		throw new Fs_Exception("Unable to get '{$this->_path}/$name': '{$this->_path}' is not a directory, but a " . Fs::typeOfNode($this, Fs::DESCRIPTION));
  	}
  	
  	/**
@@ -244,7 +244,7 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
  	 */
  	public function fifo($name)
  	{
- 		throw new Fs_Exception("Unable to get '{$this->_path}/$name': '{$this->_path}' is not a directory, but a " . Fs::typeOfNode($this) );
+ 		throw new Fs_Exception("Unable to get '{$this->_path}/$name': '{$this->_path}' is not a directory, but a " . Fs::typeOfNode($this, Fs::DESCRIPTION));
  	}
  	
  	/**
@@ -255,7 +255,7 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
  	 */
  	public function socket($name)
  	{
- 		throw new Fs_Exception("Unable to get '{$this->_path}/$name': '{$this->_path}' is not a directory, but a " . Fs::typeOfNode($this) );
+ 		throw new Fs_Exception("Unable to get '{$this->_path}/$name': '{$this->_path}' is not a directory, but a " . Fs::typeOfNode($this, Fs::DESCRIPTION));
  	}
  	
     
@@ -303,7 +303,7 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
 		
 		if ($flags & Fs::NO_DEREFERENCE) {
 			$target = Fs::canonicalize($this->target(), dirname($this->_path));
-			return is_link($target) ? new static($target) : call_user_func(array('Fs', Fs::typeOfNode($this, Fs::ALWAYS_FOLLOW)), $target);
+			return is_link($target) ? new static($target) : call_user_func(array('Q\Fs', Fs::typeOfNode($this, Fs::ALWAYS_FOLLOW)), $target);
 		
 		} else {
 			$path = realpath($this->_path);
@@ -806,14 +806,14 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
 	 * @param int      $flags  Fs::% options as binary set
 	 * @return Fs_Node
 	 */
-	protected function doCopyRename($fn, $dir, $name, $flags)
+	protected function doCopyRename($fn, $dir, $name, $flags=0)
 	{
 		if (empty($name) || $name == '.' || $name == '..' || strpos('/', $name) !== false) throw new SecurityException("Unable to $fn '{$this->_path}' to '$dir/$name': Invalid filename '$name'");
 		
 		if (!($dir instanceof Fs_Dir)) $dir = Fs::dir($dir, dirname($this->_path));
 		
 		if (!$dir->exists()) {
-			if (~$flags & Fs::RECURSIVE) throw new Fs_Exception("Unable to " . ($fn == 'rename' ? 'move' : $fn) . " '{$this->_path}' to '$dir/': Directory does not exist");
+			if (~$flags & Fs::MKDIR) throw new Fs_Exception("Unable to " . ($fn == 'rename' ? 'move' : $fn) . " '{$this->_path}' to '$dir/': Directory does not exist");
 			$dir->create();
 		} elseif ($dir->has($name)) {
 			$dest = $dir->$name;
@@ -822,11 +822,13 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
 			if ($flags & Fs::UPDATE == Fs::UPDATE && $dest['ctime'] >= $this['ctime']) return false;
 			if (~$flags & Fs::OVERWRITE) throw new Fs_Exception("Unable to $fn '{$this->_path}' to '{$dest->_path}': Target already exists");
 			
-			if ($dest instanceof Fs_Dir && !@rmdir($dest)) throw new Fs_Exception("Failed to $fn '{$this->_path}' to '$dir/$name'", error_get_last());
+			if ($dest instanceof Fs_Dir && !@rmdir($dest->_path)) throw new Fs_Exception("Failed to $fn '{$this->_path}' to '$dir/$name'", error_get_last());
 		}
+
+		if ($fn == 'copy' && $flags & Fs::NO_DEREFERENCE) return Fs::symlink($this->target(), "$dir/$name");
 		
 		if (!@$fn($this->_path, "$dir/$name")) throw new Fs_Exception("Failed to $fn '{$this->_path}' to '$dir/$name'", error_get_last());
-		return new static("$dir/$name");
+		return Fs::get("$dir/$name");
 	}
 	
 	/**

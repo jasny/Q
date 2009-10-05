@@ -30,8 +30,8 @@ class Fs_Dir extends Fs_Node
 	{
 		parent::__construct($path);
 		
+		if (file_exists($path) && !is_dir($path)) throw new Fs_Exception("File '$path' is not a directory, but a " . Fs::typeOfNode($path, Fs::DESCRIPTION)); 
 		if (is_link($path) xor $this instanceof Fs_Symlink) throw new Fs_Exception("File '$path' is " . ($this instanceof Fs_Symlink ? 'not ' : '') . "a symlink.");
-		if (file_exists($path) && !is_dir($path)) throw new Fs_Exception("File '$path' is not a directory, but a " . filetype($path) . "."); 
 	}
 	
 	/**
@@ -276,14 +276,14 @@ class Fs_Dir extends Fs_Node
 	 * @param int      $flags  Fs::% options as binary set
 	 * @return Fs_Node
 	 */
-	protected function doCopyRename($fn, $dir, $name, $flags)
+	protected function doCopyRename($fn, $dir, $name, $flags=0)
 	{
-		if (($fn == 'move' && ~$flags & Fs::MERGE) || $this instanceof Fs_Symlink) return parent::doCopyRename($fn, $dir, $name, $flags);  
+		if (($fn == 'move' && ~$flags & Fs::MERGE) || ($this instanceof Fs_Symlink && $flags & Fs::NO_DEREFERENCE)) return parent::doCopyRename($fn, $dir, $name, $flags);  
 		
 		if (empty($name) || $name == '.' || $name == '..' || strpos('/', $name) !== false) throw new SecurityException("Unable to $fn '{$this->_path}' to '$dir/$name'; Invalid filename '$name'.");
 		
 		if (!($dir instanceof Fs_Dir)) $dir = new static($dir);
-		if (!$dir->exists() && ~$flags & Fs::RECURSIVE) throw new Fs_Exception("Unable to " . ($fn == 'rename' ? 'move' : $fn) . " '{$this->_path}' to '$dir/': Directory does not exist");
+		if (!$dir->exists() && ~$flags & Fs::MKDIR) throw new Fs_Exception("Unable to " . ($fn == 'rename' ? 'move' : $fn) . " '{$this->_path}' to '$dir/': Directory does not exist");
 
 		$files = @scandir($this->_path);
 		if ($files === false) throw new Fs_Exception("Failed to read directory to $fn '{$this->_path}' to '$dir/$name'", error_get_last());
@@ -302,7 +302,7 @@ class Fs_Dir extends Fs_Node
 			if ($file == '.' || $file == '..') continue;
 			
 			try {
-				if (is_dir("{$this->_path}/$file)")) {
+				if (is_dir("{$this->_path}/$file)") && (!is_link("{$this->_path}/$file)") || $flags & ALWAYS_FOLLOW)) {
 					$this->$file->doCopyRename($fn, $dest, $file, $flags);
 				} else {
 					if ($dest->has($file)) {
@@ -310,7 +310,8 @@ class Fs_Dir extends Fs_Node
 						if (~$flags & Fs::OVERWRITE) throw new Fs_Exception("Unable to $fn '{$this->_path}/$file' to '{$dest->_path}/$file': Target already exists");
 					}
 					
-					$fn("{$this->_path}/$file", "{$dest->_path}/$file");
+					if (is_link("{$this->_path}/$file)") && ~$flags & ALWAYS_FOLLOW) symlink(readlink("{$this->_path}/$file"), "{$dest->_path}/$file");
+					  else $fn("{$this->_path}/$file", "{$dest->_path}/$file");
 				}
 			} catch (Fs_Exception $e) {
 				trigger_error($e->getMessage(), E_USER_WARNING);
@@ -318,7 +319,7 @@ class Fs_Dir extends Fs_Node
 		}
 		
 		if ($fn == 'rename') rmdir($this->_path);
-		return new static("$dir/$name");
+		return Fs::get("$dir/$name");
 	}
  	
 	/**

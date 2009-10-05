@@ -32,6 +32,39 @@ class Fs_DirTest extends Fs_NodeTest
         $this->Fs_Node = null;
     }
 
+
+    /**
+     * Test creating an Fs_Dir for a file
+     */
+    public function testConstruct_File()
+    {
+    	$this->setExpectedException('Q\Fs_Exception', "File '" . __FILE__ . "' is not a directory, but a file");
+    	new Fs_Dir(__FILE__);
+    }
+
+    /**
+     * Test creating an Fs_Dir for a symlink
+     */
+    public function testConstruct_Symlink()
+    {
+    	if (!symlink(__DIR__, "{$this->file}.x")) $this->markTestSkipped("Could not create symlink '{$this->file}.x'");
+    	
+    	$this->setExpectedException('Q\Fs_Exception', "File '{$this->file}.x' is a symlink");
+    	new Fs_Dir("{$this->file}.x");
+    }
+
+    /**
+     * Test creating an Fs_Dir for a symlink to a file
+     */
+    public function testConstruct_SymlinkFile()
+    {
+    	if (!symlink(__FILE__, "{$this->file}.x")) $this->markTestSkipped("Could not create symlink '{$this->file}.x'");
+    	    	
+    	$this->setExpectedException('Q\Fs_Exception', "File '{$this->file}.x' is not a directory, but a symlink to a file");
+    	new Fs_Dir("{$this->file}.x");
+    }
+    
+    
     /**
      * Tests Fs_Node->getContents()
      */
@@ -285,6 +318,61 @@ class Fs_DirTest extends Fs_NodeTest
         $this->assertTrue(file_exists($this->file));
         $this->assertTrue(file_exists("{$this->file}.x/" . basename($this->file) . ".y"));
     }
+
+    /**
+     * Tests Fs_Node->copy() merging existing dir
+     */
+    public function testCopy_Merge()
+    {
+    	if (function_exists('posix_getuid') && posix_getuid() == 0) $this->markTestSkipped("Won't test this as root for safety reasons.");
+    	
+    	mkdir("{$this->file}.x");
+    	file_put_contents("{$this->file}.x/" . basename($this->file) . ".y", "Another file");
+    	$new = $this->Fs_Node->copy("{$this->file}.x", Fs::MERGE);
+        
+        $this->assertType('Q\Fs_Dir', $new);
+        $this->assertEquals("{$this->file}.x", (string)$new);
+        $this->assertTrue(is_dir("{$this->file}.x"));
+        
+        $this->assertTrue(file_exists("{$this->file}.x/" . basename($this->file)));
+        $this->assertEquals('Test case for Fs_Dir', file_get_contents("{$this->file}.x/" . basename($this->file)));
+
+        $this->assertTrue(file_exists("{$this->file}.x/" . basename($this->file) . '.y'));
+        $this->assertEquals('Another file', file_get_contents("{$this->file}.x/" . basename($this->file) . '.y'));
+        
+    	$this->assertTrue(is_dir($this->file));
+    	$this->assertTrue(file_exists("{$this->file}/" . basename($this->file)));
+	}
+
+    /**
+     * Tests Fs_Node->copy() merging existing dir, overwriting files
+     */
+    public function testCopy_Merge_Overwrite()
+    {
+    	if (function_exists('posix_getuid') && posix_getuid() == 0) $this->markTestSkipped("Won't test this as root for safety reasons.");
+    	
+    	mkdir("{$this->file}.x");
+    	file_put_contents("{$this->file}/" . basename($this->file) . ".x", "I am the file");
+    	file_put_contents("{$this->file}.x/" . basename($this->file) . ".x", "I am scared");
+    	file_put_contents("{$this->file}.x/" . basename($this->file) . ".y", "Another file");
+    	$new = $this->Fs_Node->copy("{$this->file}.x", Fs::MERGE | Fs::OVERWRITE);
+        
+        $this->assertType('Q\Fs_Dir', $new);
+        $this->assertEquals("{$this->file}.x", (string)$new);
+        $this->assertTrue(is_dir("{$this->file}.x"));
+
+        $this->assertTrue(file_exists("{$this->file}.x/" . basename($this->file)));
+        $this->assertEquals('Test case for Fs_Dir', file_get_contents("{$this->file}.x/" . basename($this->file)));
+
+        $this->assertTrue(file_exists("{$this->file}.x/" . basename($this->file) . '.x'));
+        $this->assertEquals('I am the file', file_get_contents("{$this->file}.x/" . basename($this->file) . '.x'));
+
+        $this->assertTrue(file_exists("{$this->file}.x/" . basename($this->file) . '.y'));
+        $this->assertEquals('Another file', file_get_contents("{$this->file}.x/" . basename($this->file) . '.y'));
+        
+    	$this->assertTrue(is_dir($this->file));
+    	$this->assertTrue(file_exists("{$this->file}/" . basename($this->file)));
+	}
 	
     /**
      * Tests Fs_Node->copyTo()
