@@ -1,7 +1,7 @@
 <?php
 namespace Q;
 
-require_once 'Q/Exception.php';
+require_once 'Q/Transform/Exception.php';
 require_once 'Q/Transform.php';
 
 /**
@@ -34,7 +34,13 @@ class Transform_PHP extends Transform
 	 * Non fatal errors
 	 * @var array
 	 */
-	protected $warnings = array ();
+	protected $warnings = array();
+	
+    /**
+     * File to transform
+     * @var mixed
+     */
+    public $file;
 	
 	/**
 	 * Class constructor
@@ -43,8 +49,9 @@ class Transform_PHP extends Transform
 	 */
 	public function __construct($options = array()) 
 	{
-		if (! isset ( $options ['file'] ) && isset ( $options [0] )) $options ['file'] = $options [0];
-		
+        if (isset($options[0])) $options['file'] = Fs::file($options[0]);
+          elseif (isset($options['file']) && !($options['file'] instanceof Fs_Node)) $options['file'] = Fs::file($options['file']);
+				
 		parent::__construct ( $options );	
 	}
 	
@@ -56,11 +63,11 @@ class Transform_PHP extends Transform
 	 */
 	public function process($data = null) 
 	{
-        if (!isset($this->file) || !file_exists ( $this->file ) || !is_file($this->file)) throw new Exception ( "Unable to start the PHP file transformation : File '" . $this->file . "' does not exist, is not accessable (check permissions) or is not a regular file." );
+        if (!isset($this->file) || !($this->file instanceof Fs_Node)) throw new Transform_Exception ( "Unable to start the PHP file transformation : File does not exist, is not accessable (check permissions) or is not a regular file." );
 		
-        if ($this->chainNext) $data = $this->chainNext->process($data);
+        if ($this->chainInput) $data = $this->chainInput->process($data);
         
-        if (! is_array ( $data )) throw new Exception ( "Unable to start the PHP file transformation : The param specified with process is not an array." );
+        if (! is_array ( $data )) throw new Transform_Exception ( "Unable to start the PHP file transformation : The param specified with process is not an array." );
 		
 		${chr(7) . 'variables'} = $data;
 		unset ( $data );
@@ -76,7 +83,7 @@ class Transform_PHP extends Transform
 			ob_end_clean ();
 			$this->stopErrorHandler ();
 			
-			throw new Exception ( "Could not parse file '{$this->file}'.", $exception);
+			throw new Transform_Exception ( "Could not parse file '{$this->file}'.", $exception);
 		}
 		
 		ob_end_clean ();
@@ -84,29 +91,7 @@ class Transform_PHP extends Transform
 		
 		return $contents;
 	}
-	
-	/**
-	 * Execute a PHP file and output the result
-	 *
-	 * @param array  $array
-	 * @return string
-	 */
-	public function output($data) 
-	{
-		echo $this->process($data);
-	}
-	
-    /**
-     * Do the transformation and save the result into a file.
-     *
-     * @param sting $filename File name
-     * @param mixed $data     Data to tranform
-     */
-    public function save($filename, $data) 
-    {
-        if(!file_put_contents($filename, $this->process($data))) throw new Exception("Unable to create file {$filename}");        
-    }
-	
+
 	/**
 	 * Start error handler
 	 */

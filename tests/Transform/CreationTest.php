@@ -1,8 +1,7 @@
 <?php
 use Q\Transform;
 
-require_once dirname(dirname(dirname(__FILE__))) . '/TestHelper.php';
-require_once 'PHPUnit/Framework/TestCase.php';
+require_once 'TestHelper.php';
 require_once 'PHPUnit/TextUI/TestRunner.php';
 
 require_once 'Q/Transform.php';
@@ -46,14 +45,112 @@ class Transform_CreationTest extends \PHPUnit_Framework_TestCase
         $transform = Transform::with('php');
         $this->assertType('Q\Transform_PHP', $transform);
     }
+
+    /**
+     * Test driver Text2HTML
+     */
+    public function testDriverText2HTML()
+    {
+        $transform = Transform::with('text2html');
+        $this->assertType('Q\Transform_Text2HTML', $transform);
+    }
     
     /**
-     * Test driver array2xml
+     * Test driver HTML2Text
      */
-    public function testDriverArray2XML()
+    public function testDriverHTML2Text()
     {
-        $transform = Transform::with('array2xml');
-        $this->assertType('Q\Transform_Array2XML', $transform);
+        $transform = Transform::with('html2text');
+        $this->assertType('Q\Transform_HTML2Text', $transform);
+    }
+    
+    /**
+     * Test driver unserialize_xml
+     */
+    public function testDriverUnserializeXML()
+    {
+        $transform = Transform::with('unserialize-xml');
+        $this->assertType('Q\Transform_Unserialize_XML', $transform);
+    }
+    /**
+     * Test driver serialize_xml
+     */
+    public function testDriverSerializeXML()
+    {
+        $transform = Transform::with('serialize-xml');
+        $this->assertType('Q\Transform_Serialize_XML', $transform);
+    }
+
+    /**
+     * Test driver unserialize_json
+     */
+    public function testDriverUnserializeJson()
+    {
+        $transform = Transform::with('unserialize-json');
+        $this->assertType('Q\Transform_Unserialize_Json', $transform);
+    }
+    
+    /**
+     * Test driver serialize_json
+     */
+    public function testDriverSerializeJson()
+    {
+        $transform = Transform::with('serialize-json');
+        $this->assertType('Q\Transform_Serialize_Json', $transform);
+    }
+    
+    /**
+     * Test driver unserialize_php
+     */
+    public function testDriverUnserializePHP()
+    {
+        $transform = Transform::with('unserialize-php');
+        $this->assertType('Q\Transform_Unserialize_PHP', $transform);
+    }
+
+    /**
+     * Test driver serialize_php
+     */
+    public function testDriverSerializePHP()
+    {
+        $transform = Transform::with('serialize-php');
+        $this->assertType('Q\Transform_Serialize_PHP', $transform);
+    }
+    
+    /**
+     * Test driver unserialize_yaml
+     */
+    public function testDriverUnserializeYaml()
+    {
+        $transform = Transform::with('unserialize-yaml');
+        $this->assertType('Q\Transform_Unserialize_Yaml', $transform);
+    }
+    
+    /**
+     * Test driver serialize_yaml
+     */
+    public function testDriverSerializeYaml()
+    {
+        $transform = Transform::with('serialize-yaml');
+        $this->assertType('Q\Transform_Serialize_Yaml', $transform);
+    }
+
+    /**
+     * Test driver unserialize_ini
+     */
+    public function testDriverUnserializeIni()
+    {
+        $transform = Transform::with('unserialize-ini');
+        $this->assertType('Q\Transform_Unserialize_Ini', $transform);
+    }
+    
+    /**
+     * Test driver serialize_ini
+     */
+    public function testDriverSerializeIni()
+    {
+        $transform = Transform::with('serialize-ini');
+        $this->assertType('Q\Transform_Serialize_Ini', $transform);
     }
     
     public function testOptions()
@@ -68,6 +165,4 @@ class Transform_CreationTest extends \PHPUnit_Framework_TestCase
     }
     
 }
-
-if (PHPUnit_MAIN_METHOD == 'Transform_CreationTest::main') Transform_CreationTest::main();
 

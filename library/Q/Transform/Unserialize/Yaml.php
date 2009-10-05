@@ -1,8 +1,9 @@
 <?php
 namespace Q;
 
-require_once 'Q/Exception.php';
+require_once 'Q/Transform/Exception.php';
 require_once 'Q/Transform.php';
+require_once 'Q/Transform/Serialize/Yaml.php';
 
 /**
  * Load a yaml file into an array
@@ -12,6 +13,19 @@ require_once 'Q/Transform.php';
 class Transform_Unserialize_Yaml extends Transform
 {
     /**
+     * Get a transformer that does the reverse action.
+     * 
+     * @param Transformer $chain
+     * @return Transformer
+     */
+    public function getReverse($chain=null)
+    {
+        $ob = new Transform_Serialize_Yaml($this);
+        if ($chain) $ob->chainInput($chain);
+        return $this->chainInput ? $this->chainInput->getReverse($ob) : $ob;  
+    }
+	
+	/**
      * Transform data and return the result.
      *
      * @param string $data  Yaml string or file
@@ -21,7 +35,7 @@ class Transform_Unserialize_Yaml extends Transform
     {
         if ($this->chainInput) $data = $this->chainInput->process($data);
         
-    	if ($data instanceof Fs_Item) $data = $data->getContents();
+    	if ($data instanceof Fs_Node) $data = $data->getContents();
           else $data = (string)$data;
         
         $data = syck_load($data);

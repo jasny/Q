@@ -1,14 +1,16 @@
 <?php
 namespace Q;
 
-require_once 'Q/Exception.php';
+require_once 'Q/Transform/Exception.php';
 require_once 'Q/Transform.php';
 require_once 'Q/Transform/Unserialize/Yaml.php';
-require_once 'Q/Fs.php';
 
 /**
  * Transform array to yaml
  *
+ * Options:
+ *   fastDump   set true to use syck_dump
+ *   
  * @package Transform
  */
 class Transform_Serialize_Yaml extends Transform
