@@ -10,14 +10,6 @@ require_once 'Q/Fs/Node.php';
  */
 class Transform_HTML2TextTest extends PHPUnit_Framework_TestCase
 {    
-    /**
-	 * Run test from php
-	 */
-    public static function main() 
-    {
-        PHPUnit_TextUI_TestRunner::run(new PHPUnit_Framework_TestSuite(__CLASS__));
-    }
-    
 	/**
 	 * Tests Transform_HTML2Text->process()
 	 */

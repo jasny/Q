@@ -10,14 +10,6 @@ require_once 'Q/Transform/Unserialize/Json.php';
 class Transform_Unserialize_JsonTest extends PHPUnit_Framework_TestCase 
 {
 	/**
-	 * Run test from php
-	 */
-	public static function main() 
-	{
-		PHPUnit_TextUI_TestRunner::run ( new PHPUnit_Framework_TestSuite ( __CLASS__ ) );
-	}
-		
-	/**
 	 * Tests Transform_Unserialize_Json->process()
 	 */
 	public function testProcess() 

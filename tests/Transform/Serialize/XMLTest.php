@@ -10,14 +10,6 @@ require_once 'Q/Transform/Serialize/XML.php';
 class Transform_Serialize_XMLTest extends PHPUnit_Framework_TestCase 
 {
 	/**
-	 * Run test from php
-	 */
-	public static function main() 
-	{
-		PHPUnit_TextUI_TestRunner::run ( new PHPUnit_Framework_TestSuite ( __CLASS__ ) );
-	}
-		
-	/**
 	 * Tests Transform_Serialize_XML->process()
 	 */
 	public function testProcess() 

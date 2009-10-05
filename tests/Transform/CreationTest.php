@@ -11,14 +11,6 @@ require_once 'Q/Transform.php';
  */
 class Transform_CreationTest extends \PHPUnit_Framework_TestCase
 {
-	/**
-	 * Run test from php
-	 */
-    public static function main()
-    {
-        PHPUnit_TextUI_TestRunner::run(new PHPUnit_Framework_TestSuite(__CLASS__));
-    }
-    
     /**
      * Test driver xsl
      */

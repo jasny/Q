@@ -10,26 +10,6 @@ require_once 'Q/Fs/Node.php';
  */
 class Transform_ReplaceTest extends PHPUnit_Framework_TestCase
 {    
-    /**
-     * Marker for output transformation test
-     * @var string
-     */
-    protected $markerForOutput = '###%s###';
-    
-    /**
-     * The file path where to save the data when run test save() method
-     * @var string
-     */
-    protected $filename = '/tmp/replace.txt';
-	
-	/**
-	 * Run test from php
-	 */
-    public static function main() 
-    {
-        PHPUnit_TextUI_TestRunner::run(new PHPUnit_Framework_TestSuite(__CLASS__));
-    }
-
     public function shutDown()
     {
     	ob_end_clean();

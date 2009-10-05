@@ -11,14 +11,6 @@ require_once 'Q/Fs/Node.php';
 class Transform_Unserialize_IniTest extends PHPUnit_Framework_TestCase 
 {
 	/**
-	 * Run test from php
-	 */
-	public static function main() 
-	{
-		PHPUnit_TextUI_TestRunner::run ( new PHPUnit_Framework_TestSuite ( __CLASS__ ) );
-	}
-		
-	/**
 	 * Tests Transform_Unserialize_Ini->process()
 	 */
 	public function testProcess() 

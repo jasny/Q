@@ -12,11 +12,12 @@ class Transform_Unserialize_YamlTest extends PHPUnit_Framework_TestCase
 	/**
 	 * Run test from php
 	 */
-	public static function main() 
+	protected function setUp() 
 	{
-		PHPUnit_TextUI_TestRunner::run ( new PHPUnit_Framework_TestSuite ( __CLASS__ ) );
+        if (!extension_loaded('syck')) $this->markTestSkipped('Unable to run Transform_Unserialize_Yaml test : Syck extension is not installed');
 	}
 		
+	
 	/**
 	 * Tests Transform_Unserialize_Yaml->process()
 	 */
