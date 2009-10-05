@@ -3,7 +3,7 @@ use Q\Transform_Text2HTML, Q\Transform;
 
 require_once 'TestHelper.php';
 require_once 'Q/Transform/Text2HTML.php';
-require_once 'Q/Fs.php';
+require_once 'Q/Fs/Node.php';
 
 /**
  * Transform_Text2HTML test case.
@@ -173,9 +173,12 @@ class Transform_Text2HTMLTest extends PHPUnit_Framework_TestCase
      */
     public function testGetReverse() 
     {
-        $this->setExpectedException('Q\Transform_Exception', "There is no reverse transformation defined.");
+        $mock = $this->getMock('Q\Transform', array('getReverse', 'process'));
+        $mock->expects($this->once())->method('getReverse')->with($this->isInstanceOf('Q\Transform_HTML2Text'))->will($this->returnValue('reverse of mock transformer'));
         
         $transform = new Transform_Text2HTML();
-        $transform->getReverse();
+        $transform->chainInput($mock);
+        
+        $this->assertEquals('reverse of mock transformer', $transform->getReverse());
     }
 }
