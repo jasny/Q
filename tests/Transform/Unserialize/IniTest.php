@@ -3,6 +3,7 @@ use Q\Transform_Unserialize_Ini, Q\Transform;
 
 require_once 'TestHelper.php';
 require_once 'Q/Transform/Serialize/Ini.php';
+require_once 'Q/Fs/Node.php';
 
 /**
  * Transform_Unserialize_Ini test case.

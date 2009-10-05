@@ -37,6 +37,7 @@ abstract class Transform implements Transformer
 	  'replace' => 'Q\Transform_Replace',
 	  'php' => 'Q\Transform_PHP',
 	  'text2html' => 'Q\Transform_Text2HTML',
+	  'html2text' => 'Q\Transform_HTML2Text',
 	
 	  'serialize-json' => 'Q\Transform_Serialize_Json',
 	  'serialize-xml' => 'Q\Transform_Serialize_XML',
