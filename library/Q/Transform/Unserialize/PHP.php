@@ -1,10 +1,9 @@
 <?php
 namespace Q;
 
-require_once 'Q/Exception.php';
+require_once 'Q/Transform/Exception.php';
 require_once 'Q/Transform.php';
-require_once 'Q/Transform/PHP.php';
-require_once 'Q/Fs.php';
+require_once 'Q/Transform/Serialize/PHP.php';
 
 /**
  * Execute PHP file and return output as string.
@@ -38,25 +37,38 @@ class Transform_Unserialize_PHP extends Transform
      */
     protected $warnings = array ();
     
-	/**
+    /**
+     * Get a transformer that does the reverse action.
+     * 
+     * @param Transformer $chain
+     * @return Transformer
+     */
+    public function getReverse($chain=null)
+    {
+        $ob = new Transform_Serialize_PHP($this);
+        if ($chain) $ob->chainInput($chain);
+        return $this->chainInput ? $this->chainInput->getReverse($ob) : $ob;  
+    }
+    
+    /**
 	 * Execute a PHP file and return the output
 	 *
-	 * @param mixed  $data Data to transform (string or Fs_Item)
+	 * @param mixed  $data Data to transform (string or Fs_Node)
 	 * @return string
 	 */
 	public function process($data) 
 	{
         if ($this->chainInput) $data = $this->chainInput->process($data);
 		
-        if (!is_string($data) && !($data instanceof Fs_Item)) throw new Exception("Wrong parameter type : " . gettype($data) . " given when string should be pass");
-        
+        if (!is_string($data) && !($data instanceof Fs_Node)) throw new Transform_Exception("Wrong parameter type : " . gettype($data) . " given when string should be pass");
+            	
 		$this->startErrorHandler();
-        		
+
 		try {
             ob_start ();
-	        if ($data instanceof Fs_Item) {
-	            $return = include (string)$data->path;
-	            if ($return === true) {
+	        if ($data instanceof Fs_Node) {
+	            $return = include (string)$data;
+	            if ($return === true || $return === 1) {
 	            	$data = ob_get_contents();
 	            	$return = eval('return ' . $data . ';');
 	            }
@@ -67,7 +79,7 @@ class Transform_Unserialize_PHP extends Transform
             ob_end_clean ();
             $this->stopErrorHandler ();
             
-            throw new Exception ( "Could not unserialize data", $exception->getMessage());
+            throw new Transform_Exception ( "Could not unserialize data", $exception->getMessage());
         }
         
         ob_end_clean ();
@@ -138,4 +150,3 @@ class Transform_Unserialize_PHP extends Transform
     }
 	
 }
-

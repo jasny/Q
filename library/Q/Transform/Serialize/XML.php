@@ -1,13 +1,17 @@
 <?php
 namespace Q;
 
-require_once 'Q/Exception.php';
+require_once 'Q/Transform/Exception.php';
 require_once 'Q/Transform.php';
 require_once 'Q/Transform/Unserialize/XML.php';
 
 /**
  * Transform a multi dimensional array to an XML
  *
+ * Options:
+ *   rootNodeName  Root node name that will be pass when create the xml (default is 'root') 
+ *   map           Map values as array(tagname=>mapping) using '@att', 'node', '"string"' or combine as '"string".@node' . I recommend not to use it.
+ *   
  * @package Transform
  */
 class Transform_Serialize_XML extends Transform
@@ -47,6 +51,7 @@ class Transform_Serialize_XML extends Transform
     protected function ArrayToXML(&$data)
     {
         foreach($data as $key =>&$value) {
+        	
             if (is_array($value)) {
             	$this->writer->startElement($key);
             	$this->ArrayToXML($value);
@@ -66,8 +71,16 @@ class Transform_Serialize_XML extends Transform
      */
     protected function exec($data=null) 
     {
-        if (!is_array($data)) throw new Exception('Unable to transform Array to XML: data is not array');
+        if (!is_array($data)) throw new Transform_Exception('Unable to transform Array to XML: data is not array');
         
+        if (isset($this->map)) {
+        	if (!is_array($this->map)) throw new Transform_Exception("Unable to transform Array to XML. map type " . gettype($this->map) . " is incorect. Array is expected."); 
+        	
+            foreach($this->map as $key=>$value) {
+            	$this->mapArray($key, $data);
+            }
+        }
+
 		$this->writer->setIndent(true);
         $this->writer->startDocument('1.0', 'ISO-8859-1');
 		$this->writer->startElement($this->rootNodeName);
@@ -78,6 +91,28 @@ class Transform_Serialize_XML extends Transform
         return $this->writer;
     }
 
+	/**
+	 * Map an array
+	 *
+	 * @param mixed $needle The key to check for
+	 * @param mixed $data The array to search
+	 */ 
+    protected function mapArray($needle, &$data) {
+        global $map;
+        foreach ($data as $key => &$value) {
+            if ($needle == $key) {
+                $value = array($this->map[$key]=>$value);
+                return;
+            }
+            if (is_array($value)) {
+                if ($this->mapArray($needle, $value) == true) return;
+                else continue;
+            }
+        }
+           
+        return;
+    }
+   
     /**
      * Start the transformation and return the result.
      *

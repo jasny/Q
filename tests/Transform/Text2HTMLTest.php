@@ -1,53 +1,15 @@
 <?php
 use Q\Transform_Text2HTML, Q\Transform;
 
-require_once dirname(dirname(dirname(__FILE__))) . '/TestHelper.php';
+require_once 'TestHelper.php';
 require_once 'Q/Transform/Text2HTML.php';
-require_once 'PHPUnit/Framework/TestCase.php';
+require_once 'Q/Fs/Node.php';
 
 /**
- * Transform_Text2XML test case.
+ * Transform_Text2HTML test case.
  */
 class Transform_Text2HTMLTest extends PHPUnit_Framework_TestCase
 {    
-    /**
-     * The file path where to save the data when run test save() method
-     * @var string
-     */
-    protected $filename = '/home/carmen/projects/text2html.html';
-
-    /**
-     * The file path of the text file that will be transformed
-     * @var string
-     */
-    protected $file = '/home/carmen/add_handle_into_db.txt';
-    
-    /**
-     * The text that will be transformed 
-     */
-    protected $template = "Lorem ipsum dolor sit amet, consectetur adipisicing elit, ana@mail.car.com.  
-    sed do eiusmod tempor incididunt ut labore et dolore www.test.com magna aliqua . 
-        https://admin.helderhosting.nl/index.php?error=De+gebruikersnaam%2Fwachtwoord+combinatie+is+onjuist
-        http://test.com/aaaa/b.txt
-    Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-    Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-    Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. 
-    aha@xxx.com";
-    
-    /**
-     * Expected result after transformation of then template
-     */
-    protected $expectedResult=<<<HTML
-Lorem ipsum dolor sit amet, consectetur adipisicing elit, <a href="mailto:ana@mail.car.com">ana@mail.car.com</a>.  <br />
-    sed do eiusmod tempor incididunt ut labore et dolore <a href="www.test.com">www.test.com</a> magna aliqua . <br />
-        <a href="https://admin.helderhosting.nl/index.php?error=De+gebruikersnaam%2Fwachtwoord+combinatie+is+onjuist">https://admin.helderhosting.nl/index.php?error=De+gebruikersnaam%2Fwachtwoord+combinatie+is+onjuist</a><br />
-        <a href="http://test.com/aaaa/b.txt">http://test.com/aaaa/b.txt</a><br />
-    Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. <br />
-    Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. <br />
-    Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. <br />
-    <a href="mailto:aha@xxx.com">aha@xxx.com</a>
-HTML;
-    
     /**
 	 * Run test from php
 	 */
@@ -57,44 +19,166 @@ HTML;
     }
     
 	/**
-	 * Tests Transform_Text2XML->process()
+	 * Tests Transform_Text2HTML->process()
 	 */
-    public function testProcess ()
+    public function testProcess()
     {
         $transform = new Transform_Text2HTML();
-        $contents = $transform->process($this->template);
+        $contents = $transform->process("Lorem ipsum dolor sit amet, ana@mail.car.com.  
+    sed do ... www.test.com magna aliqua . 
+        https://admin.helderhosting.nl/index.php?error=De+gebruikersnaam%2Fwachtwoord+combinatie+is+onjuist
+        http://test.com/aaaa/b.txt
+    Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+        aha@xxx.com");
+        $this->assertType('Q\Transform_Text2HTML', $transform);
+        $this->assertEquals('Lorem ipsum dolor sit amet, <a href="mailto:ana@mail.car.com">ana@mail.car.com</a>.  <br />
+    sed do ... <a href="www.test.com">www.test.com</a> magna aliqua . <br />
+        <a href="https://admin.helderhosting.nl/index.php?error=De+gebruikersnaam%2Fwachtwoord+combinatie+is+onjuist">https://admin.helderhosting.nl/index.php?error=De+gebruikersnaam%2Fwachtwoord+combinatie+is+onjuist</a><br />
+        <a href="http://test.com/aaaa/b.txt">http://test.com/aaaa/b.txt</a><br />
+    Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. <br />
+        <a href="mailto:aha@xxx.com">aha@xxx.com</a>'
+        , $contents);
+    }
+    
+    /**
+     * Tests Transform_Text2HTML->process()
+     */
+    public function testProcess_DontConvert_Emails_And_Links()
+    {
+        $transform = new Transform_Text2HTML(array('convertEmail'=>false, 'convertLink'=>false));
+        $contents = $transform->process("Lorem ipsum dolor sit amet, ana@mail.car.com.  
+    sed do ... www.test.com magna aliqua . 
+        https://admin.helderhosting.nl/index.php?error=De+gebruikersnaam%2Fwachtwoord+combinatie+is+onjuist
+        http://test.com/aaaa/b.txt
+    Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+        aha@xxx.com");
+        $this->assertType('Q\Transform_Text2HTML', $transform);
+        $this->assertEquals('Lorem ipsum dolor sit amet, ana@mail.car.com.  <br />
+    sed do ... www.test.com magna aliqua . <br />
+        https://admin.helderhosting.nl/index.php?error=De+gebruikersnaam%2Fwachtwoord+combinatie+is+onjuist<br />
+        http://test.com/aaaa/b.txt<br />
+    Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. <br />
+        aha@xxx.com'
+        , $contents);
+    }
+    
+    /**
+     * Tests Transform_Text2HTML->process()
+     */
+    public function testProcess_Fs() 
+    {
+        $this->tmpfile = tempnam(sys_get_temp_dir(), 'Q-');
+        file_put_contents($this->tmpfile, 'Lorem ipsum dolor sit amet');
+
+        $file = $this->getMock('Q\Fs_Node', array('__toString', 'getContents'), array(), '', false);
+        $file->expects($this->any())->method('__toString')->will($this->returnValue($this->tmpfile));
+        $file->expects($this->any())->method('getContents')->will($this->returnValue(file_get_contents($this->tmpfile)));
+        
+        $transform = new Transform_Text2HTML();
+
+        $contents = $transform->process($file);
 
         $this->assertType('Q\Transform_Text2HTML', $transform);
-        $this->assertEquals($this->expectedResult, $contents);
+        $this->assertEquals('Lorem ipsum dolor sit amet', $contents);
     }
 
+    /**
+     * Tests Transform_text2HTML->process() with a chain
+     */
+    public function testProcess_Chain() 
+    {
+        $mock = $this->getMock('Q\Transform', array('process'));
+        $mock->expects($this->once())->method('process')->with($this->equalTo('test'))->will($this->returnValue("Lorem ipsum dolor sit amet, ana@mail.car.com.  
+    sed do ... www.test.com magna aliqua . 
+        https://admin.helderhosting.nl/index.php?error=De+gebruikersnaam%2Fwachtwoord+combinatie+is+onjuist
+        http://test.com/aaaa/b.txt
+    Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+        aha@xxx.com"));
+        
+        $transform = new Transform_Text2HTML();
+        $transform->chainInput($mock);
+        $contents = $transform->process('test');
+
+        $this->assertType('Q\Transform_Text2HTML', $transform);
+        $this->assertEquals('Lorem ipsum dolor sit amet, <a href="mailto:ana@mail.car.com">ana@mail.car.com</a>.  <br />
+    sed do ... <a href="www.test.com">www.test.com</a> magna aliqua . <br />
+        <a href="https://admin.helderhosting.nl/index.php?error=De+gebruikersnaam%2Fwachtwoord+combinatie+is+onjuist">https://admin.helderhosting.nl/index.php?error=De+gebruikersnaam%2Fwachtwoord+combinatie+is+onjuist</a><br />
+        <a href="http://test.com/aaaa/b.txt">http://test.com/aaaa/b.txt</a><br />
+    Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. <br />
+        <a href="mailto:aha@xxx.com">aha@xxx.com</a>', $contents);
+    }
+    
+    /**
+     * Tests Transform_Text2HTML->process() with wrong data
+     */
+    public function testProcess_Exception_WrongData() 
+    {
+        $this->setExpectedException('Q\Transform_Exception', "Unable to start text transformation: Incorrect data provided");
+        $transform = new Transform_Text2HTML();
+        $contents = $transform->process(array());
+    }
+
+    /**
+     * Tests Transform_Text2HTML->process() with an empty file data
+     */
+    public function testProcess_Exception_EmptyFileData() 
+    {
+    	
+        $this->tmpfile = tempnam(sys_get_temp_dir(), 'Q-');
+        file_put_contents($this->tmpfile, '');
+
+        $file = $this->getMock('Q\Fs_Node', array('__toString', 'getContents'), array(), '', false);
+        $file->expects($this->any())->method('__toString')->will($this->returnValue($this->tmpfile));
+        $file->expects($this->once())->method('getContents')->will($this->returnValue(file_get_contents($this->tmpfile)));
+        
+    	$this->setExpectedException('Q\Transform_Exception', "Unable to start text file transformation: empty data");
+        $transform = new Transform_Text2HTML();
+        $contents = $transform->process($file);
+    }
+    
 	/**
-	 * Tests Transform_Replace->output() with a simple string
+	 * Tests Transform_Text2HTML->output()
 	 */
 	public function testOutput()
 	{
 		$transform = new Transform_Text2HTML();
 		ob_start();
-        $transform->output($this->template);
+		try {
+            $transform->output('Lorem ipsum dolor sit amet, ana@mail.car.com. \'sed do ... "www.test.com magna aliqua".');
+        } catch (Expresion $e) {
+            ob_end_clean();
+            throw $e;
+        }
         $contents = ob_get_contents();
         ob_end_clean();
-
         $this->assertType('Q\Transform_Text2HTML', $transform);
-        $this->assertEquals($this->expectedResult, $contents);
+        $this->assertEquals('Lorem ipsum dolor sit amet, <a href="mailto:ana@mail.car.com">ana@mail.car.com</a>. \'sed do ... &quot;<a href="www.test.com">www.test.com</a> magna aliqua&quot;.', $contents);
 	}
 
     /**
-     * Tests Transform_Array2XML->save()
+     * Tests Transform_Text2HTML->save()
      */
     public function testSave() 
     {
-        $transform = new Transform_Text2HTML();
-        $transform->save($this->filename, $this->template);
+        $this->tmpfile = tempnam(sys_get_temp_dir(), 'Q-');
+    	$transform = new Transform_Text2HTML();
+        $transform->save($this->tmpfile, 'Lorem ipsum dolor sit amet, ana@mail.car.com. \'sed do ... "www.test.com magna aliqua".');
                 
         $this->assertType('Q\Transform_Text2HTML', $transform);
-        $this->assertEquals($this->expectedResult, file_get_contents($this->filename));
+        $this->assertEquals('Lorem ipsum dolor sit amet, <a href="mailto:ana@mail.car.com">ana@mail.car.com</a>. \'sed do ... &quot;<a href="www.test.com">www.test.com</a> magna aliqua&quot;.', file_get_contents($this->tmpfile));
+    }
+
+    /**
+     * Tests Transform_Text2HTML->getReverse()
+     */
+    public function testGetReverse() 
+    {
+        $mock = $this->getMock('Q\Transform', array('getReverse', 'process'));
+        $mock->expects($this->once())->method('getReverse')->with($this->isInstanceOf('Q\Transform_HTML2Text'))->will($this->returnValue('reverse of mock transformer'));
+        
+        $transform = new Transform_Text2HTML();
+        $transform->chainInput($mock);
+        
+        $this->assertEquals('reverse of mock transformer', $transform->getReverse());
     }
 }
-
-if (PHPUnit_MAIN_METHOD == 'Transform_Text2HTMLTest::main') Transform_Text2HTMLTest::main();
-

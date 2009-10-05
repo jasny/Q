@@ -421,7 +421,7 @@ function running_main()
  */
 function var_give($expression, $return=false, $object_string=false, &$passed=array())
 {
-    if (in_array($expression, $passed)) {
+    if (in_array($expression, $passed)) { 
     	trigger_error("Skip circular reference", E_USER_WARNING);
     	return 'null';
     }

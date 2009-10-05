@@ -47,13 +47,7 @@ class Validator_Compare extends Validator
         'a_all' => 'all of',
         'a_any' => 'any of',
 	);
-	
-	/**
-     * Description for current date, used to create description for {date}
-     * @var     string
-     */
-	public static $curdateDescription = 'the current date';
-		    
+			    
     /**
      * Functions for comparing values
      * One function for each operator. Created on demand
@@ -70,41 +64,11 @@ class Validator_Compare extends Validator
 	private $_operator = "==";
 
     /**
-     * Compareson operator
+     * Comparison operator
      * May only be set at construction
      * @var  string
      */
 	private $_valueCompare;
-
-	
-	/**
-     * Propery get method for $this->description
-     * @return    string
-     */
-    function __getDescription()
-    {
-    	$desc = self::$operatorDescription[self::findOperator($this->_operator)];
-        if (!empty($this->_valueCompare)) $desc .= ($desc ? " " : "") . ($this->_valueCompare == '#date#' || $this->_valueCompare == '#now#' ? self::$curdateDescription : (is_array($this->_valueCompare) ? join(', ', $this->_valueCompare) : $this->_valueCompare));
-        return $desc;
-    } 
-    	
-	
-	/**
-     * Returns the correct operator to use for comparing the values
-     *
-     * @param     string     $operator    Operator name
-     * @param     string     $default     Returned when operator cannot be found, returns $operator by is $default is NULL
-     * @return    string     Operator to use for validation
-     */
-    static function findOperator($operator, $default=null)
-    {
-        switch (true) {
-        	case empty($operator):							return '==';
-        	case isset(self::$_mOperators[$operator]):		return self::$_mOperators[$operator];
-	        case in_array($operator, self::$_mOperators):	return $operator;
-	        default:						            	return isset($default) ? $default : $operator;
-        }
-    }
 
 	/**
      * Check the expression can be passed as a valid operator 
@@ -119,40 +83,6 @@ class Validator_Compare extends Validator
 		$result = isset(self::$_mOperators[$operator]) || in_array($operator, self::$_mOperators) || ($allowExpression && preg_match('/^(!|not\b)?\s*(' . join('|', array_map('preg_quote', self::$_mOperators)) . ')\s*(' . Validator::PREG_VALUE . ')$/i', $operator));
 		return $result;
     }
-        
-    
-	/**
-     * Returns the function for comparing the values
-     *
-     * @param     string     $operator    Operator name
-     * @return    string     Operator to use for validation
-     */
-    function operatorFunction($operator=null)
-    {
-    	if (!isset($operator) && isset($this) && $this instanceof self) $operator = $this->_operator;
-    	$operator = self::findOperator($operator);
-    	if (isset(self::$_mOperatorFunctions[$operator])) return self::$_mOperatorFunctions[$operator];
-    	
-    	switch (true) {
-    		case $operator == 'a_any': $cmp = '> 0';
-    		case $operator == 'a_all': if (!isset($cmp)) $cmp = '==count($a)';
-	    		$compareFn = create_function('$a, $b', 'return count(array_intersect($a, $b)) ' . $cmp . ';');
-	    		break;
-	    		
-	    	case strpos($operator, ';') !== false:
-    			$compareFn = "";
-    			foreach (explode(';', $operator) as $operator) $compareFn .= ($operator=='!' ? '$a = !$a; ' : '$a = $a' . $operator . '$b; ');
-    			$compareFn = create_function('$a, $b', $compareFn . 'return $a;');
-    			break;
-    			
-	    	default:
-    			$compareFn = create_function('$a, $b', 'return $a ' . $operator . ' $b;');
-    	}
-    	
-        self::$_mOperatorFunctions[$operator] = $compareFn;
-        return $compareFn;
-    }
-    
 
 	/**
      * Class constructor
@@ -172,18 +102,6 @@ class Validator_Compare extends Validator
 			if (isset($valueCompare)) $this->_valueCompare = $valueCompare;
 		}
 	}
-
-	/**
-     * Factory Clone method
-     *
-     * @param    string     $valueCompare     Value to compare with. Null is compare among eachother
-     * @return   void
-     */
-	function __factoryClone($valueCompare=null)
-	{
-		if (isset($valueCompare)) $this->_valueCompare = $valueCompare;
-	}
-		
 	
     /**
      * Compare the values.
@@ -199,8 +117,32 @@ class Validator_Compare extends Validator
     	if (!isset($valueCompare)) $valueCompare = $this->_valueCompare;
     	if ($value === null || $value === "" || $valueCompare === null || $valueCompare === "") return null;
 
-    	$compareFn = self::operatorFunction($this->_operator);
-    	if (empty($compareFn)) throw new Validator_Exception("Unable to perform compare for operator '" . $this->_operator . "'");
+        $operator = $this->_operator;
+        if (empty($operator)) throw new Exception ("Unable to perform compare : empty operator is not valid");
+          elseif (isset(self::$_mOperators[$operator])) $operator = self::$_mOperators[$operator];
+// ??            elseif (!in_array($operator, self::$_mOperators)) throw new Exception ("Unable to perform compare : specified operator is not valid");
+
+        if (isset(self::$_mOperatorFunctions[$operator])) 
+        {
+        	$compareFn = self::$_mOperatorFunctions[$operator];
+        }else {
+            if ($operator == 'a_any') {
+                $cmp = '> 0';
+                $compareFn = create_function('$a, $b', 'return $a ' . $operator . ' $b;');
+            }elseif ($operator == 'a_all') {
+                if (!isset($cmp)) $cmp = '==count($a)';
+                $compareFn = create_function('$a, $b', 'return count(array_intersect($a, $b)) ' . $cmp . ';');
+            }elseif(strpos($operator, ';') !== false) {
+                $compareFn = "";
+                foreach (explode(';', $operator) as $operator) $compareFn .= ($operator=='!' ? '$a = !$a; ' : '$a = $a' . $operator . '$b; ');
+                $compareFn = create_function('$a, $b', $compareFn . 'return $a;');
+            }else {
+                $compareFn = create_function('$a, $b', 'return $a ' . $operator . ' $b;');
+            }
+            self::$_mOperatorFunctions[$operator] = $compareFn;
+        }
+
+        if (empty($compareFn)) throw new Validator_Exception("Unable to perform compare for operator '" . $this->_operator . "'");
     	
 		$valueCompare = self::_convertDateLocal($valueCompare, $value);
 		$value = self::_convertDateLocal($value, $valueCompare);
@@ -217,7 +159,7 @@ class Validator_Compare extends Validator
     	
     	return !$this->negate;
     }
-    
+
     /**
      * Convert a Date_Local object to an int or ISO string
      *
@@ -227,64 +169,16 @@ class Validator_Compare extends Validator
      */
     static protected function _convertDateLocal($value, $valueBaseOn)
     {
-    	if (is_array($valueBaseOn)) $valueBaseOn = reset($valueBaseOn);
-    	
-    	foreach (is_array($value) ? $value : array($value) as $key=>$val) {
-    		if (class_exists('Date_Local') && $val instanceof Date_Local) {
-    			$val = $val->getDate(is_int($valueBaseOn) ? Date_Local::FORMAT_UNIXTIME : Date_Local::FORMAT_ISO);
-    			is_array($value) ? $value[$key] = $val : $value = $val;
-    		}
-    	}
-    	
-    	return $value;
+        if (is_array($valueBaseOn)) $valueBaseOn = reset($valueBaseOn);
+        
+        foreach (is_array($value) ? $value : array($value) as $key=>$val) {
+            if (class_exists('Date_Local') && $val instanceof Date_Local) {
+                $val = $val->getDate(is_int($valueBaseOn) ? Date_Local::FORMAT_UNIXTIME : Date_Local::FORMAT_ISO);
+                is_array($value) ? $value[$key] = $val : $value = $val;
+            }
+        }
+        return $value;
     }
-    
-    /**
-     * Return the javascript for validation
-     *
-     * @return   array      array(args, function body)
-     */
-    function getScript($field)
-    {
-    	$operator = self::findOperator($this->_operator);
-
-    	switch (true) {
-    		case $operator == 'a_all': $script_chkcnt = "&& (++cnt == value.length)";
-    		case $operator == 'a_any':
-    			$script = "
-if(typeof valcmp != 'object' || valcmp.lenght == undefined) value = Array(valcmp);
-for(var i=0, var cnt=0; i<value.length; i++) for(var j=0; j<valcmp.length; j++) if((typeof(value[i]) != 'object' ? value[i] : value[i].valueOf()) == (typeof(valcmp[i]) != 'object' ? valcmp[j] : valcmp[j].valueOf()) $script_chkcnt) return " . ($this->negate ? 'false' : 'true') . ";
-";
-	    		break;
-	    		
-	    	case strpos($operator, ';') !== false:
-	    		$script_cmp = "var result = value[i];";
-	    		foreach (explode(';', $operator) as $operator) $script_cmp .= ($operator=='!' ? 'result = !result; ' : "result = result $operator cmp;");
-	    	default:
-	    		if (!isset($script_cmp)) $script_cmp = "var result = (typeof(value[i]) != 'object' ? value[i] : value[i].valueOf()) == (typeof(valcmp) != 'object' ? valcmp : valcmp.valueOf());";
-    			$script = "
-for(var i=0, var cnt=0; i<value.length; i++) {
-	var cmp == (typeof valcmp != 'object' && valcmp.lenght == undefined) ? valcmp : valcmp[i];
-	$script_cmp
-	if (result) return " . ($this->negate ? 'false' : 'true') . ";
-}";
-    			break;
-    	}
-
-    	$script = "
-if (value == null || value == '') return null;
-if (valcmp == undefined) valcmp = " . Validator::valueToJS($this->valueCompare) . ";
-if(typeof value != 'object' || value.lenght == undefined) value = Array(value);
-$script
-return " . ($this->negate ? 'true' : 'false') .  ";
-";
-
-    	return array('value, valcmp', $script);
-    }
-    
 }
-
-/* --------------- PEAR_ConfigBin ----------------- */
-if (class_exists('Q_ClassConfig', false)) Q_ClassConfig::extractBin('Validator_Compare');
 
 ?>
