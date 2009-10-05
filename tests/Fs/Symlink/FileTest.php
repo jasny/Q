@@ -70,17 +70,17 @@ class Fs_Symlink_FileTest extends Fs_FileTest
     }
     
     /**
-     * Tests Fs_Node->create() with existing file
+     * Tests Fs_Node->create(), creating dir
      */
     public function testCreate_Recursive()
     {
-        $new = new Fs_File("{$this->file}.y/" . basename("{$this->file}.x"));
         umask(0022);
+        $new = Fs::symlink("{$this->file}.y/{$this->file}.orig", "{$this->file}.x");
     	$new->create(0660, Fs::RECURSIVE);
         
-    	$this->assertTrue(is_file($new));
-        $this->assertEquals('', file_get_contents($new));
-    	$this->assertEquals('0640', sprintf('%04o', fileperms($new) & 0777));
-    	$this->assertEquals('0750', sprintf('%04o', fileperms(dirname($new)) & 0777));
+    	$this->assertTrue(is_file("{$this->file}.y/{$this->file}.orig"));
+        $this->assertEquals('', file_get_contents("{$this->file}.y/{$this->file}.orig"));
+    	$this->assertEquals('0640', sprintf('%04o', fileperms("{$this->file}.y/{$this->file}.orig") & 0777));
+    	$this->assertEquals('0750', sprintf('%04o', fileperms(dirname("{$this->file}.y")) & 0777));
     }
 }

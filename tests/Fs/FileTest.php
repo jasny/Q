@@ -279,16 +279,29 @@ class Fs_FileTest extends Fs_NodeTest
     /**
      * Tests Fs_Node->create() with existing file
      */
+    public function testCreate_NoDir()
+    {
+    	$filename = "{$this->file}.y/" . basename("{$this->file}.x");
+    	$new = new Fs_File($filename);
+    	
+    	$this->setExpectedException("Q\Fs_Exception", "Unable to create '$filename': Directory '" . dirname($filename) . "' does not exist");
+    	$new->create(0660);
+    }
+    
+    /**
+     * Tests Fs_Node->create(), creating dir
+     */
     public function testCreate_Recursive()
     {
-        $new = new Fs_File("{$this->file}.y/" . basename("{$this->file}.x"));
+    	$filename = "{$this->file}.y/" . basename("{$this->file}.x");
+        $new = new Fs_File($filename);
         umask(0022);
     	$new->create(0660, Fs::RECURSIVE);
         
-    	$this->assertTrue(is_file($new));
-        $this->assertEquals('', file_get_contents($new));
-    	$this->assertEquals('0640', sprintf('%04o', fileperms($new) & 0777));
-    	$this->assertEquals('0750', sprintf('%04o', fileperms(dirname($new)) & 0777));
+    	$this->assertTrue(is_file($filename));
+        $this->assertEquals('', file_get_contents($filename));
+    	$this->assertEquals('0640', sprintf('%04o', fileperms($filename) & 0777));
+    	$this->assertEquals('0750', sprintf('%04o', fileperms("{$this->file}.y") & 0777));
     }
     
     /**

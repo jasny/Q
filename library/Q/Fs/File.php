@@ -101,7 +101,7 @@ class Fs_File extends Fs_Node
  		$file = $this->realpath();
 		$dir = $file->up();
 		if (!$dir->exists()) {
-			if (~$flags & Fs::RECURSIVE) throw new Fs_Exception("Unable to touch '{$file->_path}': Directory '{$dir->_path}' does not exist");
+			if (~$flags & Fs::RECURSIVE) throw new Fs_Exception("Unable to create '{$file->_path}': Directory '{$dir->_path}' does not exist");
 			$dir->create($mode | (($mode & 0444) >> 2), $flags);
 		}
 
