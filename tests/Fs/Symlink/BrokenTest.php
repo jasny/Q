@@ -171,24 +171,6 @@ class Fs_Symlink_BrokenTest extends Fs_NodeTest
         $this->setExpectedException('Q\Fs_Exception', "Unable to change mode of '{$this->file}': Unable to dereference symlink");
         $this->Fs_Node['mode'] = 0777;
     }
-
-    /**
-     * Tests Fs_Node->diskTotalSpace()
-     */
-    public function testDiskTotalSpace()
-    {
-        $this->setExpectedException('Q\Fs_Exception', "Unable to get total disk space of '{$this->file}': File is not a directory");
-        $this->Fs_Node->diskTotalSpace();
-    }
-
-    /**
-     * Tests Fs_Node->diskFreeSpace()
-     */
-    public function testDiskFreeSpace()
-    {
-        $this->setExpectedException('Q\Fs_Exception', "Unable to get free disk space of '{$this->file}': File is not a directory");
-        $this->Fs_Node->diskFreeSpace();
-    }
     
     /**
      * Tests Fs_Node->isDeletable()

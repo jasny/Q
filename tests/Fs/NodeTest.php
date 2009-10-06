@@ -382,21 +382,23 @@ abstract class Fs_NodeTest extends PHPUnit_Framework_TestCase
         $this->assertFalse($this->Fs_Node->isUploadedFile());
     }
 
- 	/**
- 	 * Tests Fs_Node->diskTotalSpace()
- 	 */
- 	public function testDiskTotalSpace()
- 	{
- 		$this->assertEquals(disk_total_space($this->file), $this->Fs_Node->diskTotalSpace());
- 	}
- 	
- 	/**
- 	 * Tests Fs_Node->diskFreeSpace()
- 	 */
- 	public function testDiskFreeSpace()
- 	{
- 		$this->assertEquals(disk_free_space($this->file), $this->Fs_Node->diskFreeSpace());
- 	}
+    /**
+     * Tests Fs_Node->diskTotalSpace()
+     */
+    public function testDiskTotalSpace()
+    {
+        $this->setExpectedException('Q\Fs_Exception', "Unable to get total disk space of '{$this->file}': File is not a directory");
+        $this->Fs_Node->diskTotalSpace();
+    }
+
+    /**
+     * Tests Fs_Node->diskFreeSpace()
+     */
+    public function testDiskFreeSpace()
+    {
+        $this->setExpectedException('Q\Fs_Exception', "Unable to get free disk space of '{$this->file}': File is not a directory");
+        $this->Fs_Node->diskFreeSpace();
+    }
     
     /**
      * Tests Fs_Node->exists()
@@ -435,7 +437,7 @@ abstract class Fs_NodeTest extends PHPUnit_Framework_TestCase
      */
     public function testIsDeletable()
     {
-        $this->assertEquals(is_writable($this->file) || is_writable(dirname($this->file)), $this->Fs_Node->isDeletable());
+        $this->assertEquals(is_writable(dirname($this->file)), $this->Fs_Node->isDeletable());
     }
 
     /**

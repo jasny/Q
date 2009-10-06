@@ -945,4 +945,20 @@ class Fs_DirTest extends Fs_NodeTest
 		$this->cleanup("{$this->file}/" . basename($this->file));
 		$this->assertEquals(0, count($this->Fs_Node));
 	}
+    
+    /**
+     * Tests Fs_Node->diskTotalSpace()
+     */
+    public function testDiskTotalSpace()
+    {
+        $this->assertEquals(disk_total_space($this->file), $this->Fs_Node->diskTotalSpace());
+    }
+    
+    /**
+     * Tests Fs_Node->diskFreeSpace()
+     */
+    public function testDiskFreeSpace()
+    {
+        $this->assertEquals(disk_free_space($this->file), $this->Fs_Node->diskFreeSpace());
+    }
 }

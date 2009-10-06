@@ -14,7 +14,7 @@ class Fs_CharTest extends Fs_NodeTest
      */
     protected function setUp()
     {
-        $this->file = "/dev/null";
+        $this->file = "/dev/zero";
         $this->Fs_Node = new Fs_Char($this->file);
     }
 
@@ -25,7 +25,7 @@ class Fs_CharTest extends Fs_NodeTest
     {
         $this->Fs_Node = null;
     }
-	
+    
     
     /**
      * Tests Fs_Node->getContents()
@@ -56,7 +56,7 @@ class Fs_CharTest extends Fs_NodeTest
      */
     public function testOutput()
     {
-    	$this->setExpectedException('Fs_Exception', "Unable to output the contents of '{$this->file}': File is a char device");
+    	$this->setExpectedException('Q\Fs_Exception', "Unable to output the contents of '{$this->file}': File is a character device");
         $this->Fs_Node->output();
     }
 
@@ -69,4 +69,65 @@ class Fs_CharTest extends Fs_NodeTest
         $this->assertTrue(is_resource($fp), "File pointer $fp");
         $this->assertEquals(str_repeat("\0", 100), fread($fp, 100));
     }    
+
+    /**
+     * Tests Fs_Node->touch()
+     */
+    public function testTouch()
+    {}
+
+    /**
+     * Tests Fs_Node->touch() with atime
+     */
+    public function testTouch_atime()
+    {}
+
+    /**
+     * Tests Fs_Node->touch() with DateTime
+     */
+    public function testTouch_DateTime()
+    {}    
+
+    /**
+     * Tests Fs_Node->touch() with strings
+     */
+    public function testTouch_string()
+    {}
+
+    /**
+     * Tests Fs_Node->setAttribute()
+     */
+    public function testSetAttribute()
+    {}
+    
+    /**
+     * Tests Fs_Node->testClearStatCache()
+     */
+    public function testClearStatCache()
+    {}
+    
+    /**
+     * Tests Fs_Node->offsetSet()
+     */
+    public function testOffsetSet()
+    {}
+
+    /**
+     * Tests Fs_Node::chmod()
+     */
+    public function testChmod()
+    {}
+    
+    /**
+     * Tests Fs_Node::chmod() with string
+     */
+    public function testChmod_string()
+    {}
+    
+    /**
+     * Tests Fs_Node::chmod() with invalid string
+     */
+    public function testChmod_invalidString()
+    {}
+    
 }
