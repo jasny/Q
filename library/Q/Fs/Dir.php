@@ -353,4 +353,24 @@ class Fs_Dir extends Fs_Node
 		
 		if (!@rmdir($this->_path)) throw new Fs_Exception("Failed to delete '{$this->_path}'", error_get_last(), $exceptions);
 	}
+
+	/**
+     * Return the number of bytes on the corresponding filesystem or disk partition.
+     * 
+     * @return float
+     */
+    public function diskTotalSpace()
+    {
+        return disk_total_space($this->_path);
+    }
+    
+    /**
+     * Return the number of bytes available on the corresponding filesystem or disk partition.
+     * 
+     * @return float
+     */
+    public function diskFreeSpace()
+    {
+        return disk_free_space($this->_path);
+    }	
 }

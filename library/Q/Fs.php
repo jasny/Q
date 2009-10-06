@@ -359,6 +359,20 @@ class Fs
     }
 
     /**
+     * Get an Fs interface for an unknown filetype.
+     * 
+     * @param string $path
+     * @return Fs_File
+     */
+    public static function unknown($path)
+    {
+        $class = self::$types[is_link($path) ? 'link/unknown' : 'unknown'];
+        if (!load_class($class)) throw new Exception("Unable to create Fs unknown: Class '$class' can't be loaded.");
+        
+        return new $class($path);
+    }
+    
+    /**
      * Create a symlink and return the Fs interface.
      * 
      * @param string $target
@@ -366,7 +380,7 @@ class Fs
      * @param int    $flags   Fs::% options as binary set
      * @return Fs_Node
      */
-    public static function symlink($target, $link, $flags=self::RECURSIVE)
+    public static function symlink($target, $link, $flags=0)
     {
     	if (is_link($link) && $flags & self::OVERWRITE) unlink($link);
     	
@@ -422,6 +436,7 @@ class Fs
     {
     	if (!($file instanceof Fs_Node)) {
     		$type = (~$flags & Fs::ALWAYS_FOLLOW && is_link($file) ? 'link/' : '') . filetype(realpath($file));
+    		if (!$type) throw new Fs_Exception("Unable to determine type of file '$file'", error_get_last());
     		return $flags & self::DESCRIPTION ? self::$typedescs[$type] : $type;
     	}
     	

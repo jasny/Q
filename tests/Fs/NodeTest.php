@@ -210,7 +210,6 @@ abstract class Fs_NodeTest extends PHPUnit_Framework_TestCase
     	$this->assertEquals('2009-01-01 18:00:00', date('Y-m-d H:i:s', fileatime($this->file)));
     }
     
-    
     /**
      * Tests Fs_Node->getAttribute()
      */
@@ -292,6 +291,7 @@ abstract class Fs_NodeTest extends PHPUnit_Framework_TestCase
     
     /**
      * Tests Fs_Node->getAttribute() getting posix info
+     * this test is not so good because owner of the symlink is the same as the owner of the file
      */
     public function testGetAttribute_lstat_Posix()
     {
@@ -300,8 +300,8 @@ abstract class Fs_NodeTest extends PHPUnit_Framework_TestCase
     	$userinfo = posix_getpwuid(fileowner($this->file));
     	$groupinfo = posix_getgrgid(filegroup($this->file));
     	
-    	$this->assertEquals($userinfo['name'], $this->Fs_Node->getAttribute('owner'), 'owner');
-        $this->assertEquals($groupinfo['name'], $this->Fs_Node->getAttribute('group'), 'group');
+    	$this->assertEquals($userinfo['name'], $this->Fs_Node->getAttribute('owner', Fs::NO_DEREFERENCE), 'owner');
+        $this->assertEquals($groupinfo['name'], $this->Fs_Node->getAttribute('group', Fs::NO_DEREFERENCE), 'group');
     }
     
     /**
@@ -499,7 +499,8 @@ abstract class Fs_NodeTest extends PHPUnit_Framework_TestCase
     public function test__invoke()
     {
     	$this->setExpectedException('Q\Fs_Exception', "Unable to execute '{$this->file}': This is not a regular file, but a " . filetype(realpath($this->file)));
-        $this->Fs_Node();
+    	$file = $this->Fs_Node;
+    	$file();
     }
 
     /**

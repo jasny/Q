@@ -279,17 +279,17 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
 	 * @param int $count  Counter to break deadloop (max 16)
 	 * @return Fs_Node
 	 */
-	protected function realpathBestEffort($count=0)
+	protected function realpathBestEffort($flags, $count=0)
 	{
 		if ($count >= 16) return false;
-		
-		$target = $this->realpath(Fs::NO_DEREFERENCE);
-		return $target instanceof Fs_Symlink ? $target->realpathBestEffort($count+1) : $target;
+				
+		$target = $this->realpath($flags | Fs::NO_DEREFERENCE);
+		return $target instanceof Fs_Symlink ? $target->realpathBestEffort($flags, $count+1) : $target;
 	}
 	
 	/**
 	 * Returns Fs_Node of canonicalized absolute pathname, resolving symlinks.
-	 * Unlike the realpath() function, this returns a best-effort for non-existent files.
+	 * Unlike the realpath() PHP function, this returns a best-effort for non-existent files.
 	 * 
 	 * Use Fs::NO_DEREFERENCE to not dereference if target is a symlink.
 	 * 
@@ -299,7 +299,6 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
 	public function realpath($flags=0)
 	{
 		if (!($this instanceof Fs_Symlink)) return $this;
-		if ($this instanceof Fs_Symlink_Broken) throw new Fs_Exception("Unable to resolve realpath of '{$this->_path}': File is a broken symlink.");
 		
 		if ($flags & Fs::NO_DEREFERENCE) {
 			$target = Fs::canonicalize($this->target(), dirname($this->_path));
@@ -441,7 +440,8 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
     	$stat = $flags & Fs::NO_DEREFERENCE ? @lstat($this->_path) : @stat($this->_path);
 		if ($stat === false) {
 			$err = error_get_last();
-			throw new Fs_Exception("Failed to stat {$this->_path}", error_get_last());
+			if (!$this->exists()) throw new Fs_Exception("Unable to get attribute '$att' of '{$this->_path}': " . (is_link($this->_path) ? "File is a broken link" : "File does not exist"));
+			throw new Fs_Exception("Unable to get attribute '$att' of '{$this->_path}'", $err);
 		}
 		
     	if (isset($stat[$att])) return $stat[$att];
@@ -616,8 +616,7 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
 	{
 		return (($this instanceof Fs_Symlink && $flags && Fs::NO_DEREFERENCE) ?
 		  (bool)(($this->getAttribute('mode', Fs::NO_DEREFERENCE) >> $this->modeBitShift()) & 4) :
-		  is_writable($this->_path)) ||
-		 (!$this->exists() && $this->up()->isWritable($flags & ~Fs::NO_DEREFERENCE));
+		  is_writable($this->_path)) || (!$this->exists() && $this->realpath(Fs::ALWAYS_FOLLOW)->up()->isWritable($flags & ~Fs::NO_DEREFERENCE));
 	}
 	
 	/**
@@ -657,8 +656,7 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
 	{
 		return is_uploaded_file($this->_path);
 	}
-	
-	
+		
  	/**
  	 * Return the number of bytes on the corresponding filesystem or disk partition.
  	 * 
@@ -666,7 +664,7 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
  	 */
  	public function diskTotalSpace()
  	{
- 		return disk_total_space($this->_path);
+ 		throw new Fs_Exception("Unable to get total disk space of '{$this->_path}': File is not a directory");
  	}
  	
  	/**
@@ -676,10 +674,9 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
  	 */
  	public function diskFreeSpace()
  	{
- 		return disk_free_space($this->_path);
+ 		throw new Fs_Exception("Unable to get free disk space of '{$this->_path}': File is not a directory");
  	}
-	
- 	
+	 	
     /**
      * Sets access and modification time of file.
      * @see http://www.php.net/touch
@@ -689,7 +686,7 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
      * @param int                  $flags  Fs::% options as binary set
      * @throws Fs_Exception if touch fails.
      * 
-     * @todo Implement support for several options of $flags for Fs_Node::touch()
+     * @todo Implement support for several options of $flags for Fs_Node::touch() like Fs:NO_DEREFERENCE (symlink)
      */
     public function touch($time=null, $atime=null, $flags=0)
     {
@@ -745,8 +742,8 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
      */
 	public function chown($owner, $flags=0)
 	{
+        if (strpos($owner, ':')) throw new SecurityException("Won't change owner of '{$this->_path}' to user '$owner': To change both owner and group, user array(owner, group) instead");
 		if (!$this->exists($flags)) throw new Fs_Exception("Unable to change owner of '{$this->_path}' to user '$owner': " . ($this instanceof Fs_Symlink && is_link($this->_path) ? "Unable to dereference symlink" : "File does not exist"));
-		if (strpos($owner, ':')) throw new SecurityException("Won't change owner of '{$this->_path}' to user '$owner': To change both owner and group, user array(owner, group) instead");
 		
 		if ($flags == 0) {
 			if (is_array($owner)) { $group = $owner[1]; $owner = $owner[0]; }
