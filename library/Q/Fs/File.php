@@ -101,7 +101,7 @@ class Fs_File extends Fs_Node
  		$file = $this->realpath();
 		$dir = $file->up();
 		if (!$dir->exists()) {
-			if (~$flags & Fs::RECURSIVE) throw new Fs_Exception("Unable to touch '{$file->_path}': Directory '{$dir->_path}' does not exist");
+			if (~$flags & Fs::RECURSIVE) throw new Fs_Exception("Unable to create '{$file->_path}': Directory '{$dir->_path}' does not exist");
 			$dir->create($mode | (($mode & 0444) >> 2), $flags);
 		}
 
@@ -139,7 +139,7 @@ class Fs_File extends Fs_Node
 		fclose($pipes[2]);
 
 		foreach (explode("\n", $err) as $line) {
-			if (trim($line) != '') trigger_error("Exec '{$this->_path}': " . preg_replace('~^\s*([\'"]?' . preg_quote($this->_path, '~') . '[\'"]?\s*(\:\s*)?)?~', '', $line), E_USER_NOTICE);
+			if (trim($line) != '') trigger_error("Exec '{$this->_path}': " . preg_replace('~^\s*([\'"]?' . preg_quote($this->_path, '~') . '[\'"]?\s*(\:\s*)?)?~', '', $line), E_USER_WARNING);
 		}
 		
 		$return_var = proc_close($p);

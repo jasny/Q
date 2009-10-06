@@ -173,8 +173,35 @@ class Fs_Test extends PHPUnit_Framework_TestCase
         $this->assertType('Q\Fs_Fifo', $file);
         $this->assertEquals('/does/not/exists', (string)$file);
 	}
+
 	
-	
+    /**
+     * Tests Fs::has()
+     */
+    public function testHas()
+    {
+        $this->assertTrue(Fs::has(__FILE__));
+    }
+    
+    /**
+     * Tests Fs::has() with a non-existing file
+     */
+    public function testHas_NotExists()
+    {
+        $this->assertFalse(Fs::has('/does/not/exists/' . md5(uniqid())));
+    }
+    
+    /**
+     * Tests Fs::has() with a broken symlink
+     */
+    public function testHas_Symlink_Broken()
+    {
+    	$this->tmpfiles[] = $link = sys_get_temp_dir() . '/q-fs_test.' . md5(uniqid());
+    	symlink('/does/not/exist/' . basename($link), $link);
+    	
+        $this->assertTrue(Fs::has($link));
+    }
+        
     /**
      * Tests Fs::get() with a file
      */
@@ -483,7 +510,7 @@ class Fs_Test extends PHPUnit_Framework_TestCase
     	$file->expects($this->any())->method('__toString')->will($this->returnValue('/something'));
     	$file->expects($this->any())->method('path')->will($this->returnValue('/something'));
     	
-    	$this->setExpectedException('Q\Fs_Exception', "Unable to determine type of '/something': Class 'StrangeFsNode' is not any of the known types");
+    	$this->setExpectedException('Q\Exception', "Unable to determine type of '/something': Class 'StrangeFsNode' is not any of the known types");
     	Fs::typeOfNode($file);
     }
 	
@@ -528,11 +555,11 @@ class Fs_Test extends PHPUnit_Framework_TestCase
      */
     public function testTypeOfNode_AlwayFollow_BrokenSymlink()
     {
-    	$file = $this->getMock('Q\Fs_Symlink_Broken', array('__toString', 'path'), array(), array(), '', false);
+    	$file = $this->getMock('Q\Fs_Symlink_Broken', array('__toString', 'path'), array(), '', false);
     	$file->expects($this->any())->method('__toString')->will($this->returnValue('/broken/link'));
     	$file->expects($this->any())->method('path')->will($this->returnValue('/broken/link'));
     	
-    	$this->setExpectedException('Fs_Exception', "Unable to determine type of target of '/broken/link': File is a broken link");
+    	$this->setExpectedException('Q\Fs_Exception', "Unable to determine type of target of '/broken/link': File is a broken link");
     	Fs::typeOfNode($file, Fs::ALWAYS_FOLLOW);
     }
 

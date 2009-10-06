@@ -30,7 +30,9 @@ class Fs
 	
 	/** Option; Do action recursively / Auto-create parent directories. */
 	const RECURSIVE = 0x0200;
-
+	/** Option; Alias of Fs::RECURSIVE. */
+	const MKDIR = 0x0200;
+	
 	/** Option; Preserve mode, ownership and timestamps. */
 	const PRESERVE = 0x0400;
 
@@ -38,7 +40,7 @@ class Fs
 	const MERGE = 0x0800;
 	
 	/** Option; Overwrite if item is newer. */
-	const UPDATE = 0x1000;
+	const UPDATE = 0x1020;
 
 	/** Option; Get description. */
 	const DESCRIPTION = 0x8000;
@@ -82,7 +84,7 @@ class Fs
 		'link/block' => 'symlink to a block device',
 		'link/char' => 'symlink to a char device',
 		'link/dir' => 'symlink to a directory',
-		'link/fifo' => 'symlink to a named path',
+		'link/fifo' => 'symlink to a named pipe',
 		'link/file' => 'symlink to a file',
 		'link/socket' => 'symlink to a socket',
 		'link/unknown' => 'symlink to an unknown filetype'		
@@ -113,9 +115,11 @@ class Fs
 	
 	/**
 	 * Registered instances
-	 * @var Fs_Node[]
+	 * @var string
 	 */
-	protected static $instances;
+	protected static $paths = array(
+		'root' => '/'
+	);
 	
 	
     /**
@@ -131,38 +135,25 @@ class Fs
      * @param string $name
      * @return Fs_Node
      */
-    protected static function getPath($name)
+    public static function getPath($name)
     {
     	$name = strtolower($name);
-    	if (isset(self::$instances[$name])) return self::$instances[$name];
+    	if (isset(self::$paths[$name])) return self::get(self::$paths[$name]);
     	
     	switch ($name) {
-    		case 'root':             self::$instances['root'] = self::get('/'); break;
-    		case 'home':             return self::get(getenv('HOME'));
-    		case 'cwd':              return self::get(getcwd());
+    		case 'home':           return self::get(getenv('HOME'));
+    		case 'cwd':            return self::get(getcwd());
     		
-    		case 'document_root':    self::$instances['document_root'] = self::get($_SERVER['DOCUMENT_ROOT']); break;
-    		case 'script':           self::$instances['script'] = self::get($_SERVER['SCRIPT_NAME']); break;
+    		case 'document_root':  return self::get($_SERVER['DOCUMENT_ROOT']); break;
+    		case 'script':         return self::get($_SERVER['SCRIPT_NAME']); break;
     		
-    		default:                 if (load_class('Q\Config') && !(Config::i() instanceof Mock) && Config::i()->fs[$name]) self::$instances[$name] = self::get(Config::i()->fs[$name]); 
+    		default:
+    			if (load_class('Q\Config') && !(Config::i() instanceof Mock) && isset(Config::i()->fs[$name])) self::$paths += Config::i()->fs;
     	}
     	
-    	if (!isset(self::$instances[$name])) throw new Exception("Fs instance '$name' is not registered.");
-    	return self::$instances[$name];
+    	if (!isset(self::$paths[$name])) throw new Exception("Fs path '$name' is not registered.");
+    	return self::get(self::$paths[$name]);
     }
-    
-	/**
-	 * Magic method to return named path.
-	 *
-	 * @param string $name
-	 * @param array  $args  Not used
-	 * @return Fs_Node
-	 */
-	public static function __callstatic($name, $args)
-	{
-		$name = strtolower($name);
-		return isset(self::$instances[$name]) ? self::$instances[$name] : self::getItem($name);
-	}
     
 	/**
 	 * Register Fs_Node as named path.
@@ -172,8 +163,8 @@ class Fs
      *   home   setenv(HOME)
      *   cwd    chdir() 
 	 * 
-	 * @param string  $name
-	 * @param Fs_Node $file
+	 * @param string         $name
+	 * @param string|Fs_Node $file
 	 */
 	public static function setPath($name, $file)
 	{
@@ -181,7 +172,7 @@ class Fs
 		$name = strtolower($name);
 		
 		switch ($name) {
-			case 'root': if (!chroot($file)) throw new Exception("Failed to change root to '$file'."); break;
+			case 'root': if (!chroot($file)) throw new Exception("Failed to change root to '$file'."); return;
 			case 'home': if (!putenv("HOME=$file")) throw new Exception("Failed to change home dir to '$file'."); break;
     		case 'cwd':  if (!chdir($file)) throw new Exception("Failed to change dir to '$file'."); return;
     		
@@ -189,7 +180,17 @@ class Fs
     		case 'script':        throw new Exception("Unable to set $name to '$file'; Property is read only.");
 		}
 		
-		self::$instances[$name] = $file; 
+		self::$paths[$name] = $file; 
+	}
+	
+	/**
+	 * Get root of the filesystem
+	 * 
+	 * @return Fs_Node
+	 */
+	public static function root()
+	{
+		return self::dir('/');
 	}
 	
 	
@@ -357,7 +358,6 @@ class Fs
         return new $class($path);
     }
 
-
     /**
      * Create a symlink and return the Fs interface.
      * 
@@ -373,7 +373,19 @@ class Fs
     	if (!@symlink($target, $link)) throw new Fs_Exception("Failed to create symlink '$link' to '$target'", error_get_last());
         return Fs::get($link);
     }
-
+	
+    
+    /**
+     * Check if file exists (or a broken link).
+     * 
+     * @param string $path
+     * @return boolean
+     */
+    public static function has($path)
+    {
+    	return file_exists($path) || is_link($path);
+    }
+        
     /**
      * Get an Fs interface for an item of the filesystem.
      * 
@@ -409,7 +421,8 @@ class Fs
     public static function typeOfNode($file, $flags=0)
     {
     	if (!($file instanceof Fs_Node)) {
-    		return (~$flags & Fs::ALWAYS_FOLLOW && is_link($file) ? 'link/' : '') . filetype(realpath($file));
+    		$type = (~$flags & Fs::ALWAYS_FOLLOW && is_link($file) ? 'link/' : '') . filetype(realpath($file));
+    		return $flags & self::DESCRIPTION ? self::$typedescs[$type] : $type;
     	}
     	
     	if ($file instanceof Fs_File) $type = 'file';
