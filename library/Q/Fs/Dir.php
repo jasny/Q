@@ -263,7 +263,8 @@ class Fs_Dir extends Fs_Node
  			throw new Fs_Exception("Unable to create directory '{$this->_path}': File already exists");
  		}
  		
- 		if (!@mkdir($this->_path, $mode, $flags & Fs::RECURSIVE)) throw new Fs_Exception("Failed to create directory '{$this->_path}'", error_get_last());
+ 		$path = (string)$this->realpath();
+ 		if (!@mkdir($path, $mode, $flags & Fs::RECURSIVE)) throw new Fs_Exception("Failed to create directory '$path'", error_get_last());
  		$this->clearStatCache();
  	}
  	
@@ -278,11 +279,11 @@ class Fs_Dir extends Fs_Node
 	 */
 	protected function doCopyRename($fn, $dir, $name, $flags=0)
 	{
-		if (($fn == 'move' && ~$flags & Fs::MERGE) || ($this instanceof Fs_Symlink && $flags & Fs::NO_DEREFERENCE)) return parent::doCopyRename($fn, $dir, $name, $flags);  
+		if (($fn == 'rename' && ~$flags & Fs::MERGE) || ($this instanceof Fs_Symlink && $flags & Fs::NO_DEREFERENCE)) return parent::doCopyRename($fn, $dir, $name, $flags);  
 		
 		if (empty($name) || $name == '.' || $name == '..' || strpos('/', $name) !== false) throw new SecurityException("Unable to $fn '{$this->_path}' to '$dir/$name'; Invalid filename '$name'.");
 		
-		if (!($dir instanceof Fs_Dir)) $dir = new static($dir);
+		if (!($dir instanceof Fs_Dir)) $dir = Fs::dir($dir);
 		if (!$dir->exists() && ~$flags & Fs::MKDIR) throw new Fs_Exception("Unable to " . ($fn == 'rename' ? 'move' : $fn) . " '{$this->_path}' to '$dir/': Directory does not exist");
 
 		$files = @scandir($this->_path);
@@ -329,10 +330,13 @@ class Fs_Dir extends Fs_Node
 	 */
 	public function delete($flags=0)
 	{
+		if ($this instanceof Fs_Symlink) {
+			parent::delete($flags);
+			return;
+		}
+		
 		if (!$this->exists()) return;
-		
-		$exceptions = null;
-		
+				
 		if ($flags & Fs::RECURSIVE) {
 			$files = scandir($this->_path);
 			
@@ -340,18 +344,15 @@ class Fs_Dir extends Fs_Node
 				if ($file == '.' || $file == '..') continue;
 				
 				try {
-					if (is_dir("{$this->_path}/$file")) {
-						$this->$file->delete($flags);
-					} else {
-						if (!@unlink("{$this->_path}/$file")) throw new Fs_Exception("Failed to delete '{$this->_path}/$file'", error_get_last());
-					}
+					if (is_dir("{$this->_path}/$file") && !is_link("{$this->_path}/$file")) $this->$file->delete($flags);
+					  else unlink("{$this->_path}/$file");
 				} catch (Fs_Exception $e) {
-					$exceptions[] = $e;
+					trigger_error($e->getMessage(), E_USER_WARNING);
 				}
 			}
 		}
 		
-		if (!@rmdir($this->_path)) throw new Fs_Exception("Failed to delete '{$this->_path}'", error_get_last(), $exceptions);
+		if (!@rmdir($this->_path)) throw new Fs_Exception("Failed to delete '{$this->_path}'", error_get_last());
 	}
 
 	/**

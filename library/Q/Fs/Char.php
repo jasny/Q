@@ -4,7 +4,7 @@ namespace Q;
 require_once 'Q/Fs/Node.php';
 
 /**
- * Interface of a char device (eg /dev/null, /dev/zero).
+ * Interface of a character device (eg /dev/null, /dev/zero).
  * 
  * @package Fs
  */
@@ -20,7 +20,7 @@ class Fs_Char extends Fs_Node
 		parent::__construct($path);
 		
 		if (is_link($path) xor $this instanceof Fs_Symlink) throw new Fs_Exception("File '$path' is " . ($this instanceof Fs_Symlink ? 'not ' : '') . "a symlink.");
-		if (file_exists($path) && filetype(realpath($path)) != 'char') throw new Fs_Exception("File '$path' is not a char device, but a " . filetype($path) . ".");
+		if (file_exists($path) && filetype(realpath($path)) != 'char') throw new Fs_Exception("File '$path' is not a character device, but a " . filetype($path) . ".");
 	}
 	
 	/**
@@ -34,7 +34,7 @@ class Fs_Char extends Fs_Node
 	public function getContents($flags=0, $offset=-1, $maxlen=1)
 	{
 		$ret = @file_get_contents($this->_path, $flags, null, $offset, $maxlen);
-		if ($ret === false) throw new Fs_Exception("Failed to read from char device '{$this->_path}'", error_get_last());
+		if ($ret === false) throw new Fs_Exception("Failed to read from character device '{$this->_path}'", error_get_last());
 		return $ret;
 	}
 
@@ -47,11 +47,21 @@ class Fs_Char extends Fs_Node
 	 */
 	public function putContents($data, $flags=0)
 	{
-		if (!$this->exists()) throw new Fs_Exception("Can't write data to char device '{$this->_path}': File doesn't exists."); 
+		if (!$this->exists()) throw new Fs_Exception("Can't write data to character device '{$this->_path}': File doesn't exists."); 
 		
 		$ret = @file_put_contents($this->_path, $data, $flags);
-		if ($ret === false) throw new Fs_Exception("Failed to write to char device '{$this->_path}'", error_get_last());
+		if ($ret === false) throw new Fs_Exception("Failed to write to character device '{$this->_path}'", error_get_last());
 		return $ret;
+	}
+	
+	/**
+	 * Output contents of the file.
+	 * 
+	 * @return int
+	 */
+	public function output()
+	{
+		throw new Fs_Exception("Unable to output the contents of '{$this->_path}': File is a character device");
 	}
 	
 	/**
@@ -63,10 +73,10 @@ class Fs_Char extends Fs_Node
 	 */
 	public function open($mode='r+')
 	{
-		if (!$this->exists()) throw new Fs_Exception("Can't open char device '{$this->_path}': File doesn't exists.");
+		if (!$this->exists()) throw new Fs_Exception("Can't open character device '{$this->_path}': File doesn't exists.");
 		
 		$resource = @fopen($this->_path, $mode);
-		if (!$resource) throw new Fs_Exception("Failed to open char device '{$this->_path}'", error_get_last());
+		if (!$resource) throw new Fs_Exception("Failed to open character device '{$this->_path}'", error_get_last());
 		return $resource;
 	}
 }

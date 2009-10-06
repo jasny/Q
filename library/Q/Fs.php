@@ -73,7 +73,7 @@ class Fs
 	
 	public static $typedescs = array(
 		'block' => 'block device',
-		'char' => 'char device',
+		'char' => 'character device',
 		'dir' => 'directory',
 		'fifo' => 'named pipe',
 		'file' => 'file',
@@ -82,7 +82,7 @@ class Fs
 
 		'link/' => 'broken symlink',
 		'link/block' => 'symlink to a block device',
-		'link/char' => 'symlink to a char device',
+		'link/char' => 'symlink to a character device',
 		'link/dir' => 'symlink to a directory',
 		'link/fifo' => 'symlink to a named pipe',
 		'link/file' => 'symlink to a file',

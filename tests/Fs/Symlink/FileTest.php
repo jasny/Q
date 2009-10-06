@@ -83,4 +83,16 @@ class Fs_Symlink_FileTest extends Fs_FileTest
     	$this->assertEquals('0640', sprintf('%04o', fileperms("{$this->file}.y/{$this->file}.orig") & 0777));
     	$this->assertEquals('0750', sprintf('%04o', fileperms(dirname("{$this->file}.y")) & 0777));
     }
+    
+    /**
+     * Tests Fs_Node::delete()
+     */
+    public function testDelete()
+    {
+        if (function_exists('posix_getuid') && posix_getuid() == 0) $this->markTestSkipped("Won't test this as root for safety reasons.");
+        
+        $this->Fs_Node->delete();
+        $this->assertFalse(file_exists($this->file));
+        $this->assertTrue(file_exists($this->file) . '.orig');
+    }
 }
