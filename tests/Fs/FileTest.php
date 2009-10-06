@@ -9,7 +9,6 @@ require_once 'Q/Fs/File.php';
  */
 class Fs_FileTest extends Fs_NodeTest
 {
-
     /**
      * Prepares the environment before running a test.
      */
@@ -549,6 +548,7 @@ class Fs_FileTest extends Fs_NodeTest
     public function testDelete()
     {
         if (function_exists('posix_getuid') && posix_getuid() == 0) $this->markTestSkipped("Won't test this as root for safety reasons.");
+        
         $this->Fs_Node->delete();
         $this->assertFalse(file_exists($this->file));
     }
