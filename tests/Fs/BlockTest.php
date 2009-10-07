@@ -1,21 +1,21 @@
 <?php
-use Q\Fs, Q\Fs_Node, Q\Fs_Char, Q\Fs_Exception, Q\ExecException;
+use Q\Fs, Q\Fs_Node, Q\Fs_Block, Q\Fs_Exception, Q\ExecException;
 
 require_once 'Fs/NodeTest.php';
-require_once 'Q/Fs/Char.php';
+require_once 'Q/Fs/Block.php';
 
 /**
- * Fs_Char test case.
+ * Fs_Block test case.
  */
-class Fs_CharTest extends Fs_NodeTest
+class Fs_BlockTest extends Fs_NodeTest
 {
     /**
      * Prepares the environment before running a test.
      */
     protected function setUp()
     {
-        $this->file = "/dev/zero";
-        $this->Fs_Node = new Fs_Char($this->file);
+        $this->file = "/dev/loop0";
+        $this->Fs_Node = new Fs_Block($this->file);
     }
 
     /**
@@ -25,22 +25,16 @@ class Fs_CharTest extends Fs_NodeTest
     {
         $this->Fs_Node = null;
     }
+
     
-    
-    /**
-     * Tests Fs_Node->getContents()
-     */
-    public function testGetContents()
-    {
-        $this->assertEquals("\0", $this->Fs_Node->getContents());
-    }
 
     /**
      * Tests Fs_Node->getContents() with maxlen = 100
      */
     public function testGetContents_maxlen()
     {
-        $this->assertEquals(str_repeat("\0", 100), $this->Fs_Node->getContents(0, 0, 100));
+        $this->setExpectedException('Q\Fs_Exception', "Unable to get the contents of '{$this->file}': File is a block device");
+        $this->Fs_Node->getContents();
     }
     
     /**
@@ -48,7 +42,8 @@ class Fs_CharTest extends Fs_NodeTest
      */
     public function testPutContents()
     {
-        $this->Fs_Node->putContents('Test put contents');
+        $this->setExpectedException('Q\Fs_Exception', "Unable to write data to '{$this->file}': File is a block device");
+    	$this->Fs_Node->putContents('Test put contents');
     }
 
     /**
@@ -56,7 +51,7 @@ class Fs_CharTest extends Fs_NodeTest
      */
     public function testOutput()
     {
-    	$this->setExpectedException('Q\Fs_Exception', "Unable to output the contents of '{$this->file}': File is a character device");
+        $this->setExpectedException('Q\Fs_Exception', "Unable to output data from '{$this->file}': File is a block device");
         $this->Fs_Node->output();
     }
 
@@ -65,9 +60,8 @@ class Fs_CharTest extends Fs_NodeTest
      */
     public function testOpen()
     {
-        $fp = $this->Fs_Node->open();
-        $this->assertTrue(is_resource($fp), "File pointer $fp");
-        $this->assertEquals(str_repeat("\0", 100), fread($fp, 100));
+        $this->setExpectedException('Q\Fs_Exception', "Unable to open '{$this->file}': File is a block device");
+    	$fp = $this->Fs_Node->open();
     }    
 
     /**
@@ -135,7 +129,7 @@ class Fs_CharTest extends Fs_NodeTest
      */
     public function testCopy()
     {
-        $this->setExpectedException("Q\Fs_Exception", "Unable to copy '{$this->file}': File is a character device");
+        $this->setExpectedException("Q\Fs_Exception", "Unable to copy '{$this->file}': File is a block device");
         $new = $this->Fs_Node->copy("{$this->file}.x");
-    }    
+    }
 }

@@ -920,7 +920,7 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
 	 */
 	public function output()
 	{
-		throw new Fs_Exception("Unable to get the contents of '{$this->_path}': File is a " . Fs::typeOfNode($this, Fs::DESCRIPTION));
+		throw new Fs_Exception("Unable to output data from '{$this->_path}': File is a " . Fs::typeOfNode($this, Fs::DESCRIPTION));
 	}
 	
 	/**

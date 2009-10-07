@@ -79,4 +79,19 @@ class Fs_Char extends Fs_Node
 		if (!$resource) throw new Fs_Exception("Failed to open character device '{$this->_path}'", error_get_last());
 		return $resource;
 	}
+
+    /**
+     * Copy or rename/move this file.
+     * 
+     * @param callback $fn     copy or rename
+     * @param Fs_Dir   $dir
+     * @param string   $name
+     * @param int      $flags  Fs::% options as binary set
+     * @return Fs_Node
+     */
+    protected function doCopyRename($fn, $dir, $name, $flags=0)
+    {
+        if ($fn == 'copy') throw new Fs_Exception("Unable to copy '{$this->_path}': File is a character device");
+        return parent::doCopyRename($fn, $dir, $name, $flags);
+    }
 }

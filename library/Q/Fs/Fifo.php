@@ -108,4 +108,19 @@ class Fs_Fifo extends Fs_Node
  		if (!extension_loaded('posix')) throw new Exception("Unable to create named pipe '{$file->_path}': Posix extension is not available");
  		if (!@posix_mkfifo($this->_path, $mode)) throw new Fs_Exception("Failed to create named pipe '{$file->_path}'", error_get_last());
  	}
+ 	
+ 	/**
+     * Copy or rename/move this file.
+     * 
+     * @param callback $fn     copy or rename
+     * @param Fs_Dir   $dir
+     * @param string   $name
+     * @param int      $flags  Fs::% options as binary set
+     * @return Fs_Node
+     */
+    protected function doCopyRename($fn, $dir, $name, $flags=0)
+    {
+    	if ($fn == 'copy') throw new Fs_Exception("Unable to copy '{$this->_path}': File is a named pipe");
+    	return parent::doCopyRename($fn, $dir, $name, $flags);
+    }
 }
