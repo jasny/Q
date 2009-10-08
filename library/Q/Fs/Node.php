@@ -308,7 +308,7 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
 			$path = realpath($this->_path);
 			if ($path) return Fs::get($path);
 			
-			$file = $this->realpathBestEffort();
+			$file = $this->realpathBestEffort($flags);
 			if (!$file) throw new Fs_Exception("Unable to resolve realpath of '{$this->_path}': Too many levels of symbolic links.");
 			return $file;
 		}
@@ -691,6 +691,8 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
     public function touch($time=null, $atime=null, $flags=0)
     {
 		if (!$this->exists()) {
+		    if (!($this instanceof Fs_File)) throw new Fs_Exception("Unable to touch '{$this->_path}': File does not exist and is not a regular file");
+		    
 			$dir = $this->realpath()->up();
 			if (!$dir->exists()) {
 				if (~$flags & Fs::RECURSIVE) throw new Fs_Exception("Unable to touch '{$this->_path}': Directory '{$dir->_path}' does not exist");

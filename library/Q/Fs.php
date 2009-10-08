@@ -377,15 +377,16 @@ class Fs
      * 
      * @param string $target
      * @param string $link
-     * @param int    $flags   Fs::% options as binary set
+     * @param int    $flags    Fs::% options as binary set
+     * @param string $default  Type for $target if file does not exist.
      * @return Fs_Node
      */
-    public static function symlink($target, $link, $flags=0)
+    public static function symlink($target, $link, $flags=0, $default=null)
     {
     	if (is_link($link) && $flags & self::OVERWRITE) unlink($link);
     	
     	if (!@symlink($target, $link)) throw new Fs_Exception("Failed to create symlink '$link' to '$target'", error_get_last());
-        return Fs::get($link);
+        return Fs::get($link, $default);
     }
 	
     
@@ -411,7 +412,7 @@ class Fs
     public static function get($path, $default=null)
     {
     	if (is_link($path)) {
-    		$type = 'link/' . (file_exists($path) ? filetype(realpath($path)) : '');
+    		$type = 'link/' . (file_exists($path) ? filetype(realpath($path)) : $default);
     	} elseif (file_exists($path)) {
     		$type = filetype($path);
     	} else {

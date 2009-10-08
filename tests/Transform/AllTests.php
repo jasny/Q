@@ -1,7 +1,7 @@
 <?php
 
 require_once 'PHPUnit/Framework/TestSuite.php';
-require_once 'Transform/CreationTest.php';
+require_once 'Transform/Test.php';
 require_once 'Transform/ReplaceTest.php';
 require_once 'Transform/XSLTest.php';
 require_once 'Transform/PHPTest.php';
@@ -29,7 +29,7 @@ class TransformTest extends PHPUnit_Framework_TestSuite
     public function __construct()
     {
         $this->setName('TransformTest');
-        $this->addTestSuite('Transform_CreationTest');
+        $this->addTestSuite('Transform_Test');
         $this->addTestSuite('Transform_ReplaceTest');
         $this->addTestSuite('Transform_XSLTest');
         $this->addTestSuite('Transform_PHPTest');

@@ -74,14 +74,16 @@ class Fs_Symlink_FileTest extends Fs_FileTest
      */
     public function testCreate_Recursive()
     {
+        $target = "{$this->file}.y/" . basename($this->file) . ".orig";
         umask(0022);
-        $new = Fs::symlink("{$this->file}.y/{$this->file}.orig", "{$this->file}.x");
+        $new = Fs::symlink($target, "{$this->file}.x", 0, 'file');
+        $this->assertType('Q\Fs_Symlink_File', $new);
     	$new->create(0660, Fs::RECURSIVE);
         
-    	$this->assertTrue(is_file("{$this->file}.y/{$this->file}.orig"));
-        $this->assertEquals('', file_get_contents("{$this->file}.y/{$this->file}.orig"));
-    	$this->assertEquals('0640', sprintf('%04o', fileperms("{$this->file}.y/{$this->file}.orig") & 0777));
-    	$this->assertEquals('0750', sprintf('%04o', fileperms(dirname("{$this->file}.y")) & 0777));
+    	$this->assertTrue(is_file($target));
+        $this->assertEquals('', file_get_contents($target));
+    	$this->assertEquals('0640', sprintf('%04o', fileperms($target) & 0777));
+    	$this->assertEquals('0750', sprintf('%04o', fileperms("{$this->file}.y") & 0777));
     }
     
     /**
@@ -93,6 +95,6 @@ class Fs_Symlink_FileTest extends Fs_FileTest
         
         $this->Fs_Node->delete();
         $this->assertFalse(file_exists($this->file));
-        $this->assertTrue(file_exists($this->file) . '.orig');
+        $this->assertTrue(file_exists($this->file . '.orig'));
     }
 }

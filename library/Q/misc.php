@@ -98,10 +98,14 @@ function split_set($seperator, $string, $unquote=true)
 	preg_match_all('/(?:([^' . $seperator . '=]+)\s*\=)?((?:(`[^`]*`)|("(?:\\\\"|[^"])*")|(\'(?:\\\\\'|[^\'])*\')|\((?:(?R)|[' . $seperator . '])*\)|([^`"\'()' . $seperator . ']+))+)/', $string, $matches, PREG_SET_ORDER);
 	
 	foreach ($matches as $match) {
+        $value = trim($match[2]);
+        if ($value=='false') $value = false;
+          elseif($value=='true') $value = true;
+        
 	    if (empty($match[1])) {
-	        $values[] = $unquote ? unquote(trim($match[2]), $unquote) : trim($match[2]); 
+	        $values[] = $unquote && is_string($value) ? unquote($value, $unquote) : $value; 
 	    } else {
-            parse_key(trim($match[1]), $unquote ? unquote(trim($match[2]), $unquote) : trim($match[2]), $values);
+            parse_key(trim($match[1]), $unquote && is_string($value) ? unquote($value, $unquote) : $value, $values);
 	    }
 	}
 	
