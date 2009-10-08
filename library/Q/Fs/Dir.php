@@ -107,7 +107,10 @@ class Fs_Dir extends Fs_Node
 	 */
  	public function valid()
  	{
- 		return $this->getHandle()->current !== false;
+        $handle = $this->getHandle(); 
+        while (!isset($handle->current) || $handle->current == '.' || $handle->current == '..') $handle->current = readdir($handle->resource);
+        
+        return $handle->current !== false;
  	}
  	
  	/**

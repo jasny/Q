@@ -34,12 +34,7 @@ class Fs_Socket extends Fs_Node
 	 */
 	public function getContents($flags=0, $offset=0, $maxlen=null)
 	{
-		$ret = isset($maxlen) ?
-		 @file_get_contents($this->_path, $flags, null, $offset, $maxlen) :
-		 @file_get_contents($this->_path, $flags, null, $offset);
-		 
-		if ($ret === false) throw new Fs_Exception("Failed to read from socket '{$this->_path}'", error_get_last());
-		return $ret;
+		throw new Fs_Exception("Unable to get contents of socket '{$this->_path}'. Use Fs_Socket::open() + fread() instead");
 	}
 
 	/**
@@ -51,9 +46,7 @@ class Fs_Socket extends Fs_Node
 	 */
 	public function putContents($data, $flags=0)
 	{
-		$ret = @file_put_contents($this->_path, $data, $flags);
-		if ($ret === false) throw new Fs_Exception("Failed to write to socket '{$this->_path}'", error_get_last());
-		return $ret;
+        throw new Fs_Exception("Unable to write contents to socket '{$this->_path}'. Use Fs_Socket::open() + fwrite() instead");
 	}
 	
 	/**
@@ -63,11 +56,11 @@ class Fs_Socket extends Fs_Node
 	 */
 	public function output()
 	{
-		readfile($this->_path);
+		throw new Fs_Exception("Unable to get contents of socket '{$this->_path}'. Use Fs_Socket::open() + fread() instead");
 	}
-		
+	
 	/**
-	 * Open the Unix domain socket connection.
+	 * Open the Unix domain socket connection as a client.
 	 * @see http://www.php.net/stream_socket_client 
 	 * 
 	 * @return resource
@@ -76,11 +69,27 @@ class Fs_Socket extends Fs_Node
 	{
 		$errno = null;
 		$errstr = null;
-		$resource = stream_socket_client('unix://' . $this->_path, $errno, $errstr);
-
-		if (!$resource) throw new Fs_Exception("Failed to open socket '{$this->_path}': " . $errstr);
+		$resource = @stream_socket_client('unix://' . $this->_path, $errno, $errstr);
+        
+		if (!$resource) throw new Fs_Exception("Failed to open socket '{$this->_path}'" . ($errstr ? ": $errstr" : ''), error_get_last());
 		return $resource;
 	}
+	
+    /**
+     * Open the Unix domain socket connection as a server.
+     * @see http://www.php.net/stream_socket_server
+     * 
+     * @return resource
+     */
+    public function listen()
+    {
+        $errno = null;
+        $errstr = null;
+        $resource = @stream_socket_server('unix://' . $this->_path, $errno, $errstr);
+        
+        if (!$resource) throw new Fs_Exception("Failed to create socket '{$this->_path}'" . ($errstr ? ": $errstr" : ''), error_get_last());
+        return $resource;
+    }
 	
 	
  	/**
@@ -93,7 +102,20 @@ class Fs_Socket extends Fs_Node
  	 */
 	public function create($mode=0666, $flags=0)
  	{
- 		if ($this->exists() && $flags & Fs::PRESERVE) return;
- 		throw new Fs_Exception("Unable to create socket '{$this->_path}'. Use Fs_Socket::open() instead");
+ 		throw new Fs_Exception("Unable to create socket '{$this->_path}'. Use Fs_Socket::listen() instead");
  	}
+ 	
+    /**
+     * Copy or rename/move this file.
+     * 
+     * @param callback $fn     copy or rename
+     * @param Fs_Dir   $dir
+     * @param string   $name
+     * @param int      $flags  Fs::% options as binary set
+     * @throws Fs_Exception
+     */
+    protected function doCopyRename($fn, $dir, $name, $flags=0)
+    {
+        throw new Fs_Exception("Unable to " . ($fn == 'rename' ? 'move' : $fn). " '{$this->_path}': File is a socket");
+    }
 }

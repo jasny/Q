@@ -473,7 +473,8 @@ class Fs_DirTest extends Fs_NodeTest
     {
     	if (function_exists('posix_getuid') && posix_getuid() == 0) $this->markTestSkipped("Won't test this as root for safety reasons.");
     	
-    	file_put_contents("{$this->file}.x", "Another file");
+        if (!file_put_contents("{$this->file}.x", "Another file")) $this->markTestSkipped("Unable to testFs_Node->rename() overwriting existing file : Could not create file '{$this->file}.x'");
+    	
         $new = $this->Fs_Node->rename("{$this->file}.x", Fs::OVERWRITE);
         
         $this->assertType('Q\Fs_Dir', $new);
@@ -840,7 +841,7 @@ class Fs_DirTest extends Fs_NodeTest
 		$this->assertType('Q\Fs_Dir', $files[basename($this->file) . '.y']);
 		$this->assertEquals("{$this->file}/" . basename($this->file) . '.y', (string)$files[basename($this->file) . '.y']);
 
-		$this->assertEquals(3, count($files), array_keys($files));
+		$this->assertEquals(3, count($files), join(', ', array_keys($files)));
 	}
 	
 	/**
@@ -871,7 +872,7 @@ class Fs_DirTest extends Fs_NodeTest
 		$this->assertType('Q\Fs_Dir', $files[basename($this->file) . '.y']);
 		$this->assertEquals("{$this->file}/" . basename($this->file) . '.y', (string)$files[basename($this->file) . '.y']);
 
-		$this->assertEquals(3, count($files), array_keys($files));
+		$this->assertEquals(3, count($files), join(', ', array_keys($files)));
 	}
 	
 	/**
@@ -886,7 +887,7 @@ class Fs_DirTest extends Fs_NodeTest
 			$files[$key] = $file;
 		}
 		
-		$this->assertEquals(0, count($files), array_keys($files));
+		$this->assertEquals(0, count($files), join(', ', array_keys($files)));
 	}
 	
 	/**
@@ -909,7 +910,7 @@ class Fs_DirTest extends Fs_NodeTest
 		foreach ($this->Fs_Node as $key=>$file) {
 			$files[$key] = $file;
 		}
-		$this->assertEquals(0, count($files), array_keys($files));
+		$this->assertEquals(0, count($files), join(', ', array_keys($files)));
 	}
 	
 	/**

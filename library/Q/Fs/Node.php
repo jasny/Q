@@ -819,7 +819,11 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
 			if ($flags & Fs::UPDATE == Fs::UPDATE && $dest['ctime'] >= $this['ctime']) return false;
 			if (~$flags & Fs::OVERWRITE) throw new Fs_Exception("Unable to $fn '{$this->_path}' to '{$dest->_path}': Target already exists");
 			
-			if ($dest instanceof Fs_Dir && !@rmdir($dest->_path)) throw new Fs_Exception("Failed to $fn '{$this->_path}' to '$dir/$name'", error_get_last());
+			if ($dest instanceof Fs_Dir) {
+				if (!@rmdir($dest->_path)) throw new Fs_Exception("Failed to $fn '{$this->_path}' to '$dir/$name'", error_get_last());
+			} elseif ($this instanceof Fs_Dir) {
+			    if (!unlink($dest->_path)) throw new Fs_Exception("Failed to $fn '{$this->_path}' to '$dir/$name'", error_get_last());
+			}
 		}
 
 		if ($fn == 'copy' && $flags & Fs::NO_DEREFERENCE) return Fs::symlink($this->target(), "$dir/$name");
@@ -934,7 +938,16 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
 	{
 		throw new Fs_Exception("Unable to open '{$this->_path}': File is a " . Fs::typeOfNode($this, Fs::DESCRIPTION));
 	}
-	
+
+    /**
+     * Open the connection as a server.
+     * 
+     * @return resource
+     */
+    public function listen()
+    {
+    	throw new Fs_Exception("Unable to listen to '{$this->_path}': File is a " . Fs::typeOfNode($this, Fs::DESCRIPTION));
+    }	
 	
 	/**
 	 * Execute file and return content of stdout.

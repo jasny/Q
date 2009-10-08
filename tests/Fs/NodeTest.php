@@ -481,6 +481,9 @@ abstract class Fs_NodeTest extends PHPUnit_Framework_TestCase
      */
     public function testChmod_invalidString()
     {
+        $warnings = array();
+        set_error_handler(function ($code, $message) use (&$warnings) { $warnings[] = compact('code', 'message'); }, E_USER_NOTICE | E_USER_WARNING);
+    	
     	$this->setExpectedException('Q\ExecException');
     	$this->Fs_Node->chmod('incorrect mode');
     }
@@ -493,8 +496,7 @@ abstract class Fs_NodeTest extends PHPUnit_Framework_TestCase
     	$this->setExpectedException('Q\SecurityException', "Won't change owner of '{$this->file}' to user 'myusr:mygrp': To change both owner and group, user array(owner, group) instead");
     	$this->Fs_Node->chown('myusr:mygrp');
     }
-    
-    
+        
     /**
      * Tests Fs_Node->__invoke()
      */

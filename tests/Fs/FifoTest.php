@@ -165,8 +165,8 @@ class Fs_FifoTest extends Fs_NodeTest
      */
     public function testCreate_Exists()
     {
-        $this->setExpectedException("Q\Fs_Exception", "Unable to create '{$this->file}': File already exists");
-        $this->Fs_Node->create();
+        $this->setExpectedException("Q\Fs_Exception", "Unable to create '$this->file': Named pipe already exists");
+        var_dump($this->Fs_Node->create()); exit;
     }
 
     /**
@@ -297,4 +297,26 @@ class Fs_FifoTest extends Fs_NodeTest
         $this->Fs_Node->delete();
         $this->assertFalse(file_exists($this->file));
     }
+
+    /**
+     * Tests Fs_Node::chmod() with invalid string
+     */
+    public function testChmod_invalidString()
+    {
+        $this->markTestSkipped("Difficult to test. @todo");
+    	
+        $this->setExpectedException('Q\ExecException');
+        $this->Fs_Node->chmod('incorrect mode');
+    }
+
+    /**
+     * Tests Fs_Node->__invoke()
+     */
+    public function test__invoke()
+    {
+        $this->setExpectedException('Q\Fs_Exception', "Unable to execute '{$this->file}': This is not a regular file, but a named pipe");
+        $file = $this->Fs_Node;
+        $file();
+    }
+    
 }
