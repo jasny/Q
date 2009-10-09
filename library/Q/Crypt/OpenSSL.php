@@ -11,7 +11,7 @@ require_once 'Q/Crypt.php';
  * 
  * @package Crypt
  */
-class Crypt_OpenSSL extends Crypt implements Decrypt 
+class Crypt_OpenSSL extends Crypt implements Decrypt
 {
     /**
      * Encryption method.

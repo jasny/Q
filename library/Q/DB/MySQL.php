@@ -334,7 +334,7 @@ class DB_MySQL extends DB
 		if ($result->num_rows == 0) return null;
 		
 		$row = $result->fetch_assoc();
-		$tbl_props['table'] = $row['Name'];
+		$tbl_props['name'] = $row['Name'];
 		$tbl_props['engine'] = $row['Engine'];
 		$tbl_props['row_format'] = $row['Row_format'];
 		$tbl_props['max_data_length'] = $row['Max_data_length'];

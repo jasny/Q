@@ -109,6 +109,19 @@ function split_set($seperator, $string, $unquote=true)
 }
 
 /**
+ * Alias of split_set.
+ *
+ * @param string $seperator  Character list; Split on any character in $seperator. With .. you can specify a range of characters.
+ * @param string $string
+ * @param string $unquote    Character list; Trim these characters for each part. TRUE: remove ' and ";
+ * @return array
+ */
+function explode_set($seperator, $string, $unquote=true)
+{
+	return split_set($seperator, $string, $unquote);
+}
+
+/**
  * Extract the parameters from a DSN string.
  * The first item of the returned array is 'driver'=>driver, other items are arguments/properties.
  * 
@@ -339,7 +352,7 @@ function refsort($array, $sort_flags=SORT_ASC)
  * @param string $group_suffix
  * @return string
  */
-function implode_recursive($glue, $array, $group_prefix='(', $group_suffix=')')
+function join_recursive($glue, $array, $group_prefix='(', $group_suffix=')')
 {
     if (empty($array)) return '';
     
@@ -349,6 +362,20 @@ function implode_recursive($glue, $array, $group_prefix='(', $group_suffix=')')
     }
     
     return substr($result, 0, -1 * strlen($glue));
+}
+
+/**
+ * Alias of join_recursive.
+ *
+ * @param string $glue   
+ * @param array  $array
+ * @param string $group_prefix
+ * @param string $group_suffix
+ * @return string
+ */
+function implode_recursive($glue, $array, $group_prefix='(', $group_suffix=')')
+{
+	return join_recursive($glue, $array, $group_prefix, $group_suffix);
 }
 
 /**
@@ -364,7 +391,7 @@ function implode_recursive($glue, $array, $group_prefix='(', $group_suffix=')')
  * @param string $key_prefix
  * @return string
  */
-function implode_assoc($glue, $array, $format=array('%2$s', '%3$s=%2$s'), $group_prefix='', $group_suffix='', $quote=null, $key_prefix=null)
+function join_set($glue, $array, $format=array('%2$s', '%3$s=%2$s'), $group_prefix='', $group_suffix='', $quote=null, $key_prefix=null)
 {
     if (empty($array)) return '';
     
@@ -382,6 +409,23 @@ function implode_assoc($glue, $array, $format=array('%2$s', '%3$s=%2$s'), $group
     }
     
     return substr($result, 0, -1 * strlen($glue));
+}
+
+/**
+ * Alias of join_set.
+ *
+ * @param string $glue
+ * @param array  $array
+ * @param string $format        Format for each pair in sprintf format: key, value, full key. Can be array(format num, format assoc).
+ * @param string $group_prefix  Use %s for key
+ * @param string $group_suffix
+ * @param string $quote         Quote values (default is where needed)
+ * @param string $key_prefix
+ * @return string
+ */
+function implode_set($glue, $array, $format=array('%2$s', '%3$s=%2$s'), $group_prefix='', $group_suffix='', $quote=null, $key_prefix=null)
+{
+	return implode_set($glue, $array, $format, $group_prefix, $group_suffix, $quote, $key_prefix);
 }
 
 /**

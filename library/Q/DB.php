@@ -1,7 +1,6 @@
 <?php
 namespace Q;
 
-// DB exceptions are defined below
 require_once 'Q/Exception.php';
 require_once 'Q/SecurityException.php';
 require_once 'Q/DB/Exception.php';
@@ -34,7 +33,7 @@ require_once 'Q/DB/Table.php';
  * @todo Using vars in array for default values should work.  
  * @todo Do the auto:role thing automaticly for all mapping properties.
  */
-abstract class DB
+abstract class DB implements Multiton
 {
 	/* Fetch methods */
 	const FETCH_ORDERED = 3;
@@ -48,10 +47,11 @@ abstract class DB
 	const FETCH_NON_RECURSIVE = 0x100;
 	
 	/* Field name format */
-	const FIELDNAME_COL = 0;
-	const FIELDNAME_FULL = 1;
-	const FIELDNAME_DB = 2;
-	const FIELDNAME_DBFULL = 3;
+	const FIELDNAME_COL = 0x0;
+	const FIELDNAME_FULL = 0x1;
+	const FIELDNAME_DB = 0x2;
+	const FIELDNAME_ORG = 0x3;
+	const FIELDNAME_WITH_ALIAS = 0x100;
 		
 	/* Edit statement options */
 	const ADD_REPLACE = 0x1;
@@ -59,14 +59,23 @@ abstract class DB
 	const ADD_APPEND = 0x4;
 	const ADD_HAVING = 0x100;
 	
-	/* Single constraint */
+	/* Sorting order */
+	const ASC = 1;
+	const DESC = 2;
+	
+	/** Single row constraint */
 	const SINGLE_ROW = 1;
+	/** No single row constraint */
 	const MULTIPLE_ROWS = 2;
+	/** Force to all rows */
 	const ALL_ROWS = 3;
 
-	/* Special keys for add/replace part */
+	/** Special keys for add/replace part */
     const COMMAND_PART = 0;
 	
+    /** Recalculate, don't get from cache */
+    const RECALC = 1;
+    
     
 	/**
 	 * Drivers with classname
@@ -206,6 +215,12 @@ abstract class DB
 	 */
 	static private $dfpUsedForFunction;
 	
+	/**
+	 * Cache for generated methods.
+	 * @var Cache
+	 */
+	static public $functionCache = true;
+	
 
 	/**
 	 * Native DB connection object.
@@ -221,9 +236,15 @@ abstract class DB
 
 	/**
 	 * Config collection for table and field properties.
-	 * @var Q\Config
+	 * @var Config
 	 */
-	protected $metaData;
+	protected $metadataConfig;
+
+	/**
+	 * Cache for metadata.
+	 * @var Cache
+	 */
+	public $metadataCache;
 
 	/**
 	 * Cached table objects.
@@ -303,17 +324,19 @@ abstract class DB
 	
 	/**
 	 * Get default instance.
+	 * Returns a Mock object if interface doesn't exist.
 	 * 
 	 * @return DB
 	 */
 	static public final function i()
 	{
         if (isset(self::$instances['i'])) return self::$instances['i'];
-        return self::__callstatic('i', array());
+        return self::getInterface('i');
 	}
-	
+
 	/**
 	 * Magic method to return specific instance.
+	 * Returns a Mock object if interface doesn't exist.
 	 *
 	 * @param string $name
 	 * @param array  $args
@@ -321,34 +344,40 @@ abstract class DB
 	 */
 	static public function __callstatic($name, $args)
 	{
+        if (isset(self::$instances[$name])) return self::$instances[$name];
+        return self::getInterface($name);
+	}	
+	
+	/**
+     * Get specific named interface.
+     * Returns a Mock object if interface doesn't exist.
+     * 
+     * @param string $name
+     * @return object|Mock
+     */
+    public static function getInterface($name)
+    {
 		if (!isset(self::$instances[$name])) {
-		    if (!class_exists('Q\Config') || !Config::i()->exists() || !($dsn = Config::i()->get('db' . ($name != 'i' ? ".{$name}" : '')))) return new DB_Mock($name);
+		    if (!class_exists('Q\Config') || Config::i() instanceof Mock || !($dsn = Config::i()->get('db' . ($name != 'i' ? ".{$name}" : '')))) {
+		    	load_class('Q\Mock.php');
+		    	return new Mock(__CLASS__, $name, 'connect');
+		    }
 	        self::$instances[$name] = self::connect($dsn);
 		}
 		
 		return self::$instances[$name];
-    }	
-	
-	/**
-	 * Check if instance exists.
-	 * 
-	 * @param string $name
-	 * @return boolean
-	 */
-	public final function exists()
-	{
-	    return true;
-	}
+	}	
 	
 	/**
 	 * Register instance.
 	 * 
 	 * @param string $name
 	 */
-	public final function useFor($name)
+	public final function asInstance($name)
 	{
 	    self::$instances[$name] = $this;
 	}
+	
 	
 	// -----
 	
@@ -365,11 +394,13 @@ abstract class DB
 		if (isset($settings)) $this->settings = $settings;
 
 		$config = array_chunk_assoc($this->settings, 'config');
-		$this->metaData = $config instanceof Config ? $config : Config::with($config, array('mapkey'=>array('table_def'=>"'#table'", 'field'=>'@name', 'alias'=>"'#alias:'.@name")));
+		$this->metadata = $config instanceof Config ? $config : Config::with($config, array('mapkey'=>array('table_def'=>"'#table'", 'field'=>'@name', 'alias'=>"'#alias:'.@name")));
 
-		if (isset($this->settings['log']) && load_class('Q\Log')) $this->log = $this->settings['log'] instanceof Logger ? $this->settings['log'] : Log::with($this->settings['log']);
+		if (isset($settings['metadata-cache'])) $this->metadataCache = $settings['metadata-cache'];
+		
+		if (isset($settings['log']) && load_class('Q\Log')) $this->log = $settings['log'] instanceof Logger ? $settings['log'] : Log::with($settings['log']);
 		  elseif (class_exists('Q\Log') && Log::db()->exists()) $this->log = Log::db();
-		if (isset($this->settings['log-columns'])) $this->logColumns = is_string($this->settings['log-columns']) ? split_set(',', $this->settings['log-columns']) : (array)$this->settings['log-columns'];
+		if (isset($settings['log-columns'])) $this->logColumns = is_string($settings['log-columns']) ? split_set(',', $settings['log-columns']) : (array)$settings['log-columns'];
 	}
 	
 	/**
@@ -421,6 +452,16 @@ abstract class DB
 	{
 		return $this->settings;
 	}	
+	
+	/**
+	 * Set the result type for Q\DB::fetchAll() and Q\DB::fetchRow()  
+	 * 
+	 * @param int $resulttype
+	 */
+	public function setFetchMode($resulttype)
+	{
+		$this->fetchMode = $resulttype;
+	}
 	
 	// -----
 
@@ -477,59 +518,55 @@ abstract class DB
 	 * @param string $table
 	 * @return array
 	 */
-	abstract protected function fetchMetaData($table);
+	abstract protected function fetchMetadata($table);
 
 	/**
-	 * Get properties for $table.
-	 * (Don't call this outside of Q\DB classes)
+	 * Get properties of table.
 	 *
 	 * @param string $table
 	 * @return array
 	 */
-	public function &getMetaData($table)
+	public function &getMetadata($table)
 	{
-	    // Get from cache if possible
-		if ($this->metaData->isCached($table)) {
-		    $properties = $this->metaData->get($table);
-		    if (isset($properties['#table']['name'])) return $properties;
+		if ($this->metadataCache) {
+			if (!($this->metadataCache instanceof Cache)) {
+        		load_class('Q\Cache');
+				$this->metadataCache = Cache::with($this->cache);
+			}
+			$properties = $this->metadataCache->get($table);
+			if (isset($properties)) return $properties;
 		}
-
-		// Lookup properties
-		$props_cfg = $this->metaData->get($table);
-    	if (!isset($props_cfg)) $props_cfg = array();
-    	if (!is_array($props_cfg)) throw new Exception("Invalid metadata from config for table '$table'. Should be an array with table and field properties, but is '$props_cfg'.");
-    	
-    	if (!isset($props_cfg['#table']) && isset($props_cfg['table_def'])) {
-    	    $props_cfg['#table'] = $props_cfg['table_def'];
-    	    unset($props_cfg['table_def']);
-    	}
-
-    	if (isset($props_cfg['#table']) && !is_array($props_cfg['#table'])) {
-    	    trigger_error("Invalid metadata from config for table properties of '$table'. Should be an array with properties, but is '{$props_cfg['#table']}'. Using default table properties only.", E_USER_WARNING);
-    	    $props_cfg['#table'] = array();
-    	}
-
-    	$props_cfg['#table']['name'] = $table;
-    	$dbtable = empty($props_cfg['#table']['table']) ? $table : $props_cfg['#table']['table'];
-		$properties = $this->fetchMetaData($dbtable);
 		
-		if (empty($properties) && empty($props_cfg)) return null;
-    	
+		$properties = $this->fetchMetadata($table);
+		if (!isset($properties)) return null;
+		
+		$properties['#table']['name'] = $table;
+		
+		if ($this->metadataConfig) {
+			$props_cfg = $this->metadataConfig[$table];
+	    	if (!isset($props_cfg)) $props_cfg = array();
+	    	if (!is_array($props_cfg)) throw new Exception("Invalid metadata from config for table '$table'. Should be an array with table and field properties, but is '$props_cfg'.");
+	    	
+	    	if (!isset($props_cfg['#table']) && isset($props_cfg['table_def'])) {
+	    	    $props_cfg['#table'] =& $props_cfg['table_def'];
+	    	    unset($props_cfg['table_def']);
+	    	}
+	
+	    	if (isset($props_cfg['#table']) && is_scalar($props_cfg['#table'])) {
+	    	    trigger_error("Invalid metadata from config for table properties of '$table'. Should be an array with properties, but is '{$props_cfg['#table']}'. Using default table properties only.", E_USER_WARNING);
+	    	    $props_cfg['#table'] = array();
+	    	}
+		} else {
+			$props_cfg = array();
+		}
+		
 		$inherit = null;
 		$this->mergeTableProperties($properties, $props_cfg, $inherit);
 		$this->mergeFieldProperties($properties, $props_cfg, $inherit);
         $this->setImplicitProperties($properties);
-
-		$this->metaData->set($table, $properties);
+		
+		if ($this->metadataCache) $this->metadataCache->set($table, $properties);
 		return $properties;
-	}
-	
-	/**
-	 * Clear cached metadata.
-	 */
-	public function clearMetaDataCache($table=null)
-	{
-	    $this->metaData->clearCache($table);
 	}
 	
 	/**
@@ -541,13 +578,11 @@ abstract class DB
 	 */
 	protected function mergeTableProperties(&$properties, &$props_cfg, &$inherit)
 	{	
-		// Set properties for table
-        $properties['#table'] = $props_cfg['#table'] + (isset($properties['#table']) ? $properties['#table'] : array());
-
+        if (!empty($props_cfg['#table'])) $properties['#table'] = $props_cfg['#table'] + $properties['#table'];
 		$this->applyTableDefaults($properties);
         
 		if (!empty($properties['#table']['inherit'])) {
-		    $inherit = $this->getMetaData($properties['#table']['inherit']);
+		    $inherit = $this->getMetadata($properties['#table']['inherit']);
 		    if (isset($inherit['#role:id'])) {
 		        unset($inherit['#role:id']['role'][array_search('id', $inherit['#role:id']['role'])], $inherit['#role:id']['is_primary'], $inherit['#role:id']);
 		    } else {
@@ -619,6 +654,16 @@ abstract class DB
 	 */
 	static public function applyTableDefaults(&$properties)
 	{
+        if (!isset(self::$fnApplyFieldDefaults) && self::$functionCache) {
+        	if (!(self::$functionCache instanceof Cache)) {
+        		load_class('Q\Cache');
+        		self::$functionCache = Cache::with(self::$functionCache, array('none-is-ok'=>true));
+        	}
+        	
+        	self::$fnApplyTableDefaults = self::$functionCache->get('QDB-fnApplyTableDefaults');
+        	self::$dtpUsedForFunction = self::$functionCache->get('QDB-dtpUsedForFunction');
+        }
+		
         if (self::$defaultTableProperties !== self::$dtpUsedForFunction) {
             if (empty(self::$defaultTableProperties)) {
                 self::$fnApplyTableDefaults = false;
@@ -646,6 +691,16 @@ abstract class DB
 	 */
 	static public function applyFieldDefaults(&$properties, $index=null)
 	{
+        if (!isset(self::$fnApplyFieldDefaults) && self::$functionCache) {
+        	if (!(self::$functionCache instanceof Cache)) {
+        		load_class('Q\Cache');
+        		self::$functionCache = Cache::with(self::$functionCache, array('none-is-ok'=>true));
+        	}
+        	
+        	self::$fnApplyFieldDefaults = self::$functionCache->get('QDB-fnApplyFieldDefaults');
+        	self::$dfpUsedForFunction = self::$functionCache->get('QDB-dfpUsedForFunction');
+        }
+		
         if (self::$defaultFieldProperties !== self::$dfpUsedForFunction) {
             if (empty(self::$defaultFieldProperties)) {
                 self::$fnApplyFieldDefaults = false;
@@ -660,6 +715,8 @@ abstract class DB
         if (isset($index)) $p =& $properties;
           else $p[null] =& $properties;
 
+		if (empty($p[$index]['datatype'])) $p[$index]['datatype'] = $p[$index]['type'];
+        
         if (!empty(self::$fnApplyFieldDefaults)) {
             $fn = self::$fnApplyFieldDefaults;
             $fn($p, $index);
@@ -779,21 +836,19 @@ abstract class DB
 	 * Return a table definition.
 	 * 
 	 * @param string $table
+	 * @param int    $flags  Optional DB::REFRESH
 	 * @return DB_Table
 	 */
-	public function table($table)
+	public function table($table, $flags=0)
 	{
+		if ($table === null) return new DB_Table($this, array());
 	    if (isset($this->tables[$table])) return $this->tables[$table];
 	    
-	    if ($table === null) {
-	        $props = array();
-	    } else {
-		    $props =& $this->getMetaData($table);
-		    if (empty($props)) throw new Exception("Table '$table' does not exist");
-	    }
+	    $props = $this->getMetadata($table);
+	    if (empty($props)) throw new Exception("Table '$table' does not exist");
 
 		$this->tables[$table] = new DB_Table($this, $props);
-		return $this->tables[$table]; 
+		return $this->tables[$table];
 	}
 	
 	// -----
@@ -841,12 +896,12 @@ abstract class DB
 	
 	/**
 	 * Prepare a statement for execution.
-	 * @internal 1st argument might be the source (Q\Table), in that case the 2nd argument is the statement.
+	 * {@internal 1st argument might be the source (Q\Table), in that case the 2nd argument is the statement.}}
 	 *
 	 * @param string $statement
 	 * @return DB_Statement
 	 */
-	abstract public function prepare($statement);
+	abstract public function statement($statement);
 
 	/**
 	 * Build a select query statement.
@@ -855,23 +910,21 @@ abstract class DB
 	 * @param string $table     Tablename
 	 * @param mixed  $fields    Array with fieldnames, fieldlist (string) or SELECT statement (string). NULL means all fields.
 	 * @param mixed  $criteria  The value for the primairy key (int/string or array(value, ...)) or array(field=>value, ...)
-	 * @param string $where     Additional criteria as string
 	 * @return DB_Statement
 	 */
-	abstract public function prepareSelect($table=null, $fields=null, $criteria=null, $where=null);
+	abstract public function selectStatement($table=null, $fields=null, $criteria=null);
 
 	/**
-	 * Alias of Q\DB_Statement::prepareSelect().
+	 * Alias of Q\DB_Statement::selectStatement().
 	 *
 	 * @param string $table     Tablename
 	 * @param mixed  $fields    Array with fieldnames, fieldlist (string) or SELECT statement (string). NULL means all fields.
 	 * @param mixed  $criteria  The value for the primairy key (int/string or array(value, ...)) or array(field=>value, ...)
-	 * @param string $where     Additional criteria as string
 	 * @return DB_Statement
 	 */
-	final public function select($table=null, $fields=null, $criteria=null, $where=null)
+	final public function select($table=null, $fields=null, $criteria=null)
 	{
-		return $this->prepareSelect($table, $fields, $criteria, $where);
+		return $this->selectStatement($table, $fields, $criteria, $where);
 	}
 	
 	/**
@@ -882,29 +935,28 @@ abstract class DB
 	 * @param Give additional arguments (arrays) to insert/update multiple rows. $value should be array(fieldname, ...) instead. U can also use Q\DB::args(values, $rows).
 	 * @return DB_Statement
 	 * 
-	 * @throws Q\DB_Constraint_Exception when no rows are given.
+	 * @throws Q\DB_ConstraintException when no rows are given.
 	 */
-	abstract public function prepareStore($table=null, $values=null);
+	abstract public function storeStatement($table=null, $values=null);
 	
 	/**
 	 * Build a update query statement.
 	 *
 	 * @param string $table   Tablename
-	 * @param mixed  $id      The value for a primairy (or as array(value, ..) if multiple key fields) or array(field=>value, ...)
 	 * @param array  $values  Assasioted array as (fielname=>value, ...) or ordered array (value, ...) with 1 value for each field
 	 * @return DB_Statement
 	 */
-	abstract public function prepareUpdate($table=null, $id=null, $values=null);
+	abstract public function updateStatement($table=null, $values=null);
 
 	/**
 	 * Build a delete query statement.
 	 *
 	 * @param string $table  Tablename
-	 * @param mixed  $id     The value for a primairy (or as array(value, ..) if multiple key fields) or array(field=>value, ...)
 	 * @return DB_Statement
 	 */
-	abstract public function prepareDelete($table=null, $id=null);
+	abstract public function deleteStatement($table=null);
 	
+	// -----	
 	
 	/**
 	 * Start database transaction.
@@ -948,7 +1000,7 @@ abstract class DB
 	 * @param mixed  $id         The value for a primairy (or as array(key, ..) if multiple key fields ) or array(field=>value, ...)
 	 * @return mixed
 	 * 
-	 * @throws DB_Constraint_Exception if query results in > 1 record
+	 * @throws DB_ConstraintException if query results in > 1 record
 	 */
 	abstract public function lookupValue($table, $fieldname, $id);
 
@@ -961,16 +1013,6 @@ abstract class DB
 	 */
 	abstract public function countRows($table, $criteria=null);
 
-	
-	/**
-	 * Set the result type for Q\DB::fetchAll() and Q\DB::fetchRow()  
-	 * 
-	 * @param int $resulttype
-	 */
-	public function setFetchMode($resulttype)
-	{
-		$this->fetchMode = $resulttype;
-	}
 	
 	/**
 	 * Query statement and return the result based on the set fetch type.
@@ -986,7 +1028,7 @@ abstract class DB
 	}
 
 	/**
-	 * Query statement and return the result as ordered array
+	 * Query statement and return the result as ordered array.
 	 * 
 	 * @param mixed $statement  String or query object
 	 * @param array $args       Parsed on placeholder
@@ -999,7 +1041,7 @@ abstract class DB
 	}
 	
 	/**
-	 * Query statement and return the result as associated array
+	 * Query statement and return the result as associated array.
 	 * 
 	 * @param mixed $statement  String or query object
 	 * @param array $args       Parsed on placeholder
@@ -1012,7 +1054,7 @@ abstract class DB
 	}
 	
 	/**
-	 * Query statement and return the first column
+	 * Query statement and return the first column.
 	 * 
 	 * @param mixed $statement  String or query object
 	 * @param array $args       Parsed on placeholder
@@ -1021,11 +1063,11 @@ abstract class DB
 	public function fetchColumn($statement, $args=null)
 	{
 		$ret = $this->query($statement, $args);
-		return $ret instanceof DB_Result ? $ret->fetchCol() : $ret;
+		return $ret instanceof DB_Result ? $ret->fetchColumn() : $ret;
 	}
 	
 	/**
-	 * Alias of Q\DB::fetchColum()
+	 * Alias of Q\DB::fetchColum().
 	 * 
 	 * @param mixed $statement  String or query object
 	 * @param array $args       Parsed on placeholder
@@ -1037,7 +1079,7 @@ abstract class DB
 	}
 	
 	/**
-	 * Query statement and return the first column as key and the second as value
+	 * Query statement and return the first column as key and the second as value.
 	 * 
 	 * @param mixed $statement  String or query object
 	 * @param array $args       Parsed on placeholder
@@ -1063,7 +1105,7 @@ abstract class DB
 	}
 
 	/**
-	 * Query statement and return a single value
+	 * Query statement and return a single value.
 	 * 
 	 * @param mixed $statement  String or query object
 	 * @param array $args       Parsed on placeholder
@@ -1076,7 +1118,7 @@ abstract class DB
 	}
 
 	/**
- 	 * Alias of Q/DB::fetchValue()
+ 	 * Alias of Q/DB::fetchValue().
 	 * 
 	 * @param mixed $statement  String or query object
 	 * @param array $args       Parsed on placeholder
@@ -1096,12 +1138,12 @@ abstract class DB
 	 * @param int    $resulttype  Specify how to format the result. A DB::FETCH_% constant
 	 * @return array
 	 * 
-	 * @throws DB_Constraint_Exception if query results in > 1 record
+	 * @throws DB_ConstraintException if query results in > 1 record
 	 */
 	abstract public function load($table, $id, $resulttype=DB::FETCH_RECORD);
 	
 	/**
-	 * Alias of Q\DB::store()
+	 * Alias of Q\DB::store().
 	 * Note that if the row can't be inserted because of primairy/unique key constraints (the record already exists), the specific row is updated instead.
 	 * 
 	 * @param string $table
@@ -1109,7 +1151,7 @@ abstract class DB
 	 * @param Give additional args to insert/update multiple rows. $value should be array(fieldname, ...) instead.
 	 * @return int Returns the last inserted/updated id
 	 * 
-	 * @throws Q\DB_Constraint_Exception when no rows are given.
+	 * @throws Q\DB_ConstraintException when no rows are given.
 	 */
 	final public function insert($table, $values)
 	{
@@ -1129,7 +1171,7 @@ abstract class DB
 	 * @param Give additional args to insert/update multiple rows. $value should be array(fieldname, ...) instead.
 	 * @return int  Returns the last inserted/updated id
 	 * 
-	 * @throws Q\DB_Constraint_Exception when no rows are given.
+	 * @throws Q\DB_ConstraintException when no rows are given.
 	 */
 	public function store($table, $values)
 	{
@@ -1147,14 +1189,14 @@ abstract class DB
 	 * @param int    $constraint  Constraint based on the number or rows: SINGLE_ROW, MULTIPLE_ROWS, ALL_ROWS.
 	 * @return int  Returns the number of rows affected by the update
 	 * 
-	 * @throws Q\DB_Constraint_Exception if query results in > 1 record and constraint == SINGLE_ROW
+	 * @throws Q\DB_ConstraintException if query results in > 1 record and constraint == SINGLE_ROW
 	 */
 	public function update($table, $id, $values, $constraint=DB::MULTIPLE_ROWS)
 	{
 	    if ((int)$constraint == DB::ALL_ROWS && isset($id)) throw new Exception("Update on `$table` failed: Can't use all rows constraint together with id value.");
 	    
 	    $stmt = $this->prepareUpdate($table, $id, $values);
-	    if ($constraint == DB::SINGLE_ROW && $stmt->countRows() > 1) throw new DB_Constraint_Exception("Update on table `$table` failed: Query would affect in multiple records. " . $stmt->getStatement());
+	    if ($constraint == DB::SINGLE_ROW && $stmt->countRows() > 1) throw new DB_ConstraintException("Update on table `$table` failed: Query would affect in multiple records. " . $stmt->getStatement());
 	    $stmt->execute();
 	    
 	    return $this->affectedRows();
@@ -1168,7 +1210,7 @@ abstract class DB
 	 * @param int    $constraint  Constraint based on the number or rows: SINGLE_ROW, MULTIPLE_ROWS, ALL_ROWS.
 	 * @return int  Returns the number of rows affected by the delete
 	 * 
-	 * @throws Q\DB_Constraint_Exception if query results in > 1 record and constraint == SINGLE_ROW
+	 * @throws Q\DB_ConstraintException if query results in > 1 record and constraint == SINGLE_ROW
 	 */
 	public function delete($table, $id, $constraint=self::SINGLE_ROW)
 	{
@@ -1178,107 +1220,11 @@ abstract class DB
         }
         
         $stmt = $this->prepareDelete($table, $id);
-        if ($constraint == DB::SINGLE_ROW && $stmt->countRows() > 1) throw new DB_Constraint_Exception("Update on table `$table` failed: Query would affect in multiple records. " . $stmt->getStatement());
+        if ($constraint == DB::SINGLE_ROW && $stmt->countRows() > 1) throw new DB_ConstraintException("Update on table `$table` failed: Query would affect in multiple records. " . $stmt->getStatement());
         $stmt->execute();
         
         return $this->affectedRows();
 	}
-}
-
-
-/**
- * Mock object to create DB instance.
- * @ignore 
- */
-class DB_Mock
-{
-    /**
-     * Instance name
-     * @var string
-     */
-    protected $_name;
-    
-    /**
-     * Class constructor
-     *
-     * @param string $name
-     */
-    public function __construct($name)
-    {
-        $this->_name = $name;
-    }
-    
-    /**
-	 * Open a new connection to a database server.
-	 * If DSN is given, it will be passed to the connect method of the driver class, otherwise all additional arguments are passed.
-	 *
-	 * @param string|array $dsn  DSN, driver or array('driver'=>DRIVER, 'host'=>HOST, ...)
-	 * @param Additional arguments are passed to driver-class::connect()
-	 * @return DB
-	 */
-	public function connect($dsn=null)
-	{
-	    $args = func_get_args();
-	    $instance = call_user_func_array(array('Q\DB', 'connect'), $args);
-	    $instance->useFor($this->_name);
-	    
-	    return $instance;
-    }
-    
-    
-    /**
-     * Check if instance exists.
-     *
-     * @return boolean
-     */
-    public function exists()
-    {
-        return false;
-    }
-    
-    /**
-     * Magic get method
-     *
-     * @param string $key
-     * 
-     * @throws Q\Exception because this means that the instance is used, but does not exist.  
-     */
-    public function __get($key)
-    {
-        $name = $this->_name;
-        if (DB::$name()->exists()) trigger_error("Illigal use of object 'Q\DB mock::{$this->_name}()'.", E_USER_ERROR);
-        throw new Exception("DB interface '{$this->_name}' does not exist.");
-    }
-
-    /**
-     * Magic set method
-     *
-     * @param string $key
-     * @param mixed  $value
-     * 
-     * @throws Q\Exception because this means that the instance is used, but does not exist.  
-     */
-    public function __set($key, $value)
-    {
-        $name = $this->_name;
-        if (DB::$name()->exists()) trigger_error("Illigal use of mock object 'Q\DB mock::{$this->_name}()'.", E_USER_ERROR);
-        throw new Exception("DB interface '{$this->_name}' does not exist.");
-    }
-    
-    /**
-     * Magic call method
-     *
-     * @param string $function
-     * @param array  $args
-     * 
-     * @throws Q\Exception because this means that the instance is used, but does not exist.  
-     */
-    public function __call($function, $args)
-    {
-        $name = $this->_name;
-        if (DB::$name()->exists()) trigger_error("Illigal use of object 'Q\DB mock::{$this->_name}()'.", E_USER_ERROR);
-        throw new Exception("DB interface '{$this->_name}' does not exist.");
-    }
 }
 
 if (defined('Q_DB_ONLOAD')) include Q_DB_ONLOAD;

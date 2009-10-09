@@ -93,7 +93,7 @@ class DB_MySQL_Result extends DB_Result
 			$this->fieldnames[DB::FIELDNAME_COL][] = $field->name;
 			$this->fieldnames[DB::FIELDNAME_FULL][] = (isset($field->table) ? $field->table . '.' . $field->name : $field->name);
 			$this->fieldnames[DB::FIELDNAME_DB][] = (isset($field->table) ? '`' . $field->table . '`.`' . $field->orgname . '`' : $field->orgname);
-			$this->fieldnames[DB::FIELDNAME_DBFULL][] = (isset($field->table) ? '`' . $field->table . '`.`' . $field->orgname . '`' : $field->orgname) . ($field->name != $field->orgname ? ' AS `' . $field->name . '`' : '');
+			$this->fieldnames[DB::FIELDNAME_DB_ALIAS][] = (isset($field->table) ? '`' . $field->table . '`.`' . $field->orgname . '`' : $field->orgname) . ($field->name != $field->orgname ? ' AS `' . $field->name . '`' : '');
 			
 			if (!isset($this->tablerefs[$field->table])) $this->tablerefs[$field->table] = $field->orgtable;
 			$this->tablecols[] = $field->table;

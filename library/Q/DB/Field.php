@@ -8,7 +8,7 @@ require_once 'Q/Crypt.php';
  *
  * @package DB
  */
-class DB_Field implements \ArrayAccess
+class DB_Field extends \ArrayObject
 {
 	/** Representation of a field of a table/recordset **/
 	const MODE_DEFINITION = 0;
@@ -50,11 +50,6 @@ class DB_Field implements \ArrayAccess
 	 */
 	protected $mode = self::MODE_DEFINITION;
 	
-	/**
-	 * Properties of the field.
-	 * @var array
-	 */	
-	protected $properties;
 	
 	/**
 	 * Value of the field
@@ -95,7 +90,7 @@ class DB_Field implements \ArrayAccess
 	 * @param int   $mode        MODE_DEFINITION: definition only, MODE_ACTIVE: hold value, MODE_NEW: hold value for new record
 	 * @param mixed $value
 	 */
-	protected function __construct($parent, $properties, $value=null)
+	public function __construct($parent, $properties, $value=null)
 	{
 	    if ($parent instanceof DB) {
 	        $this->connection = $parent;
@@ -104,57 +99,24 @@ class DB_Field implements \ArrayAccess
 	        $this->connection = $parent->getConnection();
 	    }
 	    
-		$this->properties = $properties;
 		if (!isset($this->parent) || $this->parent instanceof DB_Record) {
 		    $this->mode = self::MODE_ACTIVE;
 		    $this->value =& $value;
 		    $this->originalValue = $this->value;
 		}
-	}
-
-	/**
-	 * Check if the fielddef property exists. 
-	 *
-	 * @param string $index
-	 * @return boolean
-	 */
-	public function offsetExists($index)
-	{
-		return isset($this->properties[$index]);
+		
+		parent::__construct($properties);
 	}
 	
 	/**
-	 * Get a property. 
-	 *
-	 * @param string $index
-	 * @return mixed
+	 * Cast field to fieldname.
+	 * 
+	 * @return string
 	 */
-	public function offsetGet($index)
- 	{
- 	    if (!isset($this->properties[$index])) return null;
- 	    return $this->properties[$index];
- 	}
- 	
-	/**
-	 * Set a property.
-	 *
-	 * @param string $index
-	 * @param mixed $value
-	 */ 	
- 	public function offsetSet($index, $value)
- 	{
- 		trigger_error("Setting a field property using ArrayAccess access is not supported. Use setProperty() instead.", E_USER_WARNING);
-    }
- 	
-	/**
-	 * Unset a property.
-	 *
-	 * @param string $index
-	 */
- 	public function offsetUnset($index)
- 	{
- 		trigger_error("Setting a field property using ArrayAccess is not supported. Use setProperty() instead.", E_USER_WARNING);
- 	}	
+	public function __toString()
+	{
+		return $this['name'];
+	}
 	
 
 	/**
@@ -182,24 +144,10 @@ class DB_Field implements \ArrayAccess
 	 *
 	 * @param mixed       $value
 	 * @param Q\DB_Record $parent
+	 * @param boolean     $default  Set value to default
 	 * @return DB_Field
 	 */
-	public function asActive($value, DB_Record $parent=null)
-	{
-	    $field = $this->asNewActive($parent);
-	    $field->value =& $value;
-	    $field->originalValue = $field->value;
-	    
-	    return $field;
-	}
-
-	/**
-	 * Create an active field for a new record based on this field definition.
-	 *
-	 * @param Q\DB_Record $parent
-	 * @return DB_Field
-	 */
-	public function asNewActive(DB_Record $parent=null)
+	public function asActive($value, DB_Record $parent=null, $default=false)
 	{
 	    if ($this->mode !== self::MODE_DEFINITION) throw new Exception("You can only make an active field based on a field definition, not on an active field.");
 	    
@@ -209,96 +157,83 @@ class DB_Field implements \ArrayAccess
 	    if (isset($parent)) $field->connection = $parent->getConnection();
 
 	    $field->mode = self::MODE_ACTIVE;
-	    if (isset($this->properties['default'])) $field->originalValue = $field->value = $this->properties['default'];
-	    
+
+	    if ($default) {
+	    	if (isset($this['default'])) $field->originalValue = $field->value = $this['default'];
+		} else {
+			$field->value =& $value;
+		    $field->originalValue = $value;
+		}
+		
 	    return $field;
-    }
+	}
 
     
 	/**
 	 * Return the name of a field
 	 *
+	 * @param int $format  A FIELDNAME_% constant
 	 * @return string
 	 */
-	public function getName()
+	public function getName($format=DB::FIELDNAME_COL)
 	{
-		return $this->properties['name'];
-	}
-    
-	/**
-	 * Return the complete name of a field
-	 *
-	 * @return string
-	 */
-	public function getFullname()
-	{
-		return isset($this->properties['table']) && $this->properties['table'] !== '' ? $this->properties['table'] . '.' . $this->properties['name'] : $this->properties['name'];
-	}
-		
-	/**
-	 * Return the complete name of a field to be used in a query statement
-	 *
-	 * @param boolean $with_alias
-	 * @return string
-	 */
-	public function getDBName($with_alias=true)
-	{
-		if (!isset($this->properties['name_db'])) return null;
-		if (!isset($this->connection)) return $this->properties['table'] . '.' . $this->properties['name_db'];
-		
-		return $this->connection->makeIdentifier($this->properties['table'], $this->properties['name_db'], $with_alias ? $this->properties['name'] : null);
+		switch ($format) {
+			case DB::FIELDNAME_COL:      return $this['name'];
+			case DB::FIELDNAME_FULL:     return isset($this['table']) && $this['table'] !== '' ? $this['table'] . '.' . $this['name'] : $this['name'];
+			case DB::FIELDNAME_ORG:
+				if (!isset($this['name_db'])) return null;
+				return isset($this->connection) ? $this['table_db'] . '.' . $this['name_db'] : $this->connection->makeIdentifier($this['table'], $this['name_db'], $format & DB::FIELDNAME_WITH_ALIAS ? $this['name'] : null);
+			case DB::FIELDNAME_DB:       
+				if (!isset($this['name_db'])) return null;
+				return isset($this->connection) ? $this['table'] . '.' . $this['name_db'] : $this->connection->makeIdentifier($this['table'], $this['name_db'], $format & DB::FIELDNAME_WITH_ALIAS ? $this['name'] : null);
+		}
 	}
 
 	/**
-	 * Get the datatype or type of the field
+	 * Get a single property.
 	 *
-	 * @return string
-	 */
-	public function getDatatype()
-	{
-	    return isset($this->properties['datatype']) ? $this->properties['datatype'] : $this->properties['type'];
-	}
-	
-
-	/**
-	 * Get all _properties of the field definition.
-	 * 
-	 * @return array
-	 */
-	public function getProperties()
-	{
-		return $this->properties;
-	}
-
-	/**
-	 * Get the value of a property
-	 * 
-	 * @param string $name
+	 * @param string $index
 	 * @return mixed
 	 */
-	public function getProperty($name)
+	public function getProperty($index)
 	{
-		$name = strtolower($name);
-		return isset($this->properties[$name]) ? $this->properties[$name] : null;
+		return $this->offsetGet($index);
 	}
-
+	
 	/**
-	 * Get the value of a property
+	 * Set the value of a property.
+	 * (fluent interface)
 	 * 
 	 * @param string $name
 	 * @param mixed  $value
-	 * 
-	 * @todo If property is a mapping property, it should call parent->_RemapField()
+	 * @return DB_Table
 	 */
 	public function setProperty($name, $value)
 	{
 		if (in_array($name, self::$protectedProperties)) {
-		    trigger_error("Unable to set property '$name' for field '{$this->properties['name']}': This property is read-only.", E_USER_WARNING);
+		    trigger_error("Unable to set property '$name' for field '{$this['name']}': This property is read-only.", E_USER_WARNING);
 		    return;
 		}
 		
-		$this->properties[$name] = $value;
-		if (isset($this->parent) && isset(DB::$mappingProperties[$name])) $this->parent->RemapField($this, $name, $value); 
+		$this[$name] = $value;
+		if (isset($this->parent) && isset(DB::$mappingProperties[$name])) $this->parent->RemapField($this, $name, $value);
+		return $this; 
+	}
+
+	/**
+	 * Set the properties for table definition.
+	 * (fluent interface)
+	 * 
+	 * @param array $properties  array(key=>value, ...)
+	 * @return DB_Table
+	 */
+	public function setProperties($properties)
+	{
+		foreach ($properties as $key=>&$value) {
+			$this->offsetSet($key, $value);
+		}
+		
+		return $this;
 	}
 	
 	
@@ -319,7 +254,7 @@ class DB_Field implements \ArrayAccess
 	 */
 	public function isCrypted()
 	{
-	    return !empty($this->properties['crypt']) && !isset($this->value) && is_scalar($this->value) && !$this->hasCanged();
+	    return !empty($this['crypt']) && !isset($this->value) && is_scalar($this->value) && !$this->hasCanged();
 	}
 	
 	
@@ -382,20 +317,21 @@ class DB_Field implements \ArrayAccess
 	
 	
 	/**
-	 * Cast a value according to the field type property
+	 * Cast a value according to the datatype property
 	 *
 	 * @param mixed   $value
-	 * @param boolean $force  Force casting
+	 * @param boolean $force  Force casting and cast to type instead of datatype
 	 * @return mixed
 	 */
 	public function castValue($value, $force=null)
 	{	
 		if ($value === null || $value === "") return null;
-		if (!isset($this->properties['type'])) return $value;
+		if (!isset($this['type'])) return $value;
 		
 		$cast = null;
+		$type = strtolower($force ? $this['type'] : $this['datatype']);
 		
-		switch (strtolower($this->properties['type'])) {
+		switch ($type) {
 			case 'children':
 			    $cast = (array)$value;
 				break;
@@ -473,7 +409,7 @@ class DB_Field implements \ArrayAccess
 				break;
 			
 			default:
-				if ($force) $value = (string)$value;
+				if ($force) $value = $this['datatype'] == 'array' ? $value = implode_set(';', $value) : (string)$value;
 				$cast = is_string($value) ? trim($value) : $value;
 		}
 		
@@ -488,7 +424,7 @@ class DB_Field implements \ArrayAccess
 	 */
 	public function cryptValue($value)
 	{
-		return empty($this->properties['crypt']) || !isset($value) || !is_scalar($value) || $value === $this->originalValue ? $value : Crypt::with($this->properties['crypt'])->encrypt($value);
+		return empty($this['crypt']) || !isset($value) || !is_scalar($value) || $value === $this->originalValue ? $value : Crypt::with($this['crypt'])->encrypt($value);
 	}
 }
 

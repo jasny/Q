@@ -40,7 +40,7 @@ interface DB_Statement
 	 * @param Passed arguments are parsed into prepared statement.
 	 * @return string
 	 */
-	function getStatement();
+	public function getStatement();
 	
 	/**
 	 * Count the number of placeholders in the statement.
@@ -75,7 +75,7 @@ interface DB_Statement
 	 * @param mixed  $subset   Specify to which subset (subquery, node) the change applies
 	 * @return DB_Statement
 	 */
-	public function setOrder($column, $options=0, $subset=null);
+	public function orderBy($column, $options=0, $subset=null);
 
 	/**
 	 * Set the limit for the number of rows returned when excecuted.
@@ -86,38 +86,24 @@ interface DB_Statement
 	 * @param mixed $subset    Specify to which subset (subquery, node) the change applies
 	 * @return DB_Statement
 	 */
-	public function setLimit($rowcount, $offset=0, $options=0, $subset=null);
+	public function limit($rowcount, $offset=0, $options=0, $subset=null);
 	
 	
    	//------------- Finalize changes ------------------------
    	
 	/**
-     * Remove all the changes
+     * Remove all the changes.
      * 
 	 * @return DB_Statement
      */
    	public function revert();
 
 	/**
-	 * Commit all changes to base query
+	 * Build a new query statement committing all changes.
 	 * 
 	 * @return DB_Statement
 	 */
 	public function commit();
-
-	/**
-	 * Build a new query statement committing all changes
-	 * 
-	 * @return DB_Statement
-	 */
-	public function commitToNew();
-	
-	/**
-	 * Clear cached statement
-	 *
-	 * @return DB_Statement
-	 */
-	public function refresh();
 	
 
 	//------------- Execute ------------------------
@@ -131,17 +117,17 @@ interface DB_Statement
 	public function execute($args=null);
 	
 	/**
-     * Returns the fieldnames for all columns
+     * Returns the fieldnames for all columns.
      *
-     * @param int $format  DB::FIELDNAME_* constant
+     * @param int $format  DB::FIELDNAME_% constant
      * @return array
      */
    	public function getFieldNames($format=DB::FIELDNAME_COL);
    	   	
 	/**
-     * Get a set of fields (DB_Field) based on the columns of the query statement
+     * Get a set of fields based on the columns of the query statement.
      *
-     * @return array
+     * @return DB_Field[]
      */
    	public function getFields();
 

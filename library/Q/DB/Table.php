@@ -149,7 +149,7 @@ class DB_Table extends \ArrayObject
 	/**
 	 * Return the field(s) of the primairy key.
 	 *
-	 * @return DB_Field_Interface
+	 * @return DB_Field
 	 */
 	public function getPrimaryKey()
 	{
@@ -187,11 +187,11 @@ class DB_Table extends \ArrayObject
 	    if (ctype_digit($index)) $index = (int)$index;
 	    if (isset($this->_fieldindex[$index])) throw new Exception("Still can't create field object for '$index': You know why.");
 	    if ($index === '#table') throw new Exception("Can't create a field object for '#table', that's the table not a field.");
-	    if (!is_int($index) && !isset($this->___properties[$index])) throw new Exception("Unknown field '$index'");
+	    if (!is_int($index) && !isset($this[$index])) throw new Exception("Unknown field '$index'");
 	    
 	    if ($index[0] === '#') {
-	        if (empty($this->___properties[$index]['table'])) throw new Exception("Can create field object for '$index': Column '{$this->___properties[$index]['name']}' is an expression.");
-	        $field = $this->___properties[$index]['name'];
+	        if (empty($this[$index]['table'])) throw new Exception("Can create field object for '$index': Column '{$this[$index]['name']}' is an expression.");
+	        $field = $this[$index]['name'];
 	    } elseif (is_int($index)) {
 	        $fieldnames = $this->getFieldnames();
 	        if (!isset($fieldnames[$index])) throw new Exception("Can create field object for field $index: Table has only " . count($fieldnames) . " fields.");
@@ -207,7 +207,7 @@ class DB_Table extends \ArrayObject
 	        $field = $index;
 	    }
 	    
-		$i = array_push($this->_fields, DB_Field::create($this, &$this->___properties[$field]))-1;
+		$i = array_push($this->_fields, DB_Field::create($this, &$this[$field]))-1;
 		$this->_fieldindex[$field] =& $this->_fields[$i];
 		
 		return $this->_fields[$i];
@@ -227,7 +227,7 @@ class DB_Table extends \ArrayObject
 	    $fieldnames = array();
 	    $aliases = array();
 
-	    foreach ($this->___properties as $fieldname=>$props) {
+	    foreach ($this as $fieldname=>$props) {
 	        if ($fieldname === '#table' || !isset($props['table'])) continue;
 	        
 	        if ($fieldname[0] === '#') {
@@ -236,15 +236,15 @@ class DB_Table extends \ArrayObject
 	        }
 
 	        $fieldnames[] = $fieldname;
-	        $field = isset($this->_fieldindex[$fieldname]) ? $this->_fieldindex[$fieldname] : DB_Field::create($this, &$this->___properties[$fieldname]);
+	        $field = isset($this->_fieldindex[$fieldname]) ? $this->_fieldindex[$fieldname] : DB_Field::create($this, &$this[$fieldname]);
 	        $i = array_push($fields, $field) - 1;
 	        $fieldindex[$fieldname] =& $fields[$i];
 	        $fieldindex[$i] =& $fields[$i];
 	    }
 	    
 	    foreach ($aliases as $alias) {
-	        if (isset($this->___properties[$alias]['name']) && isset($fieldindex[$this->___properties[$alias]['name']])) {
-	            $fieldindex[$this->___properties[$alias]['name']] =& $fieldindex[$this->___properties[$alias]['name']];
+	        if (isset($this[$alias]['name']) && isset($fieldindex[$this[$alias]['name']])) {
+	            $fieldindex[$this[$alias]['name']] =& $fieldindex[$this[$alias]['name']];
 	        }
 	    }
 	    
@@ -295,7 +295,7 @@ class DB_Table extends \ArrayObject
         $this->_fieldsComplete = false;
         
         $this->getConnection()->clearCache($this->getName());
-        $this->___properties =& $this->getConnection()->getMetaData($this->getName());
+        $this =& $this->getConnection()->getMetaData($this->getName());
     }
     
     
@@ -307,22 +307,22 @@ class DB_Table extends \ArrayObject
 	 * @param int    $resulttype  A Q\DB::FETCH_% constant
 	 * @return DB_Record
 	 */
-	function load($id, $mode=null, $resulttype=DB::FETCH_RECORD)
+	public function load($id, $mode=null, $resulttype=DB::FETCH_RECORD)
 	{
 	    if (!isset($id) && $resulttype != DB::FETCH_RECORD) throw new Exception("Loading a new record for any other result type than DB::FETCH_RECORD is not supported.");
 	    
-	    // No link or no table property, so create new record directly
-		if (!$this->getConnection() || $this->getTablename() === null){
-			if (isset($id)) throw new DB_Exception("Unable to load a record for table definition '" . $this->getName() . "': " . (!$this->getConnection() ? "No database connection" : "No 'table' property. Table might be virtual (does not exists in db)"));
+	    // No link or no table property, so create new record directly (mode is ignored)
+		if (!$this->getConnection()) {
+			if (isset($id)) throw new Exception("Unable to load a record '$id' for table '$this': No database connection");
 			return DB_Record::create($this);
 		}
 		
 		// Create a record using though a query result
-		if (isset($mode) && isset($this->___properties['#table']["load.$mode"])) $statement = $this->___properties['#table']["load.$mode"];
-		  elseif (isset($this->___properties['#table']['load'])) $statement = $this->___properties['#table']['load'];
-		  else $statement = $this->___properties['#table']['view'];
+		if (isset($mode) && isset($this["load.$mode"])) $statement = $this["load.$mode"];
+		  elseif (isset($this['load'])) $statement = $this['load'];
+		  else $statement = $this['view'];
 		
-		$result = $this->getConnection()->prepareSelect($this, $statement, isset($id) ? $id : false, isset($this->___properties['#table']['filter']) ? $this->___properties['#table']['filter'] : null)->execute();
+		$result = $this->getConnection()->prepareSelect($this, $statement, isset($id) ? $id : false)->execute();
 		return isset($id) ? $result->fetchRow($resulttype) : $result->newRecord();
 	}
 
@@ -336,7 +336,7 @@ class DB_Table extends \ArrayObject
 	 * 
 	 * @throws DB_Constraint_Exception when primary key value is set, but no record can be loaded. 
 	 */
-	function getRecord($values=null, $mode=null)
+	public function getRecord($values=null, $mode=null)
 	{
 	    $id = null;
 	    
@@ -347,13 +347,13 @@ class DB_Table extends \ArrayObject
     	    foreach ($pk as $i=>$fieldname) {
     	        if (isset($values[$fieldname]) && $values[$fieldname] !== '') $id[$i] = $values[$fieldname];
     	          elseif (isset($values["$tablename.$fieldname"])) $id[$i] = $values["$tablename.$fieldname"];
-    	          elseif (($p = array_search($fieldname, $this->___properties)) && isset($values[$p])) $id[$i] = $values[$p];
+    	          elseif (($p = array_search($fieldname, $this)) && isset($values[$p])) $id[$i] = $values[$p];
     	    }
     	    if (isset($id) && count($id) != count($pk)) $id = null;
 	    }
 	    
 		$record = $this->load($id, $mode, DB::FETCH_RECORD);
-		if (!$record) throw new DB_Constraint_Exception("Could not load record '" . join(", ", $id) . "' from table " . $this->getName() . " (" . join(", ", $pk) . ")");
+		if (!$record) throw new DB_ConstraintException("Could not load record '" . join(", ", $id) . "' from table " . $this->getName() . " (" . join(", ", $pk) . ")");
 		
 		if (isset($values)) $record->setValues($values);
 		return $record;
@@ -367,9 +367,8 @@ class DB_Table extends \ArrayObject
 	 * 
 	 * @throws Q\DB_Constraint_Exception if query results in > 1 record and $constraint == SINGLE_ROW
 	 */
-	function delete($id, $constraint=DB::SINGLE_ROW)
+	public function delete($id, $constraint=DB::SINGLE_ROW)
 	{
-	    if (isset($this->___properties['#table']['filter']) && $this->load($id, null, DB::FETCH_ORDERED) === null) return;
 		$this->getConnection()->delete($this->getTablename(), $id, $constraint);
 	}
 	
