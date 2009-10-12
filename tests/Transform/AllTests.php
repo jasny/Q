@@ -1,5 +1,4 @@
 <?php
-
 require_once 'PHPUnit/Framework/TestSuite.php';
 require_once 'Transform/Test.php';
 require_once 'Transform/ReplaceTest.php';

@@ -17,7 +17,7 @@ require_once 'Q/Fs.php';
  * }}
  * 
  * {@example
- * Transform::width('xml:' .$path)->process($_POST['data']); // $path is the path to the file that will be transformed
+ * Transform::with('xml:' .$path)->process($_POST['data']); // $path is the path to the file that will be transformed
  * }}
  * 
  * Available drivers :

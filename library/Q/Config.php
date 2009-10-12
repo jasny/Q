@@ -2,78 +2,76 @@
 namespace Q;
 
 require_once 'Q/misc.php';
-require_once 'Q/Cache.php';
-require_once 'Q/Exception.php';
+require_once 'Q/Config/Exception.php';
+require_once 'Q/Fs.php';
 
 /**
  * Load a configuration settings
- *
- * Options:
- *   caching       Enable caching: TRUE for Q\Cache::i(), Q\Cache DSN (string), Q\Cache object or Cache_Lite object.
- *   caching_id    Required if caching is enabled
  * 
  * @package Config
  */
-abstract class Config
+class Config /* implements \Iterator */
 {
-	/**
-	 * Cache interface
-	 * @var Q\Config[]
-	 */
-	static protected $instances = array();
-
-	/**
-	 * Default configuration options
+    /**
+     * Cache interface
+     * @var Q\Config[]
+     */
+    static protected $instances = array();
+    
+    /**
+	 * Class foe each type.
 	 * @var array
 	 */
-	static public $defaultOptions = array(
-	  'driver'=>'none',
-	  'caching'=>false
+	static public $types = array(
+	  'file'=>'Q\Config_File',
+	  'dir'=>'Q\Config_Dir',
 	);
 
 	/**
-	 * Drivers with classname.
-	 * @var array
+	 * Driver in use
 	 */
-	static public $drivers = array(
-	  'none'=>'Q\Config_None',
-	  'ini'=>'Q\Config_Ini',
-      'xml'=>'Q\Config_XML',
-	  'json'=>'Q\Config_Json',
-	  'yaml'=>'Q\Config_Yaml',
-	);
-		
+	protected $_driver;
 	
+	/**
+     * Drivers with classname.
+     * @var array
+     */
+    static public $drivers = array(
+      'json',
+      'xml',
+      'yaml',
+      'ini',
+    );
+
+    /**
+     * Default configuration options
+     * @var array
+     */
+    static public $defaultOptions = array();
+    
+    /**
+     * Flag to specify that everything is loaded
+     * @var boolean
+     */
+    protected $_loadedAll=false;
+    
+    /**
+     * All cached values
+     * @var array
+     */
+    protected $_settings = array(); 
+
+    /**
+     * File path
+     * @Fs_Node
+     */
+    protected $_path;
+    
 	/**
 	 * Object options
 	 * @var array
 	 */
 	protected $_options;
-
-	/**
-	 * Caching object
-	 * @var Q\Cache
-	 */
-	protected $_cache;
-		
-	/**
-	 * CRC32 hash of settings from cache, used to see if settings are changed.
-	 * @var int
-	 */
-	protected $_cache_check;
-
-	/**
-	 * Flag to specify that everything is loaded
-	 * @var boolean
-	 */
-	protected $_loadedAll=false;
-	
-	/**
-	 * All cached values
-	 * @var array
-	 */
-	protected $_settings = array();	
-		
 
 	/**
 	 * Create a new config interface.
@@ -88,22 +86,25 @@ abstract class Config
 		$options = (is_scalar($dsn) ? extract_dsn($dsn) : (array)$dsn) + (array)$options + self::$defaultOptions;
 		$driver = $options['driver'];
 		
-		if ($driver == 'aliasof') {
-		    if (!isset($options[0])) throw new Exception("When using 'aliasof', it's required to specify which instance to use.");
-		    $instance = $options[0];
-		    return $instance instanceof self ? $instance : self::$instance();
-		}
-		
-		if (!isset(self::$drivers[$driver]) && strpos($driver, '.') !== false && isset(self::$drivers[pathinfo($driver, PATHINFO_EXTENSION)])) {
+		if (!isset($driver) && !in_array($driver, self::$drivers) && strpos($driver, '.') !== false && in_array(pathinfo($driver, PATHINFO_EXTENSION), self::$drivers)) {
 		    $options[0] = $driver;
 		    $driver = pathinfo($driver, PATHINFO_EXTENSION);
 		}
 		
-		if (!isset(self::$drivers[$driver])) throw new Exception("Unable to create Config object: Unknown driver '$driver'");
-		$class = self::$drivers[$driver];
-		if (!load_class($class)) throw new Exception("Unable to create $class object: Class does not exist.");
+		if (!in_array($driver, self::$drivers)) throw new Exception("Unable to create Config object: Unknown driver '$driver'");
+//		$class = self::$drivers[$driver];
+        $options['driver'] = $driver;
 		
-		return new $class($options);
+        if (isset($options[0])) $options['path'] = Fs::get($options[0]);
+          elseif (isset($options['path'])) $options['path'] = Fs::get($options['path']);
+        unset($options[0]);
+		
+        if (!isset($options['path'])) throw new Config_Exception("Unable to create Config object: Unknown path");
+        
+        if (!isset(self::$types[Fs::typeOfNode($options['path'])])) throw new Exception("Unable to create Config object: Unknown or wrong file type");
+        $class = self::$types[Fs::typeOfNode($options['path'])];
+        if (!load_class($class)) throw new Transform_Exception("Unable to create $class object: Class does not exist.");
+        return new $class($options);
 	}
 	
 	/**
@@ -170,8 +171,7 @@ abstract class Config
 	{
 		self::$instances[$name] = $this;
 	}	
-	
-	
+
 	/**
 	 * Class constructor
 	 * 
@@ -179,31 +179,12 @@ abstract class Config
 	 */
 	public function __construct($options=array())
 	{
-		 if (!isset($options['caching'])) $options['caching'] = 'off';
-		
-		// Init caching
-		if ((int)$options['caching'] == 1 || $options['caching'] === 'on') {
-		    if (!isset($options['cache_id'])) trigger_error("Unable to cache configuration: No 'cache_id' option.", E_USER_NOTICE);
-		      elseif (!Cache::hasInstance()) trigger_error("Unable to use caching, general Q\Cache instance has not (yet) been created.", E_USER_NOTICE);
-	          else $this->_cache = Cache::i();
-		} elseif (is_object($options['caching'])) {
-	        $this->_cache = $options['caching'];
-	        unset($options['caching']);
-	    } elseif (is_string($options['caching']) && $options['caching'] !== 'off') {
-            $this->_cache = Cache::with($options['caching'], array_chunk_assoc($options, 'caching'));
-	    }
-	    
-	    if ($this->_cache) {
-		    $this->_settings = $this->_cache->get($options['cache_id']);
-		    if (empty($this->_settings)) $this->_settings = array();
-		    $this->_cache_check = crc32(serialize($this->_settings));
-	    }
-
+//        if (empty($this->_settings)) $this->_settings = array();
 		// Save options
-		$this->_options = $options;
+//		$this->_options = $options;
 		
 		// Optionaly load all settings
-		if (!empty($this->_options['load_all'])) $this->getSettings();
+//		if (!empty($this->_options['load_all'])) $this->getSettings();
 	}
 
 	/**
@@ -212,10 +193,12 @@ abstract class Config
 	public function __destruct()
 	{
 		// Cache settings to disk using Q\Cache
-		if (($this->_options['caching'] === 'on' || isset($this->_cache)) && $this->_cache_check != crc32(serialize($this->_settings))) {
+/*
+	    if (($this->_options['caching'] === 'on' || isset($this->_cache)) && $this->_cache_check != crc32(serialize($this->_settings))) {
 			$ci = isset($this->_cache) ? $this->_cache : Cache::i();
 			$ci->save($this->_settings, $this->_options['cache_id'], 'Q\Config');
 		}
+*/
 	}
 
 	/**
@@ -239,8 +222,7 @@ abstract class Config
 	{
 		$this->set($key, $value);
 	}
-	
-	
+    	
 	/**
 	 * Return a valid group name
 	 * 
@@ -259,7 +241,7 @@ abstract class Config
 	 * @param string $group
 	 * @return array
 	 */
-	abstract protected function loadToCache($group=null);	
+	protected function loadToCache($group=null){}	
 	
 	/**
 	 * Get reference to cached settings for group.

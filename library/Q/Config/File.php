@@ -2,7 +2,7 @@
 namespace Q;
 
 require_once 'Q/Config.php';
-require_once 'Q/Fs.php';
+require_once 'Q/Transform.php';
 
 /**
  * Load and parse config files from a directory.
@@ -18,7 +18,7 @@ require_once 'Q/Fs.php';
  *
  * @package Config
  */
-abstract class Config_Files extends Config implements \ArrayAccess
+class Config_File extends \ArrayObject
 {
 	/**
 	 * Parameters voor preparsing (might be PHP)
@@ -26,7 +26,12 @@ abstract class Config_Files extends Config implements \ArrayAccess
 	 */
 	public $preparseParams;
 
-	/**
+    /**
+     * Driver in use
+     */
+    protected $_driver;
+
+    /**
 	 * File extension.
 	 * Change this value in child classes.
 	 *
@@ -35,40 +40,61 @@ abstract class Config_Files extends Config implements \ArrayAccess
 	protected $_ext;
 
     /**
-     * Configuration variable
+     * All cached values
      *
      * @var array
      */
-    protected $config = array();
-	
-	/**
-	 * Class constructor
-	 *
-	 * @param array $options
-	 */
-	public function __construct($options=array())
-	{
-		if (!isset($options['path'])) {
-		    if (!isset($options[0])) throw new Exception("Unable to load files for config: No option 'path' supplied.");
-		    $options['path'] = $options[0];
-		}
+    protected $_settings = array();
 
-		$options['path'] = preg_replace('/\{\$(.*?)\}/e', "isset(\$_SERVER['\$1']) ? \$_SERVER['\$1'] : \$_ENV['\$1']", $options['path']);
+    /**
+     * Flag to specify that everything is loaded
+     * @var boolean
+     */
+    protected $_loadedAll=false;
 
-		try {
-            $options['file_object'] = Fs::get($options['path']);
-        }catch(Fs_Exception $e) {
-            throw new Exception("Unable to load files for config: File/directory '" . $options['path'] . "' does not exist or is not accessable (check permissions)");
+    /**
+     * Object options
+     * @var array
+     */
+    protected $_options;
+    
+    /**
+     * File path
+     * @Fs_Node
+     */
+    protected $_path;
+    
+    /**
+     * Class constructor
+     * 
+     * @param array $options
+     */
+    public function __construct($options=array())
+    {        
+        if (!isset($options['path'])) {
+            if (!isset($options[0])) throw new Exception("Unable to load files for config: No option 'path' supplied.");
+            $options['path'] = $options[0];
+            unset($options[0]);
         }
-        $options['path_is_file'] = ($options['file_object'] instanceof Fs_File ? true : false);
+        $this->_path = $options['path'] instanceof Fs_File ? $options['path'] : Fs::get($options['path']);
+        if (!($this->_path instanceof Fs_File)) throw new Exception("Unable to load files for config: File '" . $options['path'] . "' does not exist or is not accessable (check permissions)");
+        
+        $driver = array_key_exists('driver', $options) ? $options['driver'] : null;
+        if (!isset($driver) && !in_array($driver, Config::$drivers) && in_array(pathinfo($this->_path, PATHINFO_EXTENSION), Config::$drivers)) {
+            $driver = pathinfo((string)$this->_path, PATHINFO_EXTENSION);
+            
+        }
+        if (!in_array($driver, Config::$drivers)) throw new Exception("Unable to create Config object: Unknown driver '$driver'");
+        $this->_driver = $driver;
+        
+        if (empty($this->_settings)) $this->_settings = array();
+        // Save options
+        $this->_options = $options;
+        
+        $this->loadToCache();
+    }
 
-		if (isset($options['parameters'])) $this->preparseParams = is_array($options['parameters']) ? $options['parameters'] : split_set(';', $options['parameters']);
-
-		parent::__construct($options);
-		if ($options['path_is_file']) $this->loadToCache();
-	}
-
-	/**
+    /**
 	 * Return a valid group name
 	 *
 	 * @param string $group
@@ -89,16 +115,12 @@ abstract class Config_Files extends Config implements \ArrayAccess
 	protected function loadToCache($group=null)
 	{
 		if ($this->_loadedAll) return;
-
-		if ($this->_options['path_is_file']) {
-			$this->_settings = $this->loadFile($this->_options['file_object']);
-			$this->_loadedAll = true;
-		} elseif (empty($group)) {
-			$this->loadDir($this->_options['file_object'], $this->_settings);
-			$this->_loadedAll = true;
-        } else {
-			if (!isset($this->_settings[$group])) $this->_settings[$group] = $this->loadFile($this->_options['file_object'], $group);
-		}
+		$slashpos = strrchr((string)$this->_path, '/');
+		$rootNode = $slashpos ? substr((string)$slashpos, 1) : (string)$this->_path;
+        $extpos = strrchr((string)$rootNode, '.');
+		$rootNode = substr($rootNode, 0, $extpos ? -strlen($extpos) : strlen($rootNode));
+		$this->_settings = array($rootNode => Transform::from($this->_driver, $this->_options)->process($this->_path));
+        $this->_loadedAll = true;
 	}
 
 	/**
@@ -108,7 +130,7 @@ abstract class Config_Files extends Config implements \ArrayAccess
 	 * @param string $key   May be group or filename
 	 * @return array
 	 */
-	abstract protected function loadFile($file_object, $group=null);
+	protected function loadFile($file_object, $group=null){}
 
 	/**
 	 * Load all config files in a dir (no caching)
@@ -155,7 +177,7 @@ abstract class Config_Files extends Config implements \ArrayAccess
 	 */
 	public function offsetExists($offset)
 	{	
-    	return array_key_exists($this->config, $offset);
+    	return array_key_exists($this->_settings, $offset);
 	}
 	
 	/**
@@ -167,7 +189,7 @@ abstract class Config_Files extends Config implements \ArrayAccess
 	 */
 	public function offsetSet($offset, $value)
 	{
-    	$this->config[$offset] = $value;
+    	$this->_settings[$offset] = $value;
 	}
 	
 	/**
@@ -177,7 +199,7 @@ abstract class Config_Files extends Config implements \ArrayAccess
 	 */
 	public function offsetGet($offset)
 	{
-    	return isset($this->config[$offset]) ? $this->config[$offset] : null;
+    	return isset($this->_settings[$offset]) ? $this->_settings[$offset] : null;
 	}
 	
 	/**
@@ -187,7 +209,7 @@ abstract class Config_Files extends Config implements \ArrayAccess
 	 */
 	public function offsetUnset($offset)
 	{
-    	unset($this->config[$offset]);
+    	unset($this->_settings[$offset]);
 	}	
 
 }
