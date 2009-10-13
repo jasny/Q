@@ -81,7 +81,7 @@ a = "original"
 	 */
 	public function testOutput() 
 	{
-        $this->setExpectedException('Q\Transform_Exception', "Transformation returned a non-scalar value of type 'array'");
+        $this->setExpectedException('Q\Exception', "Transformation returned a non-scalar value of type 'array'");
 		$transform = new Transform_Unserialize_Ini();
     		$transform->output('
 [grp1]
@@ -98,7 +98,7 @@ a = "original"
 	 */
 	public function testSave() 
 	{
-        $this->setExpectedException('Q\Transform_Exception', "Transformation returned a non-scalar value of type 'array'");
+        $this->setExpectedException('Q\Exception', "Transformation returned a non-scalar value of type 'array'");
         $this->tmpfile = tempnam(sys_get_temp_dir(), 'Q-');
 		
         $transform = new Transform_Unserialize_Ini();

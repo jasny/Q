@@ -3,6 +3,7 @@ namespace Q;
 
 require_once 'Q/misc.php';
 require_once 'Q/Config/Exception.php';
+require_once 'Q/Transform.php';
 require_once 'Q/Fs.php';
 
 /**
@@ -10,7 +11,7 @@ require_once 'Q/Fs.php';
  * 
  * @package Config
  */
-class Config /* implements \Iterator */
+class Config extends \ArrayObject /* implements \Iterator */
 {
     /**
      * Cache interface
@@ -27,20 +28,19 @@ class Config /* implements \Iterator */
 	  'dir'=>'Q\Config_Dir',
 	);
 
-	/**
-	 * Driver in use
-	 */
-	protected $_driver;
+    /**
+     * File extension and driver in use
+     *
+     * @var string
+     */
+	protected $_ext;
 	
 	/**
      * Drivers with classname.
      * @var array
      */
     static public $drivers = array(
-      'json',
-      'xml',
-      'yaml',
-      'ini',
+      'db',
     );
 
     /**
@@ -48,18 +48,6 @@ class Config /* implements \Iterator */
      * @var array
      */
     static public $defaultOptions = array();
-    
-    /**
-     * Flag to specify that everything is loaded
-     * @var boolean
-     */
-    protected $_loadedAll=false;
-    
-    /**
-     * All cached values
-     * @var array
-     */
-    protected $_settings = array(); 
 
     /**
      * File path
@@ -73,6 +61,12 @@ class Config /* implements \Iterator */
 	 */
 	protected $_options;
 
+    /**
+     * Object transformer
+     * @var object
+     */
+    protected $_transformer;
+	
 	/**
 	 * Create a new config interface.
 	 * @static
@@ -91,19 +85,18 @@ class Config /* implements \Iterator */
 		    $driver = pathinfo($driver, PATHINFO_EXTENSION);
 		}
 		
-		if (!in_array($driver, self::$drivers)) throw new Exception("Unable to create Config object: Unknown driver '$driver'");
-//		$class = self::$drivers[$driver];
-        $options['driver'] = $driver;
+//		if (!in_array($driver, self::$drivers)) throw new Exception("Unable to create Config object: Unknown driver '$driver'");
+		if (isset($driver)) $options['driver'] = $driver;
 		
         if (isset($options[0])) $options['path'] = Fs::get($options[0]);
           elseif (isset($options['path'])) $options['path'] = Fs::get($options['path']);
         unset($options[0]);
 		
-        if (!isset($options['path'])) throw new Config_Exception("Unable to create Config object: Unknown path");
+        if (!isset($options['path'])) throw new Exception("Unable to create Config object: Unknown path");
         
         if (!isset(self::$types[Fs::typeOfNode($options['path'])])) throw new Exception("Unable to create Config object: Unknown or wrong file type");
         $class = self::$types[Fs::typeOfNode($options['path'])];
-        if (!load_class($class)) throw new Transform_Exception("Unable to create $class object: Class does not exist.");
+        if (!load_class($class)) throw new Config_Exception("Unable to create $class object: Class does not exist.");
         return new $class($options);
 	}
 	
@@ -152,53 +145,12 @@ class Config /* implements \Iterator */
 	}
 	
 	/**
-	 * Check is singeton object exists
-	 * 
-	 * @param string $name
-	 * @return boolean
-	 */
-	public function exists()
-	{
-	    return true;
-	}
-
-	/**
-	 * Register instance
-	 * 
-	 * @param string $name
-	 */
-	public final function useFor($name)
-	{
-		self::$instances[$name] = $this;
-	}	
-
-	/**
 	 * Class constructor
 	 * 
 	 * @param array $options
 	 */
 	public function __construct($options=array())
 	{
-//        if (empty($this->_settings)) $this->_settings = array();
-		// Save options
-//		$this->_options = $options;
-		
-		// Optionaly load all settings
-//		if (!empty($this->_options['load_all'])) $this->getSettings();
-	}
-
-	/**
-	 * Class destructor
-	 */
-	public function __destruct()
-	{
-		// Cache settings to disk using Q\Cache
-/*
-	    if (($this->_options['caching'] === 'on' || isset($this->_cache)) && $this->_cache_check != crc32(serialize($this->_settings))) {
-			$ci = isset($this->_cache) ? $this->_cache : Cache::i();
-			$ci->save($this->_settings, $this->_options['cache_id'], 'Q\Config');
-		}
-*/
 	}
 
 	/**
@@ -207,9 +159,9 @@ class Config /* implements \Iterator */
 	 * @param string $key
 	 * @return mixed
 	 */
-	public function &__get($key)
+	public function __get($key)
 	{
-		return $this->get($key);
+//		return $this->get($key);
 	}
 	
 	/**
@@ -220,118 +172,9 @@ class Config /* implements \Iterator */
 	 */
 	public function __set($key, $value)
 	{
-		$this->set($key, $value);
-	}
-    	
-	/**
-	 * Return a valid group name
-	 * 
-	 * @param string $group
-	 * @return string
-	 */
-	public function groupName($group)
-	{
-		return $group;
-	}
-	
-
-	/**
-	 * Load a config file or dir and save it to cache
-	 * 
-	 * @param string $group
-	 * @return array
-	 */
-	protected function loadToCache($group=null){}	
-	
-	/**
-	 * Get reference to cached settings for group.
-	 * 
-	 * @param mixed $key  Key(string), array(group, ..., key) or NULL for all settings
-	 * @return array
-	 */
-	protected function &getFromCache($key=null)
-	{
-		if ($key === null) return $this->_settings;
-
-		$settings =& $this->_settings;
-		foreach ((array)$key as $k) {
-			if (!isset($settings[$k])) $settings[$k] = null;
-			$settings =& $settings[$k];
-		}
-		
-		return $settings;
-	}
-	
-	/**
-	 * Clear config from cache
-	 *
-	 * @param string $key
-	 */
-    public function clearCache($key=null)
-    {
-        if ($key) $this->_settings[$key] = null;
-         else $this->_settings = array();
-        
-		$this->_loadedAll = false;
-		$settings = null;
-    }
-	
-	/**
-	 * Check if a setting is in cache.
-	 * 
-	 * @param string|array $key
-	 * @param Additional arguments may be passed for sublevels of $key
-	 * @return bool
-	 */
-	public function isCached($key)
-	{
-	    $keys = is_array($key) ? $key : func_get_args();
-
-	    $settings =& $this->_settings;
-		foreach ((array)$keys as $k) {
-			if (!array_key_exists($k, $settings)) return false;
-			$settings =& $settings[$k];
-		}
-		
-		return true;
+//		$this->set($key, $value);
 	}
 
-	/**
-	 * Return a setting.
-	 * 
-	 * @param string $key      
-	 * @param Additional arguments may be passed for sublevels of $key
-	 * @return mixed
-	 */
-	function &get($key=null)
-	{
-		$this->loadToCache($key);
-		
-		$keys = is_array($key) ? $key : func_get_args();
-		return $this->getFromCache($keys, true);
-	}
-	
-	/**
-	 * Cache the settings of a group.
-	 * 
-	 * @param string $key      
-	 * @param array  $value
-	 * @param Additional arguments may be passed for sublevels of $key, the last argument will always be seen as the value
-	 */
-	public function set($key, $value)
-	{
-	    $this->loadToCache($key);
-	    
-		if (!is_array($key) && func_num_args() > 2) {
-		    $keys = func_get_args();
-		    $value = array_pop($keys);
-		} else {
-		    $keys = (array)$key;
-		}
-		
-		$cache_ref =& $this->getFromCache($keys, true);
-		$cache_ref = $value;
-	}
 }
 
 /**

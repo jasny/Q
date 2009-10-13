@@ -2,51 +2,31 @@
 namespace Q;
 
 require_once 'Q/Config.php';
+require_once 'Q/Config/File.php';
 
 /**
- * Load and parse config files from a directory.
- * 
- * {@example 
- * 
- * 1) 
- * $conf = Config::with('yaml:/etc/myapp');     
- * $conf['abc']['10'] = "hello";
- * $conf['abc']['12'] = "Test";
- * $conf->save();
- * }
+ * Load all config from a dir
  *
  * @package Config
  */
-class Config_File extends Config
+class Config_Dir extends Config
 {
-    /**
-     * Driver in use
-     * @var Tranformer
-     */
-    protected $_transformer;
-    
-    /**
-     * File path
-     * @Fs_Node
-     */
-    protected $_path;
-    
     /**
      * Class constructor
      * 
      * @param array $options
      */
     public function __construct($options=array())
-    {
+    {        
         if (!is_array($options)) $options = (array)$options;
         
         if (!isset($options['path'])) {
-            if (!isset($options[0])) throw new Config_Exception("Unable to load files for config: No option 'path' supplied.");
+            if (!isset($options[0])) throw new Exception("Unable to load files for config: No option 'path' supplied.");
             $options['path'] = $options[0];
             unset($options[0]);
         }
-        $this->_path = Fs::file($options['path']);
-        
+        $this->_path = Fs::dir($options['path']);
+                
         if (isset($options['transformer'])) {
             $this->_transformer = $options['transformer'] instanceof Transformer ? $options['transformer'] : Transform::with($options['transformer']);
         } else {
@@ -54,9 +34,18 @@ class Config_File extends Config
             $this->_transformer = Transform::from($options['driver']);
         }
         if (isset($options['driver'])) $this->_ext = $options['driver'];
-        
-        if (!isset($this->_transformer)) throw new Config_Exception("Unable to load files for config: No transformer available.");
-        
-        \ArrayObject::__construct($this->_transformer->process($this->_path));
+                
+//        \ArrayObject::__construct($this->_transformer->process($this->_path));          
     }
+    
+    public function offsetSet($key, $value)
+    {
+       if (is_scalar($value) || is_resource($value)) throw new Config_Exception();
+       //check if not ext .....
+       $config = new Config_File(array($this->_path->file("$key.{$this->_ext}")));
+       $config->exchangeArray((array)$value);
+       
+       \ArrayObject::offsetSet($key, $config);
+    }
+
 }

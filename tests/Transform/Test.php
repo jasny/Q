@@ -25,7 +25,7 @@ class Transform_Test extends \PHPUnit_Framework_TestCase
      */
     public function testDriver_SimpleOptions()
     {
-        $transform = Transform::with('unserialize-json:assoc=false');
+        $transform = Transform::with('from-json:assoc=false');
         $this->assertType('Q\Transform_Unserialize_Json', $transform);
         $this->assertFalse($transform->assoc);
     }
@@ -40,7 +40,7 @@ class Transform_Test extends \PHPUnit_Framework_TestCase
   Hello i'm ###name###. I was very cool @ ###a###.
 </body>");
 
-        $transform = Transform::with('unserialize-json:file='.$tmpfile.';marker=###%s###;');
+        $transform = Transform::with('from-json:file='.$tmpfile.';marker=###%s###;');
         $this->assertType('Q\Transform_Unserialize_Json', $transform);
         $this->assertEquals('###%s###', $transform->marker);
         $this->assertEquals("<body>
@@ -66,6 +66,14 @@ class Transform_Test extends \PHPUnit_Framework_TestCase
     {
         $transform = Transform::to('xml');
         $this->assertType('Q\Transform_Serialize_XML', $transform);
+    }
+    /**
+     * Test Transform::to()
+     */
+    public function testTo_EmptyArgument()
+    {
+        $this->setExpectedException('Q\Exception', "Unable to create Transform object: No driver specified");
+        $transform = Transform::to();
     }
     
     /**

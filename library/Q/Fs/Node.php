@@ -56,11 +56,12 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
 	/**
 	 * Returns filename component of path.
 	 * 
+	 * @param  string $suffix If the filename ends in suffix  this will also be cut off
 	 * @return string
 	 */
-	public function basename()
+	public function basename($suffix=null)
 	{
-		return basename($this->_path);
+	    return basename($this->_path, $suffix);
 	}
 	
 	/**
