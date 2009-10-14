@@ -123,9 +123,24 @@ function extract_dsn($dsn)
 {
     if (empty($dsn)) return array();
     
+    $options = array();
+    
+    if (is_array($dsn)) {
+        if (!isset($dsn['dsn']) && isset($dsn[0])) {
+            $dsn['dsn'] = $dsn[0];
+            unset($dsn[0]);
+        }
+    
+        if (isset($dsn['driver']) || !isset($dsn['dsn'])) return $dsn;
+
+        $options = $dsn;
+        $dsn = $dsn['dsn'];
+        unset($options['dsn']);
+    }
+    
 	$matches = null;
 	if (!preg_match('/^([\w-]+)\:(.*)$/', $dsn, $matches)) return array('driver'=>$dsn);
-	return array('driver'=>$matches[1]) + split_set(';', $matches[2]);
+	return array('driver'=>$matches[1]) + split_set(';', $matches[2]) + $options;
 }
 
 

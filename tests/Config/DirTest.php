@@ -3,7 +3,11 @@ use Q\Config, Q\Config_Dir;
 
 require_once 'TestHelper.php';
 require_once 'Q/Config/Dir.php';
+require_once 'Config/Mock/Unserialize.php';
 
+/**
+ * Test for Config_Dir
+ */
 class Config_DirTest extends \PHPUnit_Framework_TestCase
 {
     /**
@@ -12,39 +16,9 @@ class Config_DirTest extends \PHPUnit_Framework_TestCase
     protected function setUp()
     {
         $this->dir = sys_get_temp_dir() . '/q-config_dirtest-' . md5(uniqid());
-        $this->file[0] = sys_get_temp_dir() . '/q-config_dirtest_f0-' . md5(uniqid());
-        $this->file[1] = sys_get_temp_dir() . '/q-config_dirtest_f1-' . md5(uniqid());
-        $this->subdir = sys_get_temp_dir() . '/q-config_dirtest_subdir-' . md5(uniqid());
-        $this->file['subdir'] = sys_get_temp_dir() . '/q-config_dirtest_fsubdir-' . md5(uniqid());
+        mkdir($this->dir);
         
-        if (!mkdir($this->dir)) $this->markTestSkipped("Could not create '{$this->dir}'.");        
-        if (!file_put_contents($this->file[0], '<?xml version="1.0" encoding="UTF-8"?>
-<settings>
-    <grp1>
-        <q>abc</q>
-        <b>27</b>
-    </grp1>
-    <grp2>
-        <a>original</a>
-    </grp2>
-</settings>')) $this->markTestSkipped("Could not write to '{$this->file[0]}'.");
-        if (!file_put_contents($this->file[1], '[TABLE_DEF]
-overview = "SELECT * FROM phpunit_child"
-
-[test_id]
-datatype = parentkey
-foreign_table = phpunit_test')) $this->markTestSkipped("Could not write to '{$this->file[1]}'.");
-        if (!mkdir($this->subdir)) $this->markTestSkipped("Could not create '{$this->subdir}'.");        
-        if (!file_put_contents($this->file['subdir'], 'xyz:
-   xq  : 10
-   abc :
-      a  : something else
-      tu : 27
-
-
-d:
-   - abc
-   - klm')) $this->markTestSkipped("Could not write to '{$this->file['subdir']}'.");        
+        Q\Transform::$drivers['from-mock'] = 'Config_Mock_Unserialize';
     }
     
     /**
@@ -52,62 +26,334 @@ d:
      */
     protected function tearDown()
     {
-        $this->cleanup($this->dir);
-        $this->cleanup($this->file[0]);
-        $this->cleanup($this->file[1]);
-        $this->cleanup($this->subdir);
-        $this->cleanup($this->file['subdir']);
+        rmdir($this->dir);
+        Config_Mock_Unserialize:$created = array();
+        unset(Q\Transform::$drivers['from-mock']);
+    }
+    
+    /**
+     * Check the results valid for most Config::with() tests
+     */
+    public function checkWithResult($config)
+    {
+        $this->assertType('Q\Config_Dir', $config);
+        
+        $refl_ext = new \ReflectionProperty($config, '_ext');
+        $refl_ext->setAccessible(true);
+        $this->assertEquals('mock', $refl_ext->getValue($config));
+
+        $refl_path = new \ReflectionProperty($config, '_path');
+        $refl_path->setAccessible(true);
+        $this->assertEquals($this->dir, (string)$refl_path->getValue($config));
+        
+        $refl_tr = new \ReflectionProperty($config, '_transformer');
+        $refl_tr->setAccessible(true);
+        $this->assertType('Config_Mock_Unserialize', $refl_tr->getValue($config));        
+    }
+    
+    /**
+     * Check the results valid for most Config::with() tests that have a transformer
+     */
+    public function checkWithTrResult($config)
+    {
+        $this->assertType('Q\Config_Dir', $config);
+        
+        $refl_ext = new \ReflectionProperty($config, '_ext');
+        $refl_ext->setAccessible(true);
+        $this->assertEquals('yaml', $refl_ext->getValue($config));
+
+        $refl_path = new \ReflectionProperty($config, '_path');
+        $refl_path->setAccessible(true);
+        $this->assertEquals($this->dir, (string)$refl_path->getValue($config));
+        
+        $refl_tr = new \ReflectionProperty($config, '_transformer');
+        $refl_tr->setAccessible(true);
+        $this->assertType('Config_Mock_Unserialize', $refl_tr->getValue($config));        
+    }
+    
+    /**
+     * Tests Config::with(): full (standard) DSN
+     */
+    public function testWith()
+    {
+        $config = Config::with("dir:ext=mock;path={$this->dir}");
+        $this->checkWithResult($config);
+    }    
+
+    /**
+     * Tests Config::with() : where driver; argument[0] is mock and argument['path']
+     */
+    public function testWith_Arg0IsExt()
+    {
+        $config = Config::with("dir:mock;path={$this->dir}");
+        $this->checkWithResult($config);   
     }
 
     /**
-     * Remove tmp files (recursively)
-     * 
-     * @param string $path
+     * Tests Config::with() : where driver, argument[0] is path and argument['ext']
      */
-    protected static function cleanup($path)
+    public function testWith_Arg0IsPath()
     {
-        foreach (array('', '.orig', '.x', '.y') as $suffix) {
-            if (is_dir($path . $suffix) && !is_link($path . $suffix)) {
-                static::cleanup($path . $suffix . '/' . basename($path));
-                if (!rmdir($path . $suffix)) throw new Exception("Cleanup failed");
-            } elseif (file_exists($path . $suffix) || is_link($path . $suffix)) {
-                unlink($path . $suffix);
-            }
-        }
-    } 
-
-    
-	public function testConfigDir()
-    {
-    	$config = new Config_Dir(array('driver'=>'xml', 'path'=>$this->dir));
-    	
-        $rootNode = pathinfo($this->file[0], PATHINFO_FILENAME);
-$config[$rootNode]['test'] = 10;
-var_dump((array)$config);
-        $this->assertType('Q\Config_Dir', $config);        
-//    	$this->assertEquals('abc', $config[$rootNode]['grp1']['q']);
+        $config = Config::with("dir:{$this->dir};ext=mock");
+        $this->checkWithResult($config);   
     }
     
-    
-/*    public function testConfigSubgrpFile()
+    /**
+     * Tests Config::with() : where driver, argument[0] is ext:path
+     */
+    public function testWith_Arg0IsExtPath()
     {
-    	$config = new Config_File(array('path'=>$this->getPath() . '/test-subgrp.xml'));
-    	$this->assertEquals(array('xyz'=>array('xq'=>10, 'abc'=>array('a'=>'something else', 'tu'=>27, 're'=>10, 'grp1'=>array('i1'=>22, 'we'=>10))), 'd'=>array('abc', 'def', 'ghij', 'klm')), $config->get());
+        $config = Config::with("dir:mock:{$this->dir}");
+        $this->checkWithResult($config);   
     }
         
-    public function testConfigDir()
+    /**
+     * Tests Config::with(): where driver is extension and argument[0] is path
+     */
+    public function testWith_DriverIsExt_Arg0IsPath()
     {
-    	$config = new Config_File(array('path'=>$this->getPath() . '/test'));
+        $config = Config::with("mock:{$this->dir}");
+        $this->checkWithResult($config);
+    }
 
-    	$this->assertEquals(array('q'=>'abc', 'b'=>27), $config->get('grp1'));
-    	$this->assertEquals(array('grp1'=>array('q'=>'abc', 'b'=>27), 'grp2'=>array('a'=>'original')), $config->get());
-    	$this->setgetTest($config);
+    /**
+     * Tests Config::with() : where driver is path
+     */
+    public function testWith_DriverIsPath()
+    {
+        $config = Config::with($this->dir);
+        
+        $this->assertType('Q\Config_Dir', $config);
+
+        $refl_path = new \ReflectionProperty($config, '_path');
+        $refl_path->setAccessible(true);
+        $this->assertEquals($this->dir, (string)$refl_path->getValue($config));
+
+        $refl_tr = new \ReflectionProperty($config, '_transformer');
+        $refl_tr->setAccessible(true);
+        $this->assertEquals(null, $refl_tr->getValue($config));        
+                
+        $refl_ext = new \ReflectionProperty($config, '_ext');
+        $refl_ext->setAccessible(true);
+        $this->assertEquals(null, (string)$refl_ext->getValue($config));
+    }
+
+    /**
+     * Tests Config::with() : where dsn is driver:mock and options['path']
+     */
+    public function testWith_DsnIsDirAndExtOptPath()
+    {
+        $config = Config::with("dir:mock", array('path'=>$this->dir));
+        $this->checkWithResult($config);
+    }
+
+    /**
+     * Tests Config::with() : where dsn is driver:mock and options[0] is path
+     */
+    public function testWith_DsnIsDirAndExtOpt0Path()
+    {
+        $config = Config::with("dir:mock", array($this->dir));
+        $this->assertType('Q\Config_Dir', $config);
+        
+        $refl_ext = new \ReflectionProperty($config, '_ext');
+        $refl_ext->setAccessible(true);
+        $this->assertEquals('mock', $refl_ext->getValue($config));
+
+        $refl_path = new \ReflectionProperty($config, '_path');
+        $refl_path->setAccessible(true);
+        $this->assertEquals(null, (string)$refl_path->getValue($config));
+        
+        $refl_tr = new \ReflectionProperty($config, '_transformer');
+        $refl_tr->setAccessible(true);
+        $this->assertType('Config_Mock_Unserialize', $refl_tr->getValue($config));
     }
     
-    public function testMapping()
+    
+    /**
+     * Tests Config::with() : where dsn is driver:path and options['ext']
+     */
+    public function testWith_DsnIsDriverAndPathOptExt()
     {
-        $config = new Config_File(array('path'=>$this->getPath() . '/a_test.xml', 'map'=>array('extra'=>'value'), 'mapkey'=>array('table_def'=>"'#table'", 'field'=>'@name', 'alias'=>"'#alias:'.@name")));
-        $this->assertEquals(array('#table'=>array('description'=>'Alias', 'filter'=>'status = 1'), 'description'=>array('name'=>'description', 'type'=>'string', 'datatype'=>'alphanumeric', 'description'=>'Name', 'extra'=>'yup'), '#alias:xyz'=>array('name'=>'xyz', 'description'=>'Description XYZ')), $config->get());
+        $config = Config::with("dir:{$this->dir}", array('ext'=>'mock'));
+        $this->checkWithResult($config);
     }
-*/
+    
+    /**
+     * Tests Config::with() : where dsn is ext and options['path']
+     */
+    public function testWith_DsnIsExtOptPath()
+    {
+        $config = Config::with('mock', array('path'=>$this->dir));
+        $this->checkWithResult($config);
+    }
+    
+    /**
+     * Tests Config::with() : where dsn is ext and options[0] is path
+     */
+    public function testWith_DsnIsExtOpt0Path()
+    {
+        $config = Config::with('mock', array($this->dir));
+        $this->checkWithResult($config);
+    }
+    
+    /**
+     * Tests Config::with() : where dsn is path and options['ext']
+     */
+    public function testWith_DsnIsPathOptExt()
+    {
+        $config = Config::with($this->dir, array('ext'=>'mock'));
+        $this->checkWithResult($config);
+    }
+
+    /**
+     * Tests Config::with() : where driver; argument[0] is yaml, argument['path'] and argument['transformer']
+     */
+    public function testWith_Arg0IsExtAndArgTr()
+    {
+        $config = Config::with("dir:yaml;path={$this->dir};transformer=from-mock");
+        $this->checkWithTrResult($config);   
+    }
+
+    /**
+     * Tests Config::with() : where driver, argument[0] is path, argument['ext'] and argument['transformer']
+     */
+    public function testWith_Arg0IsPathAndArgTr()
+    {
+        $config = Config::with("dir:{$this->dir};ext=yaml;transformer=from-mock");
+        $this->checkWithTrResult($config);   
+    }
+    
+    /**
+     * Tests Config::with() : where driver, argument[0] is ext:path and argument['transformer']
+     */
+    public function testWith_Arg0IsExtPathAndArgTr()
+    {
+        $config = Config::with("dir:yaml:{$this->dir};transformer=from-mock");
+        $this->checkWithTrResult($config);   
+    }
+        
+    /**
+     * Tests Config::with(): where driver is extension, argument[0] is path and argument['transformer']
+     */
+    public function testWith_DriverIsExt_Arg0IsPathAndArgTr()
+    {
+        $config = Config::with("yaml:{$this->dir};transformer=from-mock");
+        $this->checkWithTrResult($config);
+    }
+
+    /**
+     * Tests Config::with() : where dsn is driver:mock, options['path'] and options['transformer']
+     */
+    public function testWith_DsnIsDirAndExtOptPathArgTr()
+    {
+        $config = Config::with("dir:Yaml", array('path'=>$this->dir, 'transformer'=> new Config_Mock_Unserialize()));
+        $this->checkWithTrResult($config);
+    }
+
+    /**
+     * Tests Config::with() : where dsn is driver:mock and options[0] is path and options['transformer']
+     */
+    public function testWith_DsnIsDirAndExtOpt0PathArgTr()
+    {
+        $config = Config::with("dir:yaml", array($this->dir, 'transformer'=>new Config_Mock_Unserialize()));
+        $this->checkWithTrResult($config);
+        
+    }
+    
+    
+    /**
+     * Tests Config::with() : where dsn is driver:path and options['ext'] and options['transformer']
+     */
+    public function testWith_DsnIsDriverAndPathOptExtArgTr()
+    {
+        $config = Config::with("dir:{$this->dir}", array('ext'=>'yaml', 'transformer'=>'from-mock'));
+        $this->checkWithTrResult($config);
+    }
+    
+    /**
+     * Tests Config::with() : where dsn is ext and options['path'] and options['transformer']
+     */
+    public function testWith_DsnIsExtOptPathArgTr()
+    {
+        $config = Config::with('yaml', array('path'=>$this->dir, 'transformer'=>'from-mock'));
+        $this->checkWithTrResult($config);
+    }
+    
+    /**
+     * Tests Config::with() : where dsn is ext and options[0] is path and options['transformer']
+     */
+    public function testWith_DsnIsExtOpt0PathArgTr()
+    {
+        $config = Config::with('yaml', array($this->dir, 'transformer'=>'from-mock'));
+        $this->checkWithTrResult($config);
+    }
+    
+    /**
+     * Tests Config::with() : where dsn is path and options['ext'] and options['transformer']
+     */
+    public function testWith_DsnIsPathOptExtArgTr()
+    {
+        $config = Config::with($this->dir, array('ext'=>'mock', 'transformer'=>'from-mock'));
+        $this->checkWithTrResult($config);
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    /**
+     * Tests Config::with() : config options scalar with driver, path and transformer
+     */
+/*
+    public function testConfig_With_Scalar_DriverAndTransform()
+    {        
+        $config = Config::with('dir:'.$this->dir.';transformer=from-mock;');
+        
+        $this->assertType('Q\Config_Dir', $config);
+        
+        $refl_tr = new \ReflectionProperty($config, '_transformer');
+        $refl_tr->setAccessible(true);
+        $this->assertType('Q\Transform_Unserialize_Yaml', $refl_tr->getValue($config));        
+        
+        $refl_ext = new \ReflectionProperty($config, '_ext');
+        $refl_ext->setAccessible(true);
+        $this->assertEquals('yaml', $refl_ext->getValue($config));
+
+        $refl_path = new \ReflectionProperty($config, '_path');
+        $refl_path->setAccessible(true);
+        $this->assertEquals($this->dir, (string)$refl_path->getValue($config));
+    }
+*/    
+    /**
+     * Tests Config_Dir : config options array with path and ext
+     */
+    public function testConfigDir()
+    {
+        $config = new Config_Dir($this->dir);
+        
+        $this->assertType('Q\Config_Dir', $config);
+
+        $refl = new \ReflectionProperty($config, '_path');
+        $refl->setAccessible(true);
+        $this->assertEquals($this->dir, (string)$refl->getValue($config));
+    }
+    
 }

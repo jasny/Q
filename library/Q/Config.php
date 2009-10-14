@@ -3,70 +3,30 @@ namespace Q;
 
 require_once 'Q/misc.php';
 require_once 'Q/Config/Exception.php';
-require_once 'Q/Transform.php';
-require_once 'Q/Fs.php';
 
 /**
  * Load a configuration settings
  * 
  * @package Config
  */
-class Config extends \ArrayObject /* implements \Iterator */
+class Config extends \ArrayObject
 {
     /**
      * Cache interface
      * @var Q\Config[]
      */
     static protected $instances = array();
-    
-    /**
-	 * Class foe each type.
-	 * @var array
-	 */
-	static public $types = array(
-	  'file'=>'Q\Config_File',
-	  'dir'=>'Q\Config_Dir',
-	);
-
-    /**
-     * File extension and driver in use
-     *
-     * @var string
-     */
-	protected $_ext;
 	
 	/**
      * Drivers with classname.
      * @var array
      */
     static public $drivers = array(
-      'db',
+      'file'=>'Q\Config_File',
+      'dir'=>'Q\Config_Dir'
     );
 
-    /**
-     * Default configuration options
-     * @var array
-     */
-    static public $defaultOptions = array();
-
-    /**
-     * File path
-     * @Fs_Node
-     */
-    protected $_path;
     
-	/**
-	 * Object options
-	 * @var array
-	 */
-	protected $_options;
-
-    /**
-     * Object transformer
-     * @var object
-     */
-    protected $_transformer;
-	
 	/**
 	 * Create a new config interface.
 	 * @static
@@ -77,26 +37,31 @@ class Config extends \ArrayObject /* implements \Iterator */
 	 */
 	static public function with($dsn, $options=array())
 	{
-		$options = (is_scalar($dsn) ? extract_dsn($dsn) : (array)$dsn) + (array)$options + self::$defaultOptions;
-		$driver = $options['driver'];
+		$options = extract_dsn($dsn) + (array)$options;
 		
-		if (!isset($driver) && !in_array($driver, self::$drivers) && strpos($driver, '.') !== false && in_array(pathinfo($driver, PATHINFO_EXTENSION), self::$drivers)) {
-		    $options[0] = $driver;
-		    $driver = pathinfo($driver, PATHINFO_EXTENSION);
+		if (get_called_class() !== __CLASS__) {
+		    $class = get_called_class();
+		    return new $class($options);
 		}
 		
-//		if (!in_array($driver, self::$drivers)) throw new Exception("Unable to create Config object: Unknown driver '$driver'");
-		if (isset($driver)) $options['driver'] = $driver;
-		
-        if (isset($options[0])) $options['path'] = Fs::get($options[0]);
-          elseif (isset($options['path'])) $options['path'] = Fs::get($options['path']);
-        unset($options[0]);
-		
-        if (!isset($options['path'])) throw new Exception("Unable to create Config object: Unknown path");
+		// If driver is unknown, assume driver is filename or extension and use driver 'file' or 'dir'
+		if (!isset(self::$drivers[$options['driver']])) {
+		    if (strpos($options['driver'], '.') === false && strpos($options['driver'], '/') === false) {
+		        $options['ext'] = $options['driver'];
+		        if (!isset($options['path']) && isset($options[0])) $options['path'] = $options[0];
+		    } else {
+		        $options['path'] = $options['driver'];
+		    }
+		    $options['driver'] = isset($options['path']) && (file_exists($options['path']) ? is_dir($options['path']) : strpos($options['path'], '.') === false) ? 'dir' : 'file';
+		}
         
-        if (!isset(self::$types[Fs::typeOfNode($options['path'])])) throw new Exception("Unable to create Config object: Unknown or wrong file type");
-        $class = self::$types[Fs::typeOfNode($options['path'])];
-        if (!load_class($class)) throw new Config_Exception("Unable to create $class object: Class does not exist.");
+        if (!isset($options['driver'])) throw new Exception("Unable to create Config object: No driver specified");
+        if (!isset(self::$drivers[$options['driver']])) throw new Exception("Unable to create Config object: Unknown driver '{$options['driver']}'");
+
+        $class = self::$drivers[$options['driver']];
+        if (!load_class($class)) throw new Exception("Unable to create $class object for driver '{$options['driver']}': Class does not exist.");
+        
+        unset($options['driver']);
         return new $class($options);
 	}
 	
@@ -114,7 +79,7 @@ class Config extends \ArrayObject /* implements \Iterator */
 
 	    if (empty($dsn)) {
 	        $const = 'CONFIG' . ($name != 'i' ? strtoupper("_{$name}") : ''); 
-            if (!defined($const)) return new Config_Mock($name);
+            if (!defined($const)) return new Mock(__CLASS__, $name);
             $dsn = constant($const);
 	    }
 	    
@@ -151,121 +116,6 @@ class Config extends \ArrayObject /* implements \Iterator */
 	 */
 	public function __construct($options=array())
 	{
+	   parent::__construct(array(), \ArrayObject::ARRAY_AS_PROPS);
 	}
-
-	/**
-	 * Magic get method: get settings
-	 *
-	 * @param string $key
-	 * @return mixed
-	 */
-	public function __get($key)
-	{
-//		return $this->get($key);
-	}
-	
-	/**
-	 * Magic set method: put settings
-	 *
-	 * @param string $key
-	 * @param mixed  $value
-	 */
-	public function __set($key, $value)
-	{
-//		$this->set($key, $value);
-	}
-
-}
-
-/**
- * Mock object to create config instance.
- * @ignore 
- */
-class Config_Mock
-{
-    /**
-     * Instance name
-     * @var string
-     */
-    protected $_name;
-    
-    /**
-     * Class constructor
-     *
-     * @param string $name
-     */
-    public function __construct($name)
-    {
-        $this->_name = $name;
-    }
-    
-	/**
-	 * Create a new config interface instance.
-	 *
-	 * @param string|array $dsn      Configuration options, may be serialized as assoc set (string)
-	 * @param array        $options  Other options (will be overwriten by DSN)
-	 * @return Config
-	 */
-	public function with($dsn, $options=array())
-	{
-	    $instance = Config::with($dsn, $options + array('cache_id'=>'config' . ($this->_name == 'i' ? '' : ".{$this->_name}")));
-	    $instance->useFor($this->_name);
-	    
-	    return $instance;
-    }
-    
-    
-    /**
-     * Check if instance exists.
-     *
-     * @return boolean
-     */
-    public function exists()
-    {
-        return false;
-    }
-    
-    /**
-     * Magic get method
-     *
-     * @param string $key
-     * 
-     * @throws Q\Exception because this means that the instance is used, but does not exist.  
-     */
-    public function __get($key)
-    {
-        $name = $this->_name;
-        if (Config::$name()->exists()) trigger_error("Incorrect use of mock object 'Q\Config::{$this->_name}()'.", E_USER_ERROR);
-        throw new Exception("Config interface '{$this->_name}' does not exist.");
-    }
-
-    /**
-     * Magic set method
-     *
-     * @param string $key
-     * @param mixed  $value
-     * 
-     * @throws Q\Exception because this means that the instance is used, but does not exist.  
-     */
-    public function __set($key, $value)
-    {
-        $name = $this->_name;
-        if (Config::$name()->exists()) trigger_error("Incorrect use of mock object 'Q\Config::{$this->_name}()'.", E_USER_ERROR);
-        throw new Exception("Config interface '{$this->_name}' does not exist.");
-    }
-    
-    /**
-     * Magic call method
-     *
-     * @param string $function
-     * @param array  $args
-     * 
-     * @throws Q\Exception because this means that the instance is used, but does not exist.  
-     */
-    public function __call($function, $args)
-    {
-        $name = $this->_name;
-        if (Config::$name()->exists()) trigger_error("Incorrect use of mock object 'Q\Config::{$this->_name}()'.", E_USER_ERROR);
-        throw new Exception("Config interface '{$this->_name}' does not exist.");
-    }
 }

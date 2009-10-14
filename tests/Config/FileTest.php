@@ -3,6 +3,7 @@ use Q\Config, Q\Config_File, Q\Fs, Q\Transform;
 
 require_once 'TestHelper.php';
 require_once 'Q/Config/File.php';
+require_once 'Config/Mock/Unserialize.php';
 
 class Config_FileTest extends \PHPUnit_Framework_TestCase
 {
@@ -14,6 +15,7 @@ class Config_FileTest extends \PHPUnit_Framework_TestCase
     public function tearDown()
     {
         Config_FileTest_Mock_Unserialize:$created = array();
+        unset(Transform::$drivers['from-mock']);
     }
         
 	public function test_withTranformer()
@@ -49,54 +51,4 @@ class Config_FileTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(1, count(Config_FileTest_Mock_Unserialize::$created));
     }
     
-}
-
-class Config_FileTest_Mock_Unserialize extends Transform
-{
-    /**
-     * Created transform mock objects
-     * @var array
-     */
-    static public $created = array();
-    
-    /**
-     * Input data process
-     * @var mixed
-     */
-    public $in;
-    
-    /**
-     * Return data
-     * @var array
-     */
-    public $out = array(
-      'db' => array(
-        'host'   => 'localhost',
-        'dbname' => 'test',
-        'user'   => 'myuser',
-        'pwd'    => 'mypwd'
-      ),
-      'output' => 'xml',
-      'input'  => 'json'
-    );
-    
-    /**
-     * Class constructor
-     */
-    public function __construct($options=array())
-    {
-        self::$created[] = $this;
-    }
-    
-    /**
-     * Transform
-     * 
-     * @param mixed $data
-     * @return array
-     */
-    public function process($data)
-    {
-        $this->in = $data;
-        return $this->out;
-    }
 }

@@ -12,7 +12,13 @@ require_once 'Q/Transform/Serialize/Json.php';
  */
 class Transform_Unserialize_Json extends Transform
 {
-	/**
+    /**
+     * Default extension for file with unserialized data.
+     * @var string
+     */
+    public $ext = 'json';
+    
+    /**
 	 * Return associated array instead of value object
 	 * @var boolean
 	 */

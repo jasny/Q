@@ -57,13 +57,13 @@ class Config_Test extends \PHPUnit_Framework_TestCase
     public function testDriverOnly()
     {
         $config = Config::with('xml:'.$this->file);
-
+        
         $refl = new \ReflectionProperty($config, '_ext');
         $refl->setAccessible(true);
-        $driver = $refl->getValue($config);
-        
+        $ext = $refl->getValue($config);
+        var_dump($ext); exit;
         $this->assertType('Q\Config_File', $config);
-        $this->assertEquals('xml', $driver);        
+        $this->assertEquals('xml', $ext);
     }
 
     public function testPath()

@@ -12,7 +12,12 @@ require_once 'Q/Transform/Unserialize/Json.php';
  */
 class Transform_Serialize_Json extends Transform
 {
-	
+    /**
+     * Default extension for file with serialized data.
+     * @var string
+     */
+	public $ext = 'json';
+    
 	/**
 	 * Get a transformer that does the reverse action.
 	 * 

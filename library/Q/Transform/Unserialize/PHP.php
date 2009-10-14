@@ -13,6 +13,12 @@ require_once 'Q/Transform/Serialize/PHP.php';
 class Transform_Unserialize_PHP extends Transform
 {
     /**
+     * Default extension for file with unserialized data.
+     * @var string
+     */
+    public $ext = 'php';
+    
+    /**
      * Descriptions for error codes
      * @var array
      */

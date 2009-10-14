@@ -12,7 +12,12 @@ require_once 'Q/Transform/Unserialize/PHP.php';
  */
 class Transform_Serialize_PHP extends Transform 
 {
-
+    /**
+     * Default extension for file with serialized data.
+     * @var string
+     */
+    public $ext = 'php';
+    
     /**
      * @param boolean $castObjectToString  Cast object to string
      */

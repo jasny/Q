@@ -13,6 +13,12 @@ require_once 'Q/Transform/Serialize/Yaml.php';
 class Transform_Unserialize_Yaml extends Transform
 {
     /**
+     * Default extension for file with unserialized data.
+     * @var string
+     */
+    public $ext = 'yaml';
+    
+    /**
      * Get a transformer that does the reverse action.
      * 
      * @param Transformer $chain

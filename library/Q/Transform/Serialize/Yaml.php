@@ -15,7 +15,17 @@ require_once 'Q/Transform/Unserialize/Yaml.php';
  */
 class Transform_Serialize_Yaml extends Transform
 {
-	public $fastDump=false;
+    /**
+     * Default extension for file with serialized data.
+     * @var string
+     */
+    public $ext = 'yaml';
+    
+    /**
+     * Set fastDump = true to use syck_dump for fast transform
+     * @var boolean
+     */
+    public $fastDump=false;
 	
     /**
      * Get a transformer that does the reverse action.

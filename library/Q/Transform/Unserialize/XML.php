@@ -20,6 +20,12 @@ require_once 'Q/Transform/Serialize/XML.php';
 class Transform_Unserialize_XML extends Transform
 {	
     /**
+     * Default extension for file with unserialized data.
+     * @var string
+     */
+    public $ext = 'xml';
+    
+    /**
      * Object options
      * @var array
      */
