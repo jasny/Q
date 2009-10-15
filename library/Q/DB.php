@@ -19,6 +19,7 @@ require_once 'Q/DB/Table.php';
  * @example Q\DB::connect('mysql:host=localhost;user=mydbuser;password=mypwd')->makeInstance();
  * 
  * To use additional meta data, use the setting 'config'. The settings can be split out using a dot.
+ * @example Q\DB::connect('mysql:host=localhost;config=yaml:path/to/dbconfig')->makeInstance();
  * @example Q\DB::connect('mysql:host=localhost;config.driver=yaml;config.path=path/to/dbconfig')->makeInstance();
  * 
  * For debugging purposes it can be useful to log database queries (to file, output, FireBug).
@@ -28,10 +29,6 @@ require_once 'Q/DB/Table.php';
  * {@internal A child class should have a $classes property (see Q\DB_MySQL as example).}} 
  * 
  * @package DB
- * 
- * @todo For DB_QueryException: Don't stick query in message, but save in seperate property.
- * @todo Using vars in array for default values should work.  
- * @todo Do the auto:role thing automaticly for all mapping properties.
  */
 abstract class DB implements Multiton
 {
@@ -51,7 +48,8 @@ abstract class DB implements Multiton
 	const FIELDNAME_FULL = 0x1;
 	const FIELDNAME_DB = 0x2;
 	const FIELDNAME_ORG = 0x3;
-	const FIELDNAME_WITH_ALIAS = 0x100;
+	const FIELDNAME_IDENTIFIER = 0x100;
+	const FIELDNAME_WITH_ALIAS = 0x200;
 		
 	/* Edit statement options */
 	const ADD_REPLACE = 0x1;
@@ -180,17 +178,6 @@ abstract class DB implements Multiton
         ),
     );
 
-	/**
-	 * Automaticly create a mapping link, if field contains a properties in this list.
-	 * If the first character is a '~', it means that if the table of field isn't the basetable, the property will not be mapped.
-	 * 
-	 * @var array
-	 */
-	static public $mappingProperties = array(
-	  'role',
-	  '~orm'
-	);
-	
 	/**
 	 * Function to apply the default table properties.
 	 * @var string
@@ -524,16 +511,17 @@ abstract class DB implements Multiton
 	 * Get properties of table.
 	 *
 	 * @param string $table
+	 * @param int    $flags   Optional Fs::RECALC
 	 * @return array
 	 */
-	public function &getMetadata($table)
+	public function &getMetadata($table, $flags=0)
 	{
 		if ($this->metadataCache) {
 			if (!($this->metadataCache instanceof Cache)) {
         		load_class('Q\Cache');
 				$this->metadataCache = Cache::with($this->cache);
 			}
-			$properties = $this->metadataCache->get($table);
+			if (~$flags & self::RECALC) $properties = $this->metadataCache->get($table);
 			if (isset($properties)) return $properties;
 		}
 		
@@ -560,10 +548,7 @@ abstract class DB implements Multiton
 			$props_cfg = array();
 		}
 		
-		$inherit = null;
-		$this->mergeTableProperties($properties, $props_cfg, $inherit);
-		$this->mergeFieldProperties($properties, $props_cfg, $inherit);
-        $this->setImplicitProperties($properties);
+		$this->mergeProperties($properties, $props_cfg);
 		
 		if ($this->metadataCache) $this->metadataCache->set($table, $properties);
 		return $properties;
@@ -574,13 +559,13 @@ abstract class DB implements Multiton
 	 * 
 	 * @param array $properties
 	 * @param array $props_cfg
-	 * @param array $inherit     Output: Inherited properties
 	 */
-	protected function mergeTableProperties(&$properties, &$props_cfg, &$inherit)
+	protected function mergeProperties(&$properties, &$props_cfg)
 	{	
         if (!empty($props_cfg['#table'])) $properties['#table'] = $props_cfg['#table'] + $properties['#table'];
 		$this->applyTableDefaults($properties);
         
+		// Merge table properties
 		if (!empty($properties['#table']['inherit'])) {
 		    $inherit = $this->getMetadata($properties['#table']['inherit']);
 		    if (isset($inherit['#role:id'])) {
@@ -594,17 +579,9 @@ abstract class DB implements Multiton
 		     
 		    $properties['#table'] += $inherit['#table'];
 		}
-	}
-	
-	/**
-	 * Merge field properties from database with those from the config and the default props
-	 * 
-	 * @param array $properties
-	 * @param array $props_cfg
-	 * @param array $inherit
-	 */
-	protected function mergeFieldProperties(&$properties, &$props_cfg, &$inherit)
-	{
+		
+		$is_juntion = true;
+		
 		// Merge field properties
 		foreach (array_unique(array_merge(array_keys($properties), array_keys($props_cfg))) as $index) {
 		    if ($index == '#table') continue;
@@ -627,24 +604,20 @@ abstract class DB implements Multiton
 		    $props['name'] = $index;
 			$props['table_def'] = $props_cfg['name'];
 
-			// Apply field defaults and apply symantic mapping
 			$this->applyFieldDefaults($properties, $index);
-			
-			if ($props['type'] == 'string' && !isset($props['#role:description']) && (empty($props['role']) || !in_array('description', $props['role']))) {
-			    $props['role'][] = 'description';
-			    $props['auto:role:description'] = true;
+			$is_juntion = $is_juntion && !empty($props['foreign_table']);
+		}
+		
+		// Check if table is actually a junction table (only if not explicitly set)
+		if ($is_juntion && $properties['#table']['role'] != 'junction') {
+			foreach ($properties as $name=>&$props) {
+				if ($name == '#table') continue;
+				if (!empty($props['role']) && in_array('parentkey', (array)$props['role'])) {
+					 $properties['#table']['role'] = 'junction';
+				}
 			}
-			$this->applyMapping($properties, $index);
 		}
     }
-
-    /**
-     * Set properties that implicitly follow out of other properties.
-     * 
-     * @param array $properties
-     */
-    public function setImplicitProperties(&$properties)
-    {}
     
 	/**
 	 * Apply defaults to table properties.
@@ -780,57 +753,6 @@ abstract class DB implements Multiton
 	    
         return $code;
 	}
-
-	/**
-	 * Apply symantic mapping.
-	 *
-	 * @param array $properties
-	 * @param string $index
-	 */
-	protected function applyMapping(&$properties, $index)
-	{
-	    $props =& $properties[$index];
-	    
-		// Add field mapping based on properties (like role)
-		foreach (self::$mappingProperties as $mp) {
-		    if ($mp[0] == '~') $mp[0] = substr($mp, 1);
-			if (empty($props[$mp]) || $props[$mp] === '0') continue;
-			
-			if (is_scalar($props[$mp]) && (int)$props[$mp] === 1) {
-			    if (empty($props["auto:$mp"]) && !empty($properties["#$mp"]["auto:$mp"])) {
-			        unset($properties["#$mp"][$mp]);
-			        unset($properties["#$mp"]);
-			    }
-			    
-			    if (!isset($properties["#$mp"])) $properties["#$mp"] =& $props;
-				  elseif (!empty($props["auto:$mp"])) unset($props[$mp]);
-			      else trigger_error(ucfirst($mp). " is defined for field '" . $properties["#$mp"]['name'] . "' as well as '$index'. Should be unique. Please change config file.", E_USER_NOTICE);
-				  
-			} elseif (!is_array($props[$mp])) {
-			    $mv = $props[$mp];
-			    if (empty($props["auto:$mp:$mv"]) && !empty($properties["#$mp:$mv"]["auto:$mp:$mv"])) {
-			        unset($properties["#$mp:$mv"][$mp]);
-			        unset($properties["#$mp:$mv"]);
-			    }
-			    
-				if (!isset($properties["#$mp:$mv"])) $properties["#$mp:$mv"] =& $props;
-				  elseif (!empty($props["auto:$mp:$mv"])) unset($props[$mp]);
-				  else trigger_error(ucfirst($mp). " '$mv' is defined for field '" . $properties["#$mp:$mv"]['name'] . "' as well as '$index'. Should be unique. Please change config file.", E_USER_NOTICE);
-				  
-			} else {
-			    foreach ($props[$mp] as $mv) {
-				    if (empty($props["auto:$mp:$mv"]) && !empty($properties["#$mp:$mv"]["auto:$mp:$mv"])) {
-				        unset($properties["#$mp:$mv"][$mp][array_search($mv, $properties["#$mp:$mv"][$mp])]);
-				        unset($properties["#$mp:$mv"]);
-				    }
-				    
-					if (!isset($properties["#$mp:$mv"])) $properties["#$mp:$mv"] =& $props;
-					  elseif (!empty($props["auto:$mp:$mv"])) unset($props[$mp][array_search($mv, $props[$mp])]);
-					  else trigger_error(ucfirst($mp). " '$mv' is defined for field '" . $properties["#$mp:$mv"]['name'] . "' as well as '$index'. Should be unique. Please change config file.", E_USER_NOTICE);
-				}
-			}
-		}
-	}
 	
 	/**
 	 * Return a table definition.
@@ -902,7 +824,7 @@ abstract class DB implements Multiton
 	 * @return DB_Statement
 	 */
 	abstract public function statement($statement);
-
+	
 	/**
 	 * Build a select query statement.
 	 * @internal If $fields is an array, $fields[0] may be a SELECT statement and the other elements are additional fields
@@ -913,19 +835,6 @@ abstract class DB implements Multiton
 	 * @return DB_Statement
 	 */
 	abstract public function selectStatement($table=null, $fields=null, $criteria=null);
-
-	/**
-	 * Alias of Q\DB_Statement::selectStatement().
-	 *
-	 * @param string $table     Tablename
-	 * @param mixed  $fields    Array with fieldnames, fieldlist (string) or SELECT statement (string). NULL means all fields.
-	 * @param mixed  $criteria  The value for the primairy key (int/string or array(value, ...)) or array(field=>value, ...)
-	 * @return DB_Statement
-	 */
-	final public function select($table=null, $fields=null, $criteria=null)
-	{
-		return $this->selectStatement($table, $fields, $criteria, $where);
-	}
 	
 	/**
 	 * Build an insert or insert/update query statement.

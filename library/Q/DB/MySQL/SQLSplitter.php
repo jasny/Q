@@ -67,6 +67,7 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 	 */
 	public static function quoteIdentifier($identifier, $options=0)
 	{
+		if ($identifier === '*') return $identifier;
 		if (strpos($identifier, '.') === false && strpos($identifier, '`') === false) return "`$identifier`";
 		
 		$identifier = preg_replace('/(`?)(.+?)\1(\.|$)/', '`\2`\3', trim($identifier));

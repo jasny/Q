@@ -5,7 +5,7 @@
  * 
  * 
  */
-class DB_Fields extends ArrayObject
+class DB_Fields extends ArrayObject implements DB_FieldAccess
 {
 	
 }

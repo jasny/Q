@@ -179,8 +179,3 @@ class SSH
 		return preg_replace('/^\:[^:@]++(?=@)/', '', $this->host) . ' (SSH)' . (!empty($command) ? " -> {$command}" : '');
 	}
 }
-
-<<<<<<< HEAD:incubator/Q/SSH.php
-=======
-?>
->>>>>>> d2e0614a15905957b34d6b2bda5e2705da749dc6:incubator/Q/SSH.php

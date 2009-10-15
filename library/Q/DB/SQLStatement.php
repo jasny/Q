@@ -15,7 +15,7 @@ class DB_SQLStatement implements DB_Statement
 	 * Database connection
 	 * @var DB
 	 */
-	protected $link;
+	protected $connection;
 	
 	/**
 	 * The table definition responsible for this statement
@@ -118,11 +118,20 @@ class DB_SQLStatement implements DB_Statement
 	/**
 	 * Class constructor
 	 *
-	 * @param mixed  $source     Q\DB, Q\DB_Table, Q\DB_SQLStatement or driver name (string)
+	 * @param mixed  $source     Optional: Q\DB, Q\DB_Table, Q\DB_SQLStatement or driver name (string)
 	 * @param string $statement  Query statement
 	 */
-	public function __construct($source, $statement)
+	public function __construct($statement)
 	{
+		if (func_num_args() > 1) {
+			$source = func_get_arg(0);
+			$statement = func_get_arg(1);
+		} else {
+			if ($statement instanceof self) $source = $statement;
+			  else $source = DB::i();
+			if ($source instanceof Mock) $source = null;
+		}
+		
 		if (is_string($source)) {
 			if (!isset(DB::$drivers[$source])) throw new Exception("Unable to create SQL statement: Unknown driver '$source'");
 			$class = DB::$drivers[$source];
@@ -132,21 +141,21 @@ class DB_SQLStatement implements DB_Statement
 			$classes = $refl->getStaticPropertyValue('classes');
 			if (isset($classes['sqlSplitter'])) $this->sqlSplitter = new $classes['sqlSplitter'](); 
 		} elseif ($source instanceof DB) {
-		    $this->link = $source;
-		    if (isset($this->link->sqlSplitter)) $this->sqlSplitter = $this->link->sqlSplitter;
+		    $this->connection = $source;
+		    if (isset($this->connection->sqlSplitter)) $this->sqlSplitter = $this->connection->sqlSplitter;
 	    } elseif ($source instanceof DB_Table) {
-	        $this->link = $source->getConnection();
+	        $this->connection = $source->getConnection();
 	        $this->basetable = $source;
-	        if (isset($this->link->sqlSplitter)) $this->sqlSplitter = $this->link->sqlSplitter;
+	        if (isset($this->connection->sqlSplitter)) $this->sqlSplitter = $this->connection->sqlSplitter;
 	    } elseif ($source instanceof self) {
-	        $this->link = $source->getConnection();
+	        $this->connection = $source->getConnection();
 	        $this->basetable = $source->getBaseTable();
 	        if (isset($source->sqlSplitter)) $this->sqlSplitter = $source->sqlSplitter;
 	    } elseif (isset($source)) {
 	        throw new Exception("Parent of statement can only be a Q\DB or Q\DB_Table, not a " . (is_object($source) ? get_class($source) : gettype($source)));
 	    }
 
-		if (!isset($this->sqlSplitter)) trigger_error("The driver '" . (isset($this->link) ? get_class($this->link) : $source) . "' doesn't support query splitting. This will cause issues when you try to modify the statement.", E_USER_NOTICE);
+		if (!isset($this->sqlSplitter)) trigger_error("The driver '" . (isset($this->connection) ? get_class($this->connection) : $source) . "' doesn't support query splitting. This will cause issues when you try to modify the statement.", E_USER_NOTICE);
 		$this->statement = $statement;
 	}
 	
@@ -167,7 +176,7 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	function getConnection()
 	{
-		return $this->link;
+		return $this->connection;
 	}
 	
 	/**
@@ -177,7 +186,7 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	public function getBaseTable()
 	{
-	    if (isset($this->basetable) && is_string($this->basetable)) $this->basetable = $this->link->table($this->basetable);
+	    if (isset($this->basetable) && is_string($this->basetable)) $this->basetable = $this->connection->table($this->basetable);
 	    return $this->basetable;
 	}
 	
@@ -185,25 +194,21 @@ class DB_SQLStatement implements DB_Statement
 	 * Get database name for column.
 	 * Mapped fieldname (starting with '#') will be resolved.
 	 *
-	 * @param mixed  $column   Column name or column index, multiple columns may be specified as array
-	 * @param string $table    Default table for column
-	 * @param int    $flags  Options about how to quote $column
+	 * @param mixed  $column  Column name or column index, multiple columns may be specified as array
+	 * @param string $table   Default table for column
+	 * @param int    $flags   Options about how to quote $column
 	 * @return string
-	 * 
-	 * @todo HIGH PRIO! Make SQLStatement::getColumnDbName() work for column indexes
-	 * @todo HIGH PRIO! Implement support for $table, currently base table is alway used as default.
 	 */
 	public function getColumnDBName($column, $table=null, $flags=0)
 	{
-   		if (is_array($column)) return array_map(array(__CLASS__, __FUNCTION__), $column);
+   		if (is_array($column)) return array_map(array($this, __FUNCTION__), $column, $table, $flags);
 		
-   		if ($column[0] !== '#') return $column;
+   		if ($column[0] !== '#') return $this->sqlSplitter->makeIdentifier($table, $column, $flags); // Most cases
 		
-		if (!$this->getBaseTable()) throw new DB_Exception("Unable to add criteria for column '$column'. Unable to resolve symantic data mapping, because statement does not have a base table. (It is not created by a DB_Table object)");
-		$col_db = $this->getBaseTable()->getFieldProperty($column, 'name_db');
-		if (empty($col_db)) throw new DB_Exception("Unable to add criteria for column '$column', no field with that mapping for table definition '" . $this->baseTable->getName() . "'.");
-		
-		return $this->sqlSplitter->makeIdentifier($this->getBaseTable()->getTablename(), $col_db);
+   		if (!($table instanceof DB_Table)) $table = isset($table) && isset($this->connection) ? $this->connection->table($table) : $this->getBaseTable();
+   		if (!$table) throw new DB_Exception("Unable to add criteria for column '$column'. Unable to resolve symantic data mapping, because statement does not have a base table.");
+   		
+		return $this->sqlSplitter->makeIdentifier($table, $table->$column);
 	}
 	
 	
@@ -738,11 +743,8 @@ class DB_SQLStatement implements DB_Statement
 	{
 		$table = isset($schema) ? $this->sqlSplitter->makeIdentifier($schema, $table) : $this->sqlSplitter->quoteIdentifier($table);
 		$this->addTable($table, $join, $on);
+		$this->addColumn($this->getColumnDBName($cols, $table));
 		
-		foreach ((array)$cols as $col) {
-			$this->addColumn($this->sqlSplitter->makeIdentifier($table, $col));
-		}
-
 		return $this;
 	}
 	
@@ -758,7 +760,7 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	public function from($table, $cols='*', $schema=null, $flags=0, $subset=0)
 	{
-		return $this->addTableAndColumns($table, null, null, $cols, $schema);
+		return $this->addTableAndColumns($table, null, null, $cols, $schema, $flags, $subset);
 	}
 
 	/**
@@ -774,7 +776,7 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	final public function join($table, $on, $cols='*', $schema=null, $flags=0, $subset=0)
 	{
-		return $this->joinInner($table, $on, $cols, $schema);
+		return $this->joinInner($table, $on, $cols, $schema, $flags, $subset);
 	}
 	
 	/**
@@ -806,7 +808,7 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	public function joinLeft($table, $on, $cols='*', $schema=null, $flags=0, $subset=0)
 	{
-		return $this->addTableAndColumns($table, 'LEFT JOIN', $on, $cols, $schema);
+		return $this->addTableAndColumns($table, 'LEFT JOIN', $on, $cols, $schema, $flags, $subset);
 	}	
 
 	/**
@@ -822,7 +824,7 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	public function joinRight($table, $on, $cols='*', $schema=null, $flags=0, $subset=0)
 	{
-		return $this->addTableAndColumns($table, 'RIGHT JOIN', $on, $cols, $schema);
+		return $this->addTableAndColumns($table, 'RIGHT JOIN', $on, $cols, $schema, $flags, $subset);
 	}
 	
 	/**
@@ -838,7 +840,7 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	public function joinFull($table, $on, $cols='*', $schema=null, $flags=0, $subset=0)
 	{
-		return $this->addTableAndColumns($table, 'FULL JOIN', $on, $cols, $schema);
+		return $this->addTableAndColumns($table, 'FULL JOIN', $on, $cols, $schema, $flags, $subset);
 	}
 	
 	/**
@@ -854,7 +856,7 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	public function joinCross($table, $on, $cols='*', $schema=null, $flags=0, $subset=0)
 	{
-		return $this->addTableAndColumns($table, 'CROSS JOIN', $on, $cols, $schema);
+		return $this->addTableAndColumns($table, 'CROSS JOIN', $on, $cols, $schema, $flags, $subset);
 	}
 	
 	/**
@@ -870,7 +872,7 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	public function joinNatural($table, $on, $cols='*', $schema=null, $flags=0, $subset=0)
 	{
-		return $this->addTableAndColumns($table, 'NATURAL JOIN', $on, $cols, $schema);
+		return $this->addTableAndColumns($table, 'NATURAL JOIN', $on, $cols, $schema, $flags, $subset);
 	}
 
 	
@@ -887,7 +889,7 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	final public function joinUsing($table, $on_column, $cols='*', $schema=null, $flags=0, $subset=0)
 	{
-		return $this->joinInnerUsing($table, $on_column, $cols, $schema);
+		return $this->joinInnerUsing($table, $on_column, $cols, $schema, $flags, $subset);
 	}
 	
 	/**
@@ -903,7 +905,7 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	final public function joinInnerUsing($table, $on_column, $cols='*', $schema=null, $flags=0, $subset=0)
 	{
-		if (isset($schema)) $table = $this->sqlSplitter->makeIdentifier($schema, $table);
+		if (isset($schema)) $table = $this->sqlSplitter->makeIdentifier($schema, $table, $flags, $subset);
 		return $this->addTableAndColumns($table, 'INNER JOIN', $this->sqlSplitter->makeIdentifier($this->getBaseTable()->getTableName(), $on_column) . ' = ' . $this->sqlSplitter->makeIdentifier($table, $on_column), $cols);
 	}	
 
@@ -920,7 +922,7 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	public function joinLeftUsing($table, $on_column, $cols='*', $schema=null, $flags=0, $subset=0)
 	{
-		if (isset($schema)) $table = $this->sqlSplitter->makeIdentifier($schema, $table);
+		if (isset($schema)) $table = $this->sqlSplitter->makeIdentifier($schema, $table, $flags, $subset);
 		return $this->addTableAndColumns($table, 'LEFT JOIN', $this->sqlSplitter->makeIdentifier($this->getBaseTable()->getTableName(), $on_column) . ' = ' . $this->sqlSplitter->makeIdentifier($table, $on_column), $cols);
 	}	
 
@@ -937,7 +939,7 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	public function joinRightUsing($table, $on_column, $cols='*', $schema=null, $flags=0, $subset=0)
 	{
-		if (isset($schema)) $table = $this->sqlSplitter->makeIdentifier($schema, $table);
+		if (isset($schema)) $table = $this->sqlSplitter->makeIdentifier($schema, $table, $flags, $subset);
 		return $this->addTableAndColumns($table, 'RIGHT JOIN', $this->sqlSplitter->makeIdentifier($this->getBaseTable()->getTableName(), $on_column) . ' = ' . $this->sqlSplitter->makeIdentifier($table, $on_column), $cols);
 	}
 	
@@ -954,7 +956,7 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	public function joinFullUsing($table, $on_column, $cols='*', $schema=null, $flags=0, $subset=0)
 	{
-		if (isset($schema)) $table = $this->sqlSplitter->makeIdentifier($schema, $table);
+		if (isset($schema)) $table = $this->sqlSplitter->makeIdentifier($schema, $table, $flags, $subset);
 		return $this->addTableAndColumns($table, 'FULL JOIN', $this->sqlSplitter->makeIdentifier($this->getBaseTable()->getTableName(), $on_column) . ' = ' . $this->sqlSplitter->makeIdentifier($table, $on_column), $cols);
 	}
 	
@@ -971,7 +973,7 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	public function joinCrossUsing($table, $on_column, $cols='*', $schema=null, $flags=0, $subset=0)
 	{
-		if (isset($schema)) $table = $this->sqlSplitter->makeIdentifier($schema, $table);
+		if (isset($schema)) $table = $this->sqlSplitter->makeIdentifier($schema, $table, $flags, $subset);
 		return $this->addTableAndColumns($table, 'CROSS JOIN', $this->sqlSplitter->makeIdentifier($this->getBaseTable()->getTableName(), $on_column) . ' = ' . $this->sqlSplitter->makeIdentifier($table, $on_column), $cols);
 	}
 	
@@ -988,7 +990,7 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	public function joinNaturalUsing($table, $on_column, $cols='*', $schema=null, $flags=0, $subset=0)
 	{
-		if (isset($schema)) $table = $this->sqlSplitter->makeIdentifier($schema, $table);
+		if (isset($schema)) $table = $this->sqlSplitter->makeIdentifier($schema, $table, $flags, $subset);
 		return $this->addTableAndColumns($table, 'NATURAL JOIN', $this->sqlSplitter->makeIdentifier($this->getBaseTable()->getTableName(), $on_column) . ' = ' . $this->sqlSplitter->makeIdentifier($table, $on_column), $cols);
 	}
 
@@ -1019,7 +1021,7 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	public function commit()
 	{
-		return new static($this, $this->getStatement());
+		return new static($this);
 	}
 
 	/**
@@ -1072,7 +1074,7 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	public function execute($args=null)
 	{
-   	    if (!isset($this->link)) throw new Exception("Unable to execute statement: Statement object isn't linked to a database connection."); 
+   	    if (!isset($this->connection)) throw new Exception("Unable to execute statement: Statement object isn't connectioned to a database connection."); 
 
 		// Parse arguments
 		if (func_num_args() > 2) {
@@ -1080,7 +1082,7 @@ class DB_SQLStatement implements DB_Statement
 			array_shift($args);
 		}
    	    
-		return $this->link->query($this, $args);
+		return $this->connection->query($this, $args);
 	}
 	
 	/**
@@ -1095,7 +1097,7 @@ class DB_SQLStatement implements DB_Statement
    		$qt = $this->getQueryType();
    		if ($qt !== 'SELECT' && ($qt !== 'INSERT' || !$this->hasPart('query'))) throw new DB_Exception("Unable to get a result for a " . $this->getQueryType() . " query:\n" . $this->getStatement());
 
-   	    if (!isset($this->link)) throw new Exception("Unable to execute statement: Statement object isn't linked to a database connection."); 
+   	    if (!isset($this->connection)) throw new Exception("Unable to execute statement: Statement object isn't connectioned to a database connection."); 
    		
    		$parts = $this->getParts();
    		
@@ -1109,7 +1111,7 @@ class DB_SQLStatement implements DB_Statement
    		$parts[0]['having'] = '';
    		
    		$class = get_class($this);
-   		$this->emptyResult = $this->link->query(new $class($this, $this->link->parse($this->sqlSplitter->joinInject($parts), false)));
+   		$this->emptyResult = $this->connection->query(new $class($this, $this->connection->parse($this->sqlSplitter->joinInject($parts), false)));
    		return $this->emptyResult;
    	}
 	
@@ -1168,11 +1170,11 @@ class DB_SQLStatement implements DB_Statement
    	    $all = (boolean)$all;
    		if (!isset($this->countStatement[$all])) {
    			$parts = $this->getParts();
-   			$this->countStatement[$all] = $this->link->parse($this->sqlSplitter->buildCountStatement(count($parts) == 1 ? reset($parts) : $this->getStatement(), $all), false);
+   			$this->countStatement[$all] = $this->connection->parse($this->sqlSplitter->buildCountStatement(count($parts) == 1 ? reset($parts) : $this->getStatement(), $all), false);
    			if (!isset($this->countStatement[$all])) throw new DB_Exception("Unable to count rows for " . $this->getQueryType() . " query:\n" . $this->getStatement());
    		}
    		
-   		return $this->link->query($this->countStatement[$all])->fetchValue();
+   		return $this->connection->query($this->countStatement[$all])->fetchValue();
    	}
    	
    	

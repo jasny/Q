@@ -8,11 +8,12 @@ require_once 'Q/DB/Field.php';
 /**
  * An object representation of a database table.
  * 
- * Because offsetGet can't return by reference, it is only possible to get, and not set, table properties through ArrayAccess.
- * 
  * @package DB
  * 
  * @todo Add factory method
+ * @todo Do field creating in constructor (not lazy)
+ * @todo Don't do semantic mapping
+ * @todo Auto set view, descview and overview queries
  */
 class DB_Table extends \ArrayObject
 {
@@ -24,9 +25,16 @@ class DB_Table extends \ArrayObject
 	
 	/**
 	 * Field objects.
-	 * @var array
+	 * @var DB_Field[]
 	 */
-	protected $_fields = array();
+	protected $_fields;
+	
+	/**
+	 * Field by name.
+	 * @var DB_Field[]
+	 */
+	protected $_fieldindex;
+	
 	
 	/**
 	 * The class constructor
@@ -40,6 +48,42 @@ class DB_Table extends \ArrayObject
 
 		parent::__construct($properties['#table']);
 		$this->createFields($properties);
+		
+		if ($this->_connection) {
+			if (!isset($this['view'])) $this['view'] = (string)$this->_connection->selectStatement($this, '*');
+			if (!isset($this['load'])) $this['load'] = $this['view'];
+			
+			if ((!isset($this['overview']) || !isset($this['descview'])) && isset($this->_fieldindex['#role:description'])) {
+				$fields = new DB_Fields();
+				$fields[] = $this->getPrimaryKey();
+				$fields[] = $this->_fieldindex['#role:description'];
+				if (isset($this->_fieldindex['#role:active'])) $fields[] = $this->_fieldindex['#role:active'];
+				
+				$stmt = (string)$this->_connection->selectStatement($this, $fields);
+				if (!isset($this['overview'])) $this['overview'] = $stmt;
+				if (!isset($this['descview'])) $this['descview'] = $stmt;
+			}
+		}
+	}
+	
+	/**
+	 * Countable; Count number of fields (not properties)
+	 * 
+	 * @return int
+	 */
+	public function count()
+	{
+		return count($this->_fields);
+	}
+	
+	/**
+	 * IteratorAggregate; Iterate through fields (not properties) 
+	 * 
+	 * @return ArrayIterator
+	 */
+	public function getIterator()
+	{
+		return new ArrayIterator($this->_fields);
 	}
 	
 	
@@ -62,11 +106,11 @@ class DB_Table extends \ArrayObject
 	 */
 	public function __set($name, $value)
 	{
-		if (!($value instanceof DB_Field)) throw new Exception("Unable to add a " . (is_object($value) ? get_class($value) : gettype($value)) . " as a field.");
-		if (!array_search($this->_fields, $value, true)) throw new Exception("You can only set an alias of a field, not add a new field.");
-		if (isset($this->fields[$name])) throw new Exception("You can't overwrite a real fieldname with an alias.");
+		if (!($value instanceof DB_Field)) throw new Exception("Unable to add '$name': Value is a " . (is_object($value) ? get_class($value) : gettype($value)) . ", not a DB_Field");
+		if ($name[0] !== '#') throw new Exception("You can't overwrite add an alias: Aliases must start with '#', '$name' does not");
+		if (!array_search($this->_fields, $value, true)) throw new Exception("Unable to add field '$name': The provided field is not a field in the table");
 		
-		$this->fieldindex["#$name"] = $value;
+		$this->fieldindex[$name] = $value;
 	}
 	
 	/**
@@ -89,7 +133,19 @@ class DB_Table extends \ArrayObject
 	{
 		return $this->_connection;
 	}
+
 	
+	/**
+	 * ArrayAccess; Set property
+	 * 
+	 * @param string $key
+	 * @param string $value
+	 */
+	public function offsetSet($key, $value)
+	{
+		if ($key == 'name') throw new Exception("Won't change the name of table '{$this['name']} to '$value': Changing the name of a table is not possible");
+		parent::offsetSet($key, $value);
+	}
 	
 	/**
 	 * Get a single property from table definition.
@@ -114,6 +170,16 @@ class DB_Table extends \ArrayObject
 	{
 		$this->offsetSet($key, $value);
 		return $this;
+	}
+	
+	/**
+	 * Get all properties from table definition.
+	 * 
+	 * @return array
+	 */
+	public function getProperties()
+	{
+		return $this->getArrayCopy();
 	}
 	
 	/**
@@ -177,40 +243,18 @@ class DB_Table extends \ArrayObject
 	/**
 	 * Get a field.
 	 * 
-	 * @param string $index  Fieldname or index
+	 * @param string|int $index  Field name, alias or index
 	 * @return DB_Field
 	 */	
 	public function getField($index)
 	{
-	    if (!empty($this->_fieldindex[$index])) return $this->_fieldindex[$index];
-
-	    if (ctype_digit($index)) $index = (int)$index;
-	    if (isset($this->_fieldindex[$index])) throw new Exception("Still can't create field object for '$index': You know why.");
-	    if ($index === '#table') throw new Exception("Can't create a field object for '#table', that's the table not a field.");
-	    if (!is_int($index) && !isset($this[$index])) throw new Exception("Unknown field '$index'");
-	    
-	    if ($index[0] === '#') {
-	        if (empty($this[$index]['table'])) throw new Exception("Can create field object for '$index': Column '{$this[$index]['name']}' is an expression.");
-	        $field = $this[$index]['name'];
-	    } elseif (is_int($index)) {
-	        $fieldnames = $this->getFieldnames();
-	        if (!isset($fieldnames[$index])) throw new Exception("Can create field object for field $index: Table has only " . count($fieldnames) . " fields.");
-	        $field = $fieldnames[$index];
+	    if (is_int($index) || ctype_digit($index)) {
+	    	if ($index >= count($this->_fields)) throw new Exception("Unable to get field $index: Table '{$this['name']}' only has " . count($this->_fields) . " fields");
+	    	return $this->_fields[$index];
 	    }
 	    
-	    if (isset($field)) {
-	        if (!isset($this->_fieldindex[$field])) $this->_fieldindex[$index] =& $this->_fieldindex[$field];
-	          else $this->_fieldindex[$index] =& $this->_fields[array_push($this->_fields, null)-1];
-
-	        if (isset($this->_fieldindex[$index])) return $this->_fieldindex[$index];
-	    } else {
-	        $field = $index;
-	    }
-	    
-		$i = array_push($this->_fields, DB_Field::create($this, &$this[$field]))-1;
-		$this->_fieldindex[$field] =& $this->_fields[$i];
-		
-		return $this->_fields[$i];
+	    if (empty($this->_fieldindex[$index])) throw new Exception("Unable to get field '$index' for table '{$this['name']}': Field doesn't exist");
+	    return $this->_fieldindex[$index];
 	}
 	
 	/**
@@ -220,16 +264,38 @@ class DB_Table extends \ArrayObject
 	 */
 	public function getFields()
 	{
-	    if ($this->_fieldsComplete) return $this->_fields;
-	    
-	    $fields = array();
-	    $fieldindex = array();
-	    $fieldnames = array();
-	    $aliases = array();
+	    return $this->_fields;
+	}
 
-	    foreach ($this as $fieldname=>$props) {
-	        if ($fieldname === '#table' || !isset($props['table'])) continue;
-	        
+	
+    /**
+     * Get status information about the table.
+     *
+     * @return array
+     */
+    public function getInfo()
+    {
+        if (!$this->getConnection()) return null;
+        return $this->getConnection()->getTableInfo($this->getName());
+    }
+	
+    /**
+     * Refresh table definition by re-requesting the metadata from the database. 
+     */
+    public function recalc()
+    {
+    	$properties = $this->getConnection()->getMetaData($this->getName());
+    	
+        $this->exchangeArray($properties['#table']);
+        $this->createFields($properties);
+    }
+    
+    /**
+     * Reindex fields to apply changed semantic mapping. 
+     */
+    public function reindex()
+    {
+	    foreach ($this->_fields as $field) {
 	        if ($fieldname[0] === '#') {
 	            $aliases[$fieldname] = $props['name'];
 	            continue;
@@ -253,49 +319,6 @@ class DB_Table extends \ArrayObject
 	    $this->_fieldnames = $fieldnames;
 
 	    return $this->_fields;
-	}
-
-	/**
-	 * Return array(fields, fieldindex, fieldnames, tablerefs)
-	 * 
-	 * @return array
-	 */
-    public function getInternalInfo()
-    {
-        $fields = $this->getFields(); // This will set the complete fieldindex, so doing this first.
-        
-        $fieldindex = array();
-        foreach ($this->_fieldIndex as $name=>$field) {
-            if (is_string($name)) $fieldindex[$name] = array_search($this->fields, $field, true); 
-        }
-
-        $table = $this->getTablename();
-        return array($fields, $fieldindex, $this->_fieldnames, array($table=>$table));
-    }    
-	
-    /**
-     * Get status information about the table.
-     *
-     * @return array
-     */
-    public function getInfo()
-    {
-        if (!$this->getConnection()) return null;
-        return $this->getConnection()->getTableInfo($this->getName());
-    }
-	
-    /**
-     * Refresh table definition by re-requesting the metadata from the database. 
-     */
-    public function refresh()
-    {
-        $this->_fieldnames = null;
-        $this->_fields = array();
-        $this->_fieldindex = array();
-        $this->_fieldsComplete = false;
-        
-        $this->getConnection()->clearCache($this->getName());
-        $this =& $this->getConnection()->getMetaData($this->getName());
     }
     
     
@@ -319,8 +342,7 @@ class DB_Table extends \ArrayObject
 		
 		// Create a record using though a query result
 		if (isset($mode) && isset($this["load.$mode"])) $statement = $this["load.$mode"];
-		  elseif (isset($this['load'])) $statement = $this['load'];
-		  else $statement = $this['view'];
+		  else $statement = $this['load'];
 		
 		$result = $this->getConnection()->prepareSelect($this, $statement, isset($id) ? $id : false)->execute();
 		return isset($id) ? $result->fetchRow($resulttype) : $result->newRecord();
@@ -371,20 +393,4 @@ class DB_Table extends \ArrayObject
 	{
 		$this->getConnection()->delete($this->getTablename(), $id, $constraint);
 	}
-	
-	/**
-	 * Don't call this unless you are a field and a mapping property changed.
-	 * 
-	 * @param Q\DB_Field $field
-	 * @param string     $prop   Property name
-	 * @param string     $value  Property value
-	 * 
-	 * @todo Implement remapField
-	 */
-	public function remapField($field, $prop, $value)
-	{
-	    if (!array_search($field, $this->_fields, true)) return;
-	}
 }
-
-?>

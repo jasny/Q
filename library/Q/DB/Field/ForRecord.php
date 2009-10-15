@@ -22,7 +22,7 @@ class DB_Field_ForRecord extends DB_Field
 		if ($this->value instanceof DB_Record) return empty($this->properties['foreign_field']) ? $this->value->getId() : $this->value->getValue($this->properties['foreign_field']); 
 		return $this->value;
 	}
-
+	
 	/**
 	 * Get the value as given by active record.
 	 * 
@@ -69,25 +69,26 @@ class DB_Field_ForRecord extends DB_Field
 		}
 		
 		if ($value instanceof DB_Record) {
-		    if (isset($this->properties['foreign_table']) && (!$value->getBaseTable() || $value->getBaseTable()->getTableName() != $this->properties['foreign_table'])) throw new Exception("Can't use record for field '" . $this->getFullname() . "': The record should be based on table '" . $this->properties['foreign_table'] . "'" . ($value->getBaseTable() ? ", but is based on table '" . $value->getBaseTable()->getTableName . "'." : '.'));
+		    if (isset($this->properties['foreign_table']) && (!$value->getBaseTable() || $value->getBaseTable()->getTableName() != $this->properties['foreign_table'])) throw new Exception("Can't use record for field '" . $this->getFullname() . "': The record should be based on table '" . $this->properties['foreign_table'] . "'" . ($value->getBaseTable() ? ", but is based on table '" . $value->getBaseTable() . "'." : '.'));
+		    
 		    if (!$value->getField(empty($this->properties['foreign_field']) ? '#role:id' : $this->properties['foreign_field'])) throw new Exception("Can't use record for field '" . $this->getFullname() . "': The record does not hold " . (empty($this->properties['foreign_field']) ? "a field for the primary key." : "field '{$this->properties['foreign_field']}'."));
-		    $this->value = $record;
+		    $this->value = $value;
 		    return;
 		}
 
-		$this->value = $value;
-		
-		if (is_array($value)) {
+		if (is_array($value) || $value instanceof \ArrayObject) {
             if (!$this->link) throw new Exception("Unable to load record for field '" . $this->getFullname() . "': Field is not linked to database connection.");
             
             if (empty($this->properties['foreign_table'])) {
-                trigger_error("Unable to load record for field '" . $this->getFullname() . "': The field has no property 'foreign_table'.", E_USER_WARNING);
+                trigger_error("Unable to load record for field '$this': The field has no property 'foreign_table'.", E_USER_WARNING);
                 return;
             }
             
-		    $field = empty($this->properties['foreign_field']) ? $this->link->table($this->properties['foreign_table'])->getFieldProperty('#role:id', 'name') : $this->properties['foreign_field'];
-		    $this->value = $this->link->table($this->properties['foreign_table'])->load(isset($value[$field]) ? $value[$field] : null)->setValues($value);
+		    $this->value = $this->link->table($this->properties['foreign_table'])->getRecord();
+		    return;
 		}
+		
+		$this->value = $value;
 	}
 }
 

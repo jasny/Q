@@ -102,9 +102,9 @@ class RPC_Client_SSH extends SSH implements RPC_Client_Handler
 		if (preg_match('/\{$\d+\}/', $command)) $command = preg_replace('/\{$(\d+)\}/e', 'isset($eargs[$1]) ? $eargs[$1] : null', $command);
 		 elseif (preg_match('/\{$\?\}/', $command)) $command = preg_replace('/\{$\?\}/', join(' ', $eargs), $command);
 		 else $command .= ' ' . join(' ', $eargs);
-
+		
 		if ($this->options->checkreturn) $command .= '; ERR=$?; [ $ERR -eq 0 ] || echo "Q Error: Exited with return code $ERR" 1>&2';
-		 
+		
 		foreach ($files as $file=>$tmpfile) $this->sendFile($file, $tmpfile);
 
 		list($stdio, $stderr) = parent::execute($command);
@@ -192,8 +192,3 @@ class RPC_Client_SSH extends SSH implements RPC_Client_Handler
 		return parent::about($command);
 	}
 }
-
-<<<<<<< HEAD:incubator/Q/RPC/Client/SSH.php
-=======
-?>
->>>>>>> d2e0614a15905957b34d6b2bda5e2705da749dc6:incubator/Q/RPC/Client/SSH.php

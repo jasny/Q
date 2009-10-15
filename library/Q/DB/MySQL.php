@@ -91,13 +91,6 @@ class DB_MySQL extends DB
 	 * @var DB_MySQL_SQLSplitter
 	 */
 	public $sqlSplitter;
-
-	/**
-	 * Cached results: The primary keys per table
-	 *
-	 * @var array
-	 */
-	protected $primaryKeys=array();
 	
 	
 	/**
@@ -348,36 +341,7 @@ class DB_MySQL extends DB
 		$properties = array();
 		$primaries = array();
 		while(($row = $result->fetch_assoc())) {
-			$row = array_change_key_case($row);
-			
-			$row['table'] = $table;
-			$row['name'] = $row['field'];
-			unset($row['field']);
-
-			$row['required'] = $row['null'] !== 'YES' && $row['extra'] !== 'auto_increment';
-			
-			if ($row['key'] === 'PRI') {
-			    $row['is_primary'] = true;
-			    if ($row['extra']==='auto_increment') $row['role'] = 'id';
-			      else $primaries[] = $row['name'];
-			}
-
-			$row['native_type'] = $row['type'];
-			if ($row['type'] === 'tinyint(1)') $row['type'] = 'boolean';
-			 else $row['type'] = preg_replace('/^(?:tiny|medium|big|long(?:long)?)(?=\w)/i', '', $row['type']);
-			
-			$matches = null;
-			if (preg_match("/^(.*?)\\((.+?)\\)/", $row['type'], $matches)) {
-				$row['type'] = $matches[1];
-				switch (true) {
-					case strstr($matches[2], ','): $row['values'] = $matches[2]; break;
-					case ctype_digit($matches[2]): $row['maxlength'] = $matches[2]; break;
-					case is_numeric($matches[2]): list($len, $row['decimals']) = explode('.', $matches[2]); $row['maxlength'] = $len + $row['decimals'] + 1; break;
-				}
-			}
-            if (isset(DB_MySQL::$fieldtypes[$row['type']])) $row['type'] = self::$fieldtypes[$row['type']];
-			
-			$properties[$row['name']] = $row;
+			$properties[$row['name']] = $this->convertFieldMeta($table, &$row);
 		}
 		
 		// Get foreign key information using the information_schema (MySQL 5.0+ only)
@@ -402,87 +366,47 @@ class DB_MySQL extends DB
 		return $properties;
 	}
 	
-    /**
-     * Set properties that implicitly follow out of other properties.
-     * 
-     * @param array $properties
-     */
-    public function setImplicitProperties(&$properties)
-    {
-		// Set additional properties for table based on field
-		if (!isset($properties['#table']['role']) && !isset($properties['#role:id']) && $is_junction) {
-		    if (isset($properties['#role:parentkey'])) {
-		        $properties['#table']['role'] = 'junction';
-		    } else {
-    		    $pk = (array)$this->getPrimaryKey($table);
-    		    $parentkey = reset($pk);
-    		    
-    		    if (isset($properties[$parentkey]['foreign_table'])) {
-    		        $properties['#table']['role'] = 'junction';
-    		        $properties['#table']['parent'] = $properties[$parentkey]['foreign_table'];
-    		        $properties[$parentkey]['role'][] = 'parentkey';
-    		        $properties['#role:parentkey'] =& $properties[$parentkey];
-    		    }
-		    }
-		}
-		if ($properties['#table']['role'] == 'junction' && empty($properties['#table']['parent'])) {
-		    if (isset($properties['#role:parentkey']['foreign_table'])) {  
-                $properties['#table']['parent'] = $properties['#role:parentkey']['foreign_table'];
-		    } else {
-		        trigger_error("Table can't be a junction table, since the parent of the table is unknown and " . (isset($properties['#role:parentkey']) ? "parentkey field '{$properties['#role:parentkey']}' doesn't have a foreign_table property." : "table doesn't have a parentkey field."), E_USER_NOTICE);
-		        $properties['#table']['role'] = null;
-		    }
-		}
-		
-		// 
-		if (empty($properties['#table']['view'])) $properties['#table']['view'] = '*';
-		if (empty($properties['#table']['overview']) && isset($properties["#role:id"]) && isset($properties["#role:description"])) $properties['#table']['overview'] = $this->makeIdentifier($dbtable, $properties["#role:id"]['name']) . ', ' . $this->makeIdentifier($dbtable, $properties["#role:description"]['name']);
-		if (empty($properties['#table']['descview']) && isset($properties["#role:id"]) && isset($properties["#role:description"])) $properties['#table']['descview'] = $this->makeIdentifier($dbtable, $properties["#role:id"]['name']) . ', ' . $this->makeIdentifier($dbtable, $properties["#role:description"]['name']) . ', ' . (isset($properties["#role:active"]) ? $this->makeIdentifier($dbtable, $properties["#role:active"]['name'], 'role:active') : $this->quote(1) . $this->makeIdentifier(null, null, 'role:active'));
-    }
 	/**
-	 * Return the fieldname(s) of the primairy key.
-	 *
-	 * @param string  $table
-	 * @param boolean $autoIncrementOnly  Only return fields with the autoincrement feature
-	 * @param boolean $asIdentifier       Add table and quote
-	 * @return string|array
+	 * Convert meta data of a field to DB_Field properties
+	 * 
+	 * @param string $table
+	 * @param array  $props
 	 */
-	public function getPrimaryKey($table, $autoIncrementOnly=false, $asIdentifier=false)
+	protected function convertFieldMeta($table, $props)
 	{
-        if ($table instanceof DB_Table) return $table->getPrimaryKey($autoIncrementOnly, $asIdentifier);
-
-		$key = ($autoIncrementOnly ? '+!!' : '') . $table;
+		$props = array_change_key_case($props);
 		
-		if (!array_key_exists($key, $this->primaryKeys)) {
-			$result = $this->nativeQuery('SHOW FIELDS FROM ' . $this->sqlSplitter->quoteIdentifier($table) . ' WHERE `key` = "PRI"' . ($autoIncrementOnly ? ' AND `extra`="auto_increment"' : ''));
-			if (!$result) throw new DB_QueryException("Show fields query for table '$table' failed: " . $this->native->error);
+		if (isset($table)) $props['table'] = $table;
+		
+		$props['name'] = $props['field'];
+		unset($props['field']);
 
-			$this->primaryKeys[$key] = null;
-			switch ($result->num_rows) {
-			    case 0:  $this->primaryKeys[$key] = null; break;
-			    case 1:  list($this->primaryKeys[$key]) = $result->fetch_row(); break;
-			    default: while (($row = $result->fetch_row())) $this->primaryKeys[$key][] = $row[0];
+		$props['required'] = $props['null'] !== 'YES' && $props['extra'] !== 'auto_increment';
+		
+		if ($props['key'] === 'PRI') {
+		    $props['is_primary'] = true;
+		    if ($props['extra']==='auto_increment') $props['role'] = 'id';
+		      else $primaries[] = $props['name'];
+		}
+
+		$props['native_type'] = $props['type'];
+		if ($props['type'] === 'tinyint(1)') $props['type'] = 'boolean';
+		  else $props['type'] = preg_replace('/^(?:tiny|medium|big|long(?:long)?)(?=\w)/i', '', $props['type']);
+		
+		$matches = null;
+		if (preg_match("/^(.*?)\\((.+?)\\)/", $props['type'], $matches)) {
+			$props['type'] = $matches[1];
+			switch (true) {
+				case strstr($matches[2], ','): $props['values'] = $matches[2]; break;
+				case ctype_digit($matches[2]): $props['maxlength'] = $matches[2]; break;
+				case is_numeric($matches[2]): list($len, $props['decimals']) = explode('.', $matches[2]); $props['maxlength'] = $len + $props['decimals'] + 1; break;
 			}
 		}
 		
-		if (!$asIdentifier || empty($this->primaryKeys[$key])) return $this->primaryKeys[$key];
-    
-		$fields = array();
-		foreach ((array)$this->primaryKeys[$key] as $field) $fields[] = $this->sqlSplitter->makeIdentifier($table, $field);
-		
-		return $fields;
+        if (isset(DB_MySQL::$fieldtypes[$props['type']])) $props['type'] = self::$fieldtypes[$props['type']];
+        return $props;
 	}
 	
-	/**
-	 * Clean cached metadata
-	 */
-	public function clearMetaDataCache($table=null)
-	{
-	    if (isset($table)) unset($this->primaryKeys[$table], $this->primaryKeys['+!!' . $table]);
-	    $this->primaryKeys = array();
-	    
-	    parent::clearMetaDataCache($table);
-	}
 	
 	/**
 	 * Quote a value so it can be savely used in a query.
@@ -569,7 +493,7 @@ class DB_MySQL extends DB
 	 * @param string $statement
 	 * @return DB_SQLStatement
 	 */
-	public function prepare($statement) 
+	public function statement($statement) 
 	{
 		// Get statement out of object
 		if ($statement instanceof DB_Table) {
@@ -585,6 +509,39 @@ class DB_MySQL extends DB
 	}
 
 	/**
+	 * Resolve semantic mapping for fields in criteria.
+	 * 
+	 * @param string  $table
+	 * @param array   $criteria
+	 * @param boolean $keyvalue  Assume key/value pairs
+	 */
+	protected function resolveCriteria($table, &$criteria, $keyvalue=false)
+	{
+		if (!isset($criteria)) return;
+
+        if (!$keyvalue && (!is_array($criteria) || !is_string(key($criteria)))) {
+            $pk = $this->table($table)->getPrimaryKey();
+            if (empty($pk)) throw new Exception("Unable to select record for $table: Unable to determine a WHERE statement. The table might have no primary key.");
+            
+            $criteria = (array)$criteria;
+	    	if (count($pk) != count($criteria)) throw new Exception("Unable to select record for $table: " . count($criteria) . " values specified, while primary key from table consists of " . count($keys) . " keys (" . implode(', ', $keys) . ").");
+	    	
+	    	$criteria = array_combine((array)$pk->getName(DB::FIELDNAME_DB | DB::FIELDNAME_IDENTIFIER), $criteria);
+	    } else {
+	    	foreach ($criteria as $field=>&$value) {
+				if ($field[0] === '#') $keys[$i] = (string)$this->table($table)->$field;
+	        }
+	        
+	        // Most cases this is not needed, so merge afterwards
+	        if (isset($keys)) {
+	        	$keys =+ array_keys($criteria);
+	        	sort($keys);
+	        	$criteria = array_combine($keys, $criteria);
+	        }
+	    }
+	}
+	
+	/**
 	 * Create a select statement for a table
 	 *
 	 * @param string $table     Tablename
@@ -593,37 +550,18 @@ class DB_MySQL extends DB
 	 * @param string $where     Additional criteria as string
 	 * @return DB_SQLStatement
 	 */
-	public function prepareSelect($table=null, $fields=null, $criteria=null, $where=null)
+	public function selectStatement($table=null, $fields=null, $criteria=null, $where=null)
 	{
-		$parent = $table instanceof DB_Table && $table->getConnection() === $this ? $table : $this;
-//		if ($table instanceof DB_Table) $table = $table->getTableName(); 
-	    
-	    if (isset($criteria)) {
-	        if (!is_array($criteria) || !is_string(key($criteria))) {
-                $pk = (array)$this->getPrimaryKey($table, false, true);
-                $criteria = (array)$criteria;
-    			if (empty($pk)) throw new Exception("Unable to select record for $table: Unable to determine a WHERE statement. The table might have no primary key.");
-    			if (count($pk) != count($criteria)) throw new Exception("Unable to select record for $table: " . count($criteria) . " values specified, while primary key from table consists of " . count($keys) . " keys (" . implode(', ', $keys) . ").");
-    			
-    			$criteria = array_combine($pk, $criteria);
-    		} else {
-        		foreach ($criteria as $field=>$value) {
-        	        if ($field[0] === '#') {
-        	            unset($criteria[$field]);
-        	            $criteria[$this->getFieldProperty(array($table, $field), 'name')] = $value;
-        	        }
-        		}
-    		}
-	    }
+		$source = $table instanceof DB_Table && $table->getConnection() === $this ? $table : $this;
+	    $this->resolveCriteria($table, $criteria);
 	    
 		if (is_array($fields)) {
-    		foreach ($fields as $i=>$field) {
-    	        if ($field[0] === '#') $fields[$i] = $this->table($table)->getFieldProperty($field, 'name');
+    		foreach ($fields as &$field) {
+    			if (is_string($field) && $field[0] === '#') $field = $this->table($table)->$field;
     		}
 		}
 		
-		$class = self::$classes['Statement'];
-		return new $class($parent, $this->sqlSplitter->buildSelectStatement($table, $fields, $criteria, $where));
+		return new self::$classes['Statement']($source, $this->sqlSplitter->buildSelectStatement($table, $fields, $criteria, $where));
 	}
 	
 	/**
@@ -636,7 +574,7 @@ class DB_MySQL extends DB
 	 * 
 	 * @throws Q\DB_Constraint_Exception when no rows are given.
 	 */
-	public function prepareStore($table=null, $values=null)
+	public function storeStatement($table=null, $values=null)
 	{
 		$parent = $table instanceof DB_Table && $table->getConnection() === $this ? $table : $this;
 		if ($table instanceof DB_Table) $table = $table->getTableName(); 
@@ -663,8 +601,7 @@ class DB_MySQL extends DB
 		$pk = (array)$this->getPrimaryKey($table);
 		if ($fieldnames === null) $fieldnames = $this->getFieldNames($table);
 
-		$class = self::$classes['Statement'];
-		return new $class($parent, $this->sqlSplitter->buildStoreStatement($table, $pk, $fieldnames, $rows));
+		return new self::$classes['Statement']($parent, $this->sqlSplitter->buildStoreStatement($table, $pk, $fieldnames, $rows));
 	}
 	
 	/**
@@ -675,7 +612,7 @@ class DB_MySQL extends DB
 	 * @param array  $values  Assasioted array as (fielname=>value, ...) or ordered array (value, ...) with 1 value for each field
 	 * @return DB_SQLStatement
 	 */
-	public function prepareUpdate($table=null, $id=null, $values=null)
+	public function updateStatement($table=null, $id=null, $values=null)
 	{
 		$parent = $table instanceof DB_Table && $table->getConnection() === $this ? $table : $this;
 		if ($table instanceof DB_Table) $table = $table->getTableName(); 
@@ -684,15 +621,12 @@ class DB_MySQL extends DB
 
 		foreach ($values as $fieldname=>$value) {
 		    if ($fieldname[0] == '#') {
-		        $dbfield = $this->getFieldProperty(array($table, $fieldname), 'name');
-			    if (!$dbfield) throw new Exception("Unable to update table `$table`: Unkown field '$fieldname'");
-			    $values[$dbfield] = $value;
+			    $values[(string)$this->table($table)->$fieldname] = $value;
 			    unset($values[$fieldname]);
-		    } 
+		    }
 		}
 	    
-		$class = self::$classes['Statement'];
-		return new $class($parent, $this->sqlSplitter->buildUpdateStatement($table, $id, $values));
+		return new self::$classes['Statement']($parent, $this->sqlSplitter->buildUpdateStatement($table, $id, $values));
 	}
 
 	/**
@@ -702,7 +636,25 @@ class DB_MySQL extends DB
 	 * @param mixed  $id     The value for a primairy (or as array(value, ..) if multiple key fields) or array(field=>value, ...)
 	 * @return DB_SQLStatement
 	 */
-	public function prepareDelete($table=null, $id=null)
+	public function deleteStatement($table=null, $id=null)
+	{
+		$parent = $table instanceof DB_Table && $table->getConnection() === $this ? $table : $this;
+		if ($table instanceof DB_Table) $table = $table->getTableName(); 
+
+		$this->
+        $statement = $this->sqlSplitter->buildDeleteStatement($table, $id);
+		
+	    return new self::$classes['Statement']($parent, $statement);
+	}
+	
+	/**
+	 * Build a delete query statement.
+	 *
+	 * @param string $table  Tablename
+	 * @param mixed  $id     The value for a primairy (or as array(value, ..) if multiple key fields) or array(field=>value, ...)
+	 * @return DB_SQLStatement
+	 */
+	public function truncateStatement($table=null, $id=null)
 	{
 		$parent = $table instanceof DB_Table && $table->getConnection() === $this ? $table : $this;
 		if ($table instanceof DB_Table) $table = $table->getTableName(); 
@@ -710,19 +662,12 @@ class DB_MySQL extends DB
 		if (is_object($id) && !empty($id->{'#truncate'})) {
 		    $statement = $this->sqlSplitter->buildTruncateStatement($table);
 		} else { 
-            if (!is_array($id) || !is_string(key($id))) {
-                $id = (array)$id;
-                $pk = (array)$this->getPrimaryKey($table);
-                if (count($id) != count($pk)) throw new Exception("Unable to create delete statement. Specified " . count($id) . " value(s) for primary key, while it consists of " . count($keys) . " field(s).");
-                $id = array_combine($pk, $id);
-            }
+            
             $statement = $this->sqlSplitter->buildDeleteStatement($table, $id);
 	    }
 		
-	    $class = self::$classes['Statement'];
-	    return new $class($parent, $statement);
-	}
-	
+	    return new self::$classes['Statement']($parent, $statement);
+	}	
 	
 	/**
 	 * Start database transaction.

@@ -8,7 +8,7 @@ require_once 'Q/Crypt.php';
  *
  * @package DB
  */
-class DB_Field extends \ArrayObject
+class DB_Field extends \ArrayObject implements DB_FieldAccess
 {
 	/** Representation of a field of a table/recordset **/
 	const MODE_DEFINITION = 0;
@@ -18,29 +18,14 @@ class DB_Field extends \ArrayObject
 	
 
 	/**
-     * A list with properties that may not be changed at runtime.
-     * 
-     * @var array()
-     */
-    static public $protectedProperties = array(
-      'name',
-      'name_db',
-      'table',
-      'table_db',
-      'table_def',
-      'fieldtype',
-      'child_result'
-    );
-	
-	/**
 	 * Database connection.
-	 * @var Q\DB
+	 * @var DB
 	 */
 	protected $connection = null;
 
 	/**
 	 * Parent record or table.
-	 * @var Q\DB_Table|Q\DB_Result|Q\DB_Record
+	 * @var DB_Table|DB_Result|DB_Record
 	 */
 	protected $parent = null;	
 	
@@ -115,7 +100,18 @@ class DB_Field extends \ArrayObject
 	 */
 	public function __toString()
 	{
-		return $this['name'];
+		return isset($this['table']) ? $this['table'] . '.' . $this['name'] : $this['name'];
+	}
+	
+	/**
+	 * Countable; Always returns 1, since this is 1 field.
+	 * {@internal Is used in retrospect of DB_FieldAccess not ArrayObject}}
+	 * 
+	 * @return int
+	 */
+	public function count()
+	{
+		return 1;
 	}
 	
 
@@ -129,6 +125,16 @@ class DB_Field extends \ArrayObject
 		return $this->connection;
 	}
 
+	/**
+	 * Get table, result or record containing this field.
+	 * 
+	 * @return DB_Table|DB_Result|DB_Record
+	 */
+	public function getParent()
+	{
+		return $this->parent;
+	}
+		
 	/**
 	 * Get the mode of the field.
 	 * 
@@ -175,20 +181,36 @@ class DB_Field extends \ArrayObject
 	 * @param int $format  A FIELDNAME_% constant
 	 * @return string
 	 */
-	public function getName($format=DB::FIELDNAME_COL)
+	public function getName($format=DB::FIELDNAME_FULL)
 	{
+		if (!isset($this->connection)) $format & ~DB::FIELDNAME_IDENTIFIER;
+		
 		switch ($format) {
-			case DB::FIELDNAME_COL:      return $this['name'];
-			case DB::FIELDNAME_FULL:     return isset($this['table']) && $this['table'] !== '' ? $this['table'] . '.' . $this['name'] : $this['name'];
+			case DB::FIELDNAME_COL:
+				return $format & DB::FIELDNAME_IDENTIFIER ? $this->connection->quoteIdentifier($this['name']) : $this['name'];
+			case DB::FIELDNAME_FULL:
+				return $format & DB::FIELDNAME_IDENTIFIER ? $this->connection->makeIdentifier($this['table'], $this['name']) : (isset($this['table']) ? $this['table'] . '.' . $this['name'] : $this['name']);
 			case DB::FIELDNAME_ORG:
 				if (!isset($this['name_db'])) return null;
-				return isset($this->connection) ? $this['table_db'] . '.' . $this['name_db'] : $this->connection->makeIdentifier($this['table'], $this['name_db'], $format & DB::FIELDNAME_WITH_ALIAS ? $this['name'] : null);
+				return $format & DB::FIELDNAME_IDENTIFIER ? $this->connection->makeIdentifier($this['table'], $this['name_db'], $format & DB::FIELDNAME_WITH_ALIAS ? $this['name'] : null) : $this['table_db'] . '.' . $this['name_db'];
 			case DB::FIELDNAME_DB:       
 				if (!isset($this['name_db'])) return null;
-				return isset($this->connection) ? $this['table'] . '.' . $this['name_db'] : $this->connection->makeIdentifier($this['table'], $this['name_db'], $format & DB::FIELDNAME_WITH_ALIAS ? $this['name'] : null);
+				return $format & DB::FIELDNAME_IDENTIFIER ? $this->connection->makeIdentifier($this['table'], $this['name_db'], $format & DB::FIELDNAME_WITH_ALIAS ? $this['name'] : null) : $this['table'] . '.' . $this['name_db'];
 		}
 	}
 
+	/**
+	 * ArrayAccess; Set property
+	 * 
+	 * @param string $key
+	 * @param string $value
+	 */
+	public function offsetSet($key, $value)
+	{
+		if (in_array($key, array('name', 'name_db', 'table', 'table_db', 'type'))) throw new Exception("Unable to set property '$key' for field '$this': This property is read-only");
+		parent::offsetSet($key, $value);
+	}
+	
 	/**
 	 * Get a single property.
 	 *
@@ -204,22 +226,26 @@ class DB_Field extends \ArrayObject
 	 * Set the value of a property.
 	 * (fluent interface)
 	 * 
-	 * @param string $name
+	 * @param string $key
 	 * @param mixed  $value
 	 * @return DB_Table
 	 */
-	public function setProperty($name, $value)
+	public function setProperty($key, $value)
 	{
-		if (in_array($name, self::$protectedProperties)) {
-		    trigger_error("Unable to set property '$name' for field '{$this['name']}': This property is read-only.", E_USER_WARNING);
-		    return;
-		}
-		
-		$this[$name] = $value;
-		if (isset($this->parent) && isset(DB::$mappingProperties[$name])) $this->parent->RemapField($this, $name, $value);
+		$this->offsetSet($key, $value);
 		return $this; 
 	}
 
+	/**
+	 * Get all properties from table definition.
+	 * 
+	 * @return array
+	 */
+	public function getProperties()
+	{
+		return $this->getArrayCopy();
+	}
+	
 	/**
 	 * Set the properties for table definition.
 	 * (fluent interface)
@@ -287,17 +313,9 @@ class DB_Field extends \ArrayObject
 	public function getValueForSave()
 	{
 	    if ($this->mode === self::MODE_DEFINITION) return null;
+	    if (!$this->hasCanged()) return $this->getValue();
+	    
 	    return $this->castValue($this->cryptValue($this->getValue()), true);
-	}
-
-	/**
-	 * Get subrecord, so it can be saved.
-	 * 
-	 * @return null
-	 */
-	public function getBubbleSave()
-	{
-	    return null;
 	}
 	
 	/**
@@ -424,7 +442,6 @@ class DB_Field extends \ArrayObject
 	 */
 	public function cryptValue($value)
 	{
-		return empty($this['crypt']) || !isset($value) || !is_scalar($value) || $value === $this->originalValue ? $value : Crypt::with($this['crypt'])->encrypt($value);
+		return empty($this['crypt']) || !isset($value) ? $value : Crypt::with($this['crypt'])->encrypt($value);
 	}
 }
-
