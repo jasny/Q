@@ -10,13 +10,21 @@ require_once 'Config/Mock/Unserialize.php';
  */
 class Config_DirTest extends \PHPUnit_Framework_TestCase
 {
+    protected $dir;
+    
     /**
      * Prepares the environment before running a test.
      */
     protected function setUp()
     {
         $this->dir = sys_get_temp_dir() . '/q-config_dirtest-' . md5(uniqid());
+        
         mkdir($this->dir);
+        mkdir("{$this->dir}/dir1");
+        touch("{$this->dir}/file1.mock");
+        touch("{$this->dir}/file2.mock");
+        touch("{$this->dir}/dir1/file3.mock");
+        touch("{$this->dir}/dir1/file4.mock");
         
         Q\Transform::$drivers['from-mock'] = 'Config_Mock_Unserialize';
     }
@@ -26,10 +34,19 @@ class Config_DirTest extends \PHPUnit_Framework_TestCase
      */
     protected function tearDown()
     {
+        unlink("{$this->dir}/file1.mock");
+        unlink("{$this->dir}/file2.mock");
+        unlink("{$this->dir}/dir1/file3.mock");
+        unlink("{$this->dir}/dir1/file4.mock");
+        rmdir("{$this->dir}/dir1");
         rmdir($this->dir);
+        
         Config_Mock_Unserialize:$created = array();
         unset(Q\Transform::$drivers['from-mock']);
     }
+    
+    
+    // Construction tests    
     
     /**
      * Check the results valid for most Config::with() tests
@@ -86,7 +103,7 @@ class Config_DirTest extends \PHPUnit_Framework_TestCase
     public function testWith_Arg0IsExt()
     {
         $config = Config::with("dir:mock;path={$this->dir}");
-        $this->checkWithResult($config);   
+        $this->checkWithResult($config);
     }
 
     /**
@@ -276,6 +293,7 @@ class Config_DirTest extends \PHPUnit_Framework_TestCase
         $this->checkWithTrResult($config);
     }
 
+    
     /**
      * Tests Config_Dir::with(): full (standard) DSN
      */
@@ -414,8 +432,7 @@ class Config_DirTest extends \PHPUnit_Framework_TestCase
         $config = Config_Dir::with($this->dir, array('ext'=>'yaml', 'transformer'=>'from-mock'));
         $this->checkWithTrResult($config);
     }
-//////////////////////////////////////////////////////
-
+    
     /**
      * Tests Config_Dir : only path
      */
@@ -491,6 +508,7 @@ class Config_DirTest extends \PHPUnit_Framework_TestCase
         $config = new Config_Dir(array("mock:{$this->dir}"));
         $this->checkWithResult($config);
     }
+    
     /**
      * Tests Config_Dir(): path array with argument[0] is dsn and argument['transformer']
      */
@@ -508,4 +526,30 @@ class Config_DirTest extends \PHPUnit_Framework_TestCase
         $config = new Config_Dir(array("yaml:{$this->dir}", 'transformer'=>'from-mock'));
         $this->checkWithTrResult($config);
     }    
+    
+    
+    // Method tests
+    
+    /**
+     * Tests Config_Dir(): eager load 
+     */
+    public function testDir_EagerLoad()
+    {
+        $config = new Config_Dir($this->dir, array('transformer'=>'from-mock', 'ext'=>'mock','loadall' => true));
+//        var_dump((array)$config['dir1']);
+        $this->assertEquals('myuser', $config['file1']['db']['user']);
+        $this->assertEquals('xml', $config['dir1']['file3']['output']);
+    }    
+    
+    /**
+     * Tests Config_Dir(): eager load 
+     */
+    public function testDir_lazyLoad()
+    {
+        $config = new Config_Dir($this->dir, array('transformer'=>'from-mock', 'ext'=>'mock'));
+//        var_dump((array)$config['dir1']);
+        $this->assertEquals('myuser', $config['file1']['db']['user']);
+        $this->assertEquals('xml', $config['dir1']['file3']['output']);
+    }    
+
 }

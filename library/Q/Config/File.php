@@ -73,7 +73,6 @@ class Config_File extends Config
         }
         
         $this->_path = isset($path) ? Fs::file($path) : (isset($options['path']) ? Fs::file($options['path']) : null);
-        
         $ext = isset($options['ext']) ? $options['ext'] : (isset($this->_path) ? $this->_path->extension() : null);
         
         if (isset($options['transformer'])) {
@@ -82,7 +81,7 @@ class Config_File extends Config
             $this->_transformer = Transform::from($ext);
         }
         
-        $values = isset($this->_transformer) ? $this->_transformer->process($this->_path) : array();
+        $values = isset($this->_path) && isset($this->_transformer) ? $this->_transformer->process($this->_path) : array();
         \ArrayObject::__construct(&$values, \ArrayObject::ARRAY_AS_PROPS);
     }
 }

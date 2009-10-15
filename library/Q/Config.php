@@ -109,6 +109,7 @@ class Config extends \ArrayObject
 	    return isset(self::$instances[$name]) ? self::$instances[$name] : self::getInstance($name);
 	}
 	
+	
 	/**
 	 * Class constructor
 	 * 
@@ -117,5 +118,16 @@ class Config extends \ArrayObject
 	public function __construct($options=array())
 	{
 	   parent::__construct(array(), \ArrayObject::ARRAY_AS_PROPS);
+	}
+	
+	/**
+	 * Load all settings (eager load).
+	 * (fluent interface)
+	 * 
+	 * @return Config
+	 */
+	protected function loadAll()
+	{
+	   return $this;
 	}
 }
