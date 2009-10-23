@@ -17,13 +17,13 @@ require_once 'Q/Fs.php';
  * }}
  * 
  * {@example
- * Transform::width('xml:' .$path)->process($_POST['data']); // $path is the path to the file that will be transformed
+ * Transform::with("xml:$path")->process($_POST['data']); // $path is the path to the file that will be transformed
  * }}
  * 
  * Available drivers :
- * xsl, replace, php, text2html, serialize-jason, serialize-xml, serialize-php, 
- * serialize-yaml, serialize-ini, unserialize-json, unserialize-xml, 
- * unserialize-php, unserialize-yaml, unserialize-ini
+ * xsl, replace, php, text2html, to-jason, to-xml, to-php, 
+ * to-yaml, to-ini, from-json, from-xml, 
+ * from-php, from-yaml, from-ini
  *  * @package Transform
  */
 abstract class Transform implements Transformer
@@ -39,16 +39,16 @@ abstract class Transform implements Transformer
 	  'text2html' => 'Q\Transform_Text2HTML',
 	  'html2text' => 'Q\Transform_HTML2Text',
 	
-	  'serialize-json' => 'Q\Transform_Serialize_Json',
-	  'serialize-xml' => 'Q\Transform_Serialize_XML',
-	  'serialize-php' => 'Q\Transform_Serialize_PHP',
-      'serialize-yaml' => 'Q\Transform_Serialize_Yaml',
-      'serialize-ini' => 'Q\Transform_Serialize_Ini',
-      'unserialize-json' => 'Q\Transform_Unserialize_Json',
-	  'unserialize-xml' => 'Q\Transform_Unserialize_XML',
-	  'unserialize-php' => 'Q\Transform_Unserialize_PHP',
-      'unserialize-yaml' => 'Q\Transform_Unserialize_Yaml',
-      'unserialize-ini' => 'Q\Transform_Unserialize_Ini',
+	  'to-json' => 'Q\Transform_Serialize_Json',
+	  'to-xml' => 'Q\Transform_Serialize_XML',
+	  'to-php' => 'Q\Transform_Serialize_PHP',
+      'to-yaml' => 'Q\Transform_Serialize_Yaml',
+      'to-ini' => 'Q\Transform_Serialize_Ini',
+      'from-json' => 'Q\Transform_Unserialize_Json',
+	  'from-xml' => 'Q\Transform_Unserialize_XML',
+	  'from-php' => 'Q\Transform_Unserialize_PHP',
+      'from-yaml' => 'Q\Transform_Unserialize_Yaml',
+      'from-ini' => 'Q\Transform_Unserialize_Ini',
 	);
 	
     /**
@@ -67,46 +67,37 @@ abstract class Transform implements Transformer
 	 */
 	public static function with($dsn, $options=array())
 	{
+	    $prefix = func_num_args() > 2 ? func_get_arg(2) . '-' : '';
 		$options = (is_scalar($dsn) ? extract_dsn($dsn) : (array)$dsn) + (array)$options;
-		$driver = $options['driver'];
-
-		if (!isset(self::$drivers[$driver]) && strpos($driver, '.') !== false && isset(self::$drivers[pathinfo($driver, PATHINFO_EXTENSION)])) {
-		    $options[0] = $driver;
-		    $driver = pathinfo($driver, PATHINFO_EXTENSION);
+        if (!isset($options['driver']) && !isset($options[0])) throw new Exception("Unable to create Transform object: No driver specified");
+        $driver = $prefix . (isset($options['driver']) ? $options['driver'] : $options[0]);
+		
+		if (!isset(self::$drivers[$driver]) && strpos($driver, '.') !== false && isset(self::$drivers[$prefix . pathinfo($driver, PATHINFO_EXTENSION)])) {
+		    if (isset($options['driver'])) $options[0] = $options['driver'];
+		    $driver = $prefix . pathinfo($driver, PATHINFO_EXTENSION);
 		}
 
-		if (!isset(self::$drivers[$driver])) throw new Transform_Exception("Unable to create Transform object: Unknown driver '$driver'");
+		if (!isset(self::$drivers[$driver])) throw new Exception("Unable to create Transform object: Unknown driver '$driver'");
 		$class = self::$drivers[$driver];
-		if (!load_class($class)) throw new Transform_Exception("Unable to create $class object: Class does not exist.");
+		if (!load_class($class)) throw new Exception("Unable to create $class object: Class does not exist.");
 
 		return new $class($options);
 	}
 	
-	/**
-	 * Create a new Tranfromer to serialize data.
-	 * 
-	 * @param string $type
-	 * @param array  $options
-	 * @return Transformer
-	 */
-	public static function to($type, $options=array())
-	{
-		return self::with("serialize-$type", $options);
-	}
+    /**
+     * Create a new Tranfromer to serialize data.
+     * 
+     * @param string $type
+     * @param array  $options
+     * @return Transformer
+     */
+    public static function __callstatic($name, $arguments)
+    {
+        if (!isset($arguments[0])) throw new Exception("Unable to create Transform object: No driver specified");
+        return self::with($arguments[0], isset($arguments[1]) ? $arguments[1] : array(), $name);
+    }
 
-	/**
-	 * Create a new Tranfromer to unserialize data.
-	 * 
-	 * @param string $type
-	 * @param array  $options
-	 * @return Transformer
-	 */
-	public static function from($type, $options=array())
-	{
-		return self::with("unserialize-$type", $options);
-	}
-	
-	
+    
 	/**
 	 * Class constructor
 	 *
@@ -161,7 +152,7 @@ abstract class Transform implements Transformer
 	public function output($data)
 	{
 		$out = $this->process($data);
-        if (!is_scalar($out) && !(is_object($out) && method_exists($out, '__toString'))) throw new Transform_Exception("Unable to output data: Transformation returned a non-scalar value of type '" . gettype($out) . "'.");
+        if (!is_scalar($out) && !(is_object($out) && method_exists($out, '__toString'))) throw new Exception("Unable to output data: Transformation returned a non-scalar value of type '" . gettype($out) . "'.");
         
         echo $out;
 	}
@@ -176,8 +167,8 @@ abstract class Transform implements Transformer
 	function save($filename, $data=null, $flags=0)
 	{
 		$out = $this->process($data);
-        if (!is_scalar($out) && !(is_object($out) && method_exists($out, '__toString'))) throw new Transform_Exception("Unable to save data to '$filename': Transformation returned a non-scalar value of type '" . gettype($out) . "'.");
+        if (!is_scalar($out) && !(is_object($out) && method_exists($out, '__toString'))) throw new Exception("Unable to save data to '$filename': Transformation returned a non-scalar value of type '" . gettype($out) . "'.");
 		
-        if (!Fs::file($filename)->putContents((string)$out, $flags)) throw new Transform_Exception("Failed to create file {$filename}.");		
+        if (!Fs::file($filename)->putContents((string)$out, $flags)) throw new Exception("Failed to create file {$filename}.");		
 	}
 }

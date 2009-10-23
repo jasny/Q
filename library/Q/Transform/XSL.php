@@ -87,7 +87,7 @@ class Transform_XSL  extends Transform
    	    
         if ($data instanceof Fs_Node) $data = $data->getContents();
         
-        if (is_array($data)) $data = Transform::with('serialize-xml', array('rootNodeName' => isset($this->rootNodeName) ? $this->rootNodeName : 'root'))->process($data);        
+        if (is_array($data)) $data = Transform::to('xml', array('rootNodeName' => isset($this->rootNodeName) ? $this->rootNodeName : 'root'))->process($data);        
 
         return $data;
     }

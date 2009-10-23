@@ -76,13 +76,15 @@ class Fs_Symlink_DirTest extends Fs_DirTest
      */
     public function testCreate_Recursive()
     {
+        $target = "{$this->file}.y/" . basename($this->file) . ".orig";
+        
         umask(0022);
-        symlink("{$this->file}.y/{$this->file}.orig", "{$this->file}.x");
-        $new = new Fs_Symlink_Dir("{$this->file}.x");
+        $new = Fs::symlink($target, "{$this->file}.x", 0, 'dir');
+        $this->assertType('Q\Fs_Symlink_Dir', $new);
     	$new->create(0770, Fs::RECURSIVE);
         
-    	$this->assertTrue(is_dir("{$this->file}.y/{$this->file}.orig"));
-    	$this->assertEquals('0750', sprintf('%04o', fileperms("{$this->file}.y/{$this->file}.orig") & 0777));
+    	$this->assertTrue(is_dir("{$this->file}.y/" . basename($this->file) . ".orig"));
+    	$this->assertEquals('0750', sprintf('%04o', fileperms($target) & 0777));
     	$this->assertEquals('0750', sprintf('%04o', fileperms("{$this->file}.y") & 0777));
     }
     

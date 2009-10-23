@@ -69,7 +69,7 @@ class Fs_FifoTest extends Fs_NodeTest
      */
     public function testGetContents()
     {
-    	$this->markTestSkipped("Difficult to test. @todo");
+    	$this->markTestIncomplete("Find the best way to test this");
     	
     	$fp = fopen($this->file, "w");
     	stream_set_blocking($fp, 0);
@@ -83,7 +83,7 @@ class Fs_FifoTest extends Fs_NodeTest
      */
     public function testPutContents()
     {
-        $this->markTestSkipped("Difficult to test. @todo");
+        $this->markTestIncomplete("Find the best way to test this");
     	
         $this->Fs_Node->putContents('Test put contents');
         $this->assertEquals('Test put contents', file_get_contents($this->file));
@@ -94,7 +94,7 @@ class Fs_FifoTest extends Fs_NodeTest
      */
     public function testOutput()
     {
-        $this->markTestSkipped("Difficult to test. @todo");
+        $this->markTestIncomplete("Find the best way to test this");
     	
         ob_start();
         try {
@@ -113,7 +113,7 @@ class Fs_FifoTest extends Fs_NodeTest
      */
     public function testOpen()
     {
-        $this->markTestSkipped("Difficult to test. @todo");
+        $this->markTestIncomplete("Find the best way to test this");
     	
         $fp = $this->Fs_Node->open();
         $this->assertTrue(is_resource($fp), "File pointer $fp");
@@ -135,7 +135,7 @@ class Fs_FifoTest extends Fs_NodeTest
      */
     public function testChgrp_Fail()
     {
-        $this->markTestSkipped("Difficult to test. @todo");
+        $this->markTestIncomplete("Find the best way to test this");
     	if (is_writable('/etc/passwd')) $this->markTestSkipped("Want to test this on '/etc/passwd', but I actually have permission to change that file. Run this script as an under-privileged user.");
         $file = new Fs_Fifo('/etc/passwd');
         $this->setExpectedException('Q\Fs_Exception', "Failed to change group of '$file' to '0': Operation not permitted");
@@ -194,7 +194,7 @@ class Fs_FifoTest extends Fs_NodeTest
      */
     public function testCreate_Recursive()
     {
-        $this->markTestSkipped("Difficult to test. @todo");
+        $this->markTestIncomplete("Find the best way to test this");
     	
     	$filename = "{$this->file}.y/" . basename("{$this->file}.x");
         $new = new Fs_Fifo($filename);
@@ -230,7 +230,7 @@ class Fs_FifoTest extends Fs_NodeTest
      */
     public function testRename()
     {
-        $this->markTestSkipped("Difficult to test. @todo");
+        $this->markTestIncomplete("Find the best way to test this");
     	$new = $this->Fs_Node->rename("{$this->file}.x");
 
         $this->assertEquals("{$this->file}.x", (string)$new);
@@ -258,7 +258,7 @@ class Fs_FifoTest extends Fs_NodeTest
      */
     public function testRename_OverwriteFile()
     {
-        $this->markTestSkipped("Difficult to test. @todo");
+        $this->markTestIncomplete("Find the best way to test this");
     	
     	file_put_contents("{$this->file}.x", "Another file");
         $new = $this->Fs_Node->rename("{$this->file}.x", Fs::OVERWRITE);
@@ -275,7 +275,7 @@ class Fs_FifoTest extends Fs_NodeTest
      */
     public function testMoveTo()
     {
-        $this->markTestSkipped("Difficult to test. @todo");
+        $this->markTestIncomplete("Find the best way to test this");
     	
         mkdir("{$this->file}.y");
         $new = $this->Fs_Node->moveTo("{$this->file}.y");
@@ -303,7 +303,7 @@ class Fs_FifoTest extends Fs_NodeTest
      */
     public function testChmod_invalidString()
     {
-        $this->markTestSkipped("Difficult to test. @todo");
+        $this->markTestIncomplete("Find the best way to test this");
     	
         $this->setExpectedException('Q\ExecException');
         $this->Fs_Node->chmod('incorrect mode');

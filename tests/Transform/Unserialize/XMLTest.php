@@ -99,7 +99,7 @@ class Transform_Unserialize_XMLTest extends PHPUnit_Framework_TestCase
 	 */
 	public function testOutput() 
 	{
-        $this->setExpectedException('Q\Transform_Exception', "Transformation returned a non-scalar value of type 'array'");
+        $this->setExpectedException('Q\Exception', "Transformation returned a non-scalar value of type 'array'");
 		$transform = new Transform_Unserialize_XML();
     	$transform->output('<?xml version="1.0" encoding="ISO-8859-1"?>
 <settings>
@@ -119,7 +119,7 @@ class Transform_Unserialize_XMLTest extends PHPUnit_Framework_TestCase
 	 */
 	public function testSave() 
 	{
-        $this->setExpectedException('Q\Transform_Exception', "Transformation returned a non-scalar value of type 'array'");
+        $this->setExpectedException('Q\Exception', "Transformation returned a non-scalar value of type 'array'");
 		$this->tmpfile = tempnam(sys_get_temp_dir(), 'Q-');
 		
         $transform = new Transform_Unserialize_XML ();

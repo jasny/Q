@@ -71,7 +71,7 @@ class Transform_Unserialize_JsonTest extends PHPUnit_Framework_TestCase
 	 */
 	public function testOutput() 
 	{
-        $this->setExpectedException('Q\Transform_Exception', "Unable to output data: Transformation returned a non-scalar value of type 'array'.");
+        $this->setExpectedException('Q\Exception', "Unable to output data: Transformation returned a non-scalar value of type 'array'.");
 		$transform = new Transform_Unserialize_Json();
     	$transform->output('{"a":"t1","b":"t2"}');
 	}
@@ -81,7 +81,7 @@ class Transform_Unserialize_JsonTest extends PHPUnit_Framework_TestCase
 	 */
 	public function testSave() 
 	{
-        $this->setExpectedException('Q\Transform_Exception', "Transformation returned a non-scalar value of type 'array'");
+        $this->setExpectedException('Q\Exception', "Transformation returned a non-scalar value of type 'array'");
 		$this->tmpfile = tempnam(sys_get_temp_dir(), 'Q-');
 		
         $transform = new Transform_Unserialize_Json ();

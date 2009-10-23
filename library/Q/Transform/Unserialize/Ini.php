@@ -13,6 +13,12 @@ require_once 'Q/Transform/Serialize/Ini.php';
 class Transform_Unserialize_Ini extends Transform
 {
     /**
+     * Default extension for file with unserialized data.
+     * @var string
+     */
+    public $ext = 'ini';
+    
+    /**
      * Get a transformer that does the reverse action.
      * 
      * @param Transformer $chain

@@ -31,7 +31,7 @@ abstract class Fs_NodeTest extends PHPUnit_Framework_TestCase
     	foreach (array('', '.orig', '.x', '.y') as $suffix) {
 	    	if (is_dir($path . $suffix) && !is_link($path . $suffix)) {
 	    		static::cleanup($path . $suffix . '/' . basename($path));
-	    		rmdir($path . $suffix);
+	    		if (!rmdir($path . $suffix)) throw new Exception("Cleanup failed");
 			} elseif (file_exists($path . $suffix) || is_link($path . $suffix)) {
 				unlink($path . $suffix);
 			}

@@ -585,7 +585,7 @@ class Fs_Test extends PHPUnit_Framework_TestCase
     	$this->assertEquals('file', Fs::typeOfNode($this->getMock('Q\Fs_File', array(), array(), '', false), Fs::DESCRIPTION));
     	$this->assertEquals('directory', Fs::typeOfNode($this->getMock('Q\Fs_Dir', array(), array(), '', false), Fs::DESCRIPTION));
     	$this->assertEquals('block device', Fs::typeOfNode($this->getMock('Q\Fs_Block', array(), array(), '', false), Fs::DESCRIPTION));
-    	$this->assertEquals('char device', Fs::typeOfNode($this->getMock('Q\Fs_Char', array(), array(), '', false), Fs::DESCRIPTION));
+    	$this->assertEquals('character device', Fs::typeOfNode($this->getMock('Q\Fs_Char', array(), array(), '', false), Fs::DESCRIPTION));
     	$this->assertEquals('named pipe', Fs::typeOfNode($this->getMock('Q\Fs_Fifo', array(), array(), '', false), Fs::DESCRIPTION));
     	$this->assertEquals('socket', Fs::typeOfNode($this->getMock('Q\Fs_Socket', array(), array(), '', false), Fs::DESCRIPTION));
     	$this->assertEquals('unknown filetype', Fs::typeOfNode($this->getMock('Q\Fs_Unknown', array(), array(), '', false), Fs::DESCRIPTION));
@@ -594,7 +594,7 @@ class Fs_Test extends PHPUnit_Framework_TestCase
     	$this->assertEquals('symlink to a file', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_File', array(), array(), '', false), Fs::DESCRIPTION));
     	$this->assertEquals('symlink to a directory', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Dir', array(), array(), '', false), Fs::DESCRIPTION));
     	$this->assertEquals('symlink to a block device', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Block', array(), array(), '', false), Fs::DESCRIPTION));
-    	$this->assertEquals('symlink to a char device', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Char', array(), array(), '', false), Fs::DESCRIPTION));
+    	$this->assertEquals('symlink to a character device', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Char', array(), array(), '', false), Fs::DESCRIPTION));
     	$this->assertEquals('symlink to a named pipe', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Fifo', array(), array(), '', false), Fs::DESCRIPTION));
     	$this->assertEquals('symlink to a socket', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Socket', array(), array(), '', false), Fs::DESCRIPTION));
     	$this->assertEquals('symlink to an unknown filetype', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Unknown', array(), array(), '', false), Fs::DESCRIPTION));
@@ -622,7 +622,7 @@ class Fs_Test extends PHPUnit_Framework_TestCase
     	$this->assertEquals('file', Fs::typeOfNode($this->getMock('Q\Fs_File', array(), array(), '', false), Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
     	$this->assertEquals('directory', Fs::typeOfNode($this->getMock('Q\Fs_Dir', array(), array(), '', false), Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
     	$this->assertEquals('block device', Fs::typeOfNode($this->getMock('Q\Fs_Block', array(), array(), '', false), Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
-    	$this->assertEquals('char device', Fs::typeOfNode($this->getMock('Q\Fs_Char', array(), array(), '', false), Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
+    	$this->assertEquals('character device', Fs::typeOfNode($this->getMock('Q\Fs_Char', array(), array(), '', false), Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
     	$this->assertEquals('named pipe', Fs::typeOfNode($this->getMock('Q\Fs_Fifo', array(), array(), '', false), Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
     	$this->assertEquals('socket', Fs::typeOfNode($this->getMock('Q\Fs_Socket', array(), array(), '', false), Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
     	$this->assertEquals('unknown filetype', Fs::typeOfNode($this->getMock('Q\Fs_Unknown', array(), array(), '', false), Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
@@ -630,7 +630,7 @@ class Fs_Test extends PHPUnit_Framework_TestCase
     	$this->assertEquals('file', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_File', array(), array(), '', false), Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
     	$this->assertEquals('directory', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Dir', array(), array(), '', false), Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
     	$this->assertEquals('block device', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Block', array(), array(), '', false), Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
-    	$this->assertEquals('char device', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Char', array(), array(), '', false), Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
+    	$this->assertEquals('character device', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Char', array(), array(), '', false), Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
     	$this->assertEquals('named pipe', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Fifo', array(), array(), '', false), Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
     	$this->assertEquals('socket', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Socket', array(), array(), '', false), Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
     	$this->assertEquals('unknown filetype', Fs::typeOfNode($this->getMock('Q\Fs_Symlink_Unknown', array(), array(), '', false), Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));

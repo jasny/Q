@@ -98,10 +98,14 @@ function split_set($seperator, $string, $unquote=true)
 	preg_match_all('/(?:([^' . $seperator . '=]+)\s*\=)?((?:(`[^`]*`)|("(?:\\\\"|[^"])*")|(\'(?:\\\\\'|[^\'])*\')|\((?:(?R)|[' . $seperator . '])*\)|([^`"\'()' . $seperator . ']+))+)/', $string, $matches, PREG_SET_ORDER);
 	
 	foreach ($matches as $match) {
+        $value = trim($match[2]);
+        if ($value=='false') $value = false;
+          elseif($value=='true') $value = true;
+        
 	    if (empty($match[1])) {
-	        $values[] = $unquote ? unquote(trim($match[2]), $unquote) : trim($match[2]); 
+	        $values[] = $unquote && is_string($value) ? unquote($value, $unquote) : $value; 
 	    } else {
-            parse_key(trim($match[1]), $unquote ? unquote(trim($match[2]), $unquote) : trim($match[2]), $values);
+            parse_key(trim($match[1]), $unquote && is_string($value) ? unquote($value, $unquote) : $value, $values);
 	    }
 	}
 	
@@ -132,9 +136,24 @@ function extract_dsn($dsn)
 {
     if (empty($dsn)) return array();
     
+    $options = array();
+    
+    if (is_array($dsn)) {
+        if (!isset($dsn['dsn']) && isset($dsn[0])) {
+            $dsn['dsn'] = $dsn[0];
+            unset($dsn[0]);
+        }
+    
+        if (isset($dsn['driver']) || !isset($dsn['dsn'])) return $dsn;
+
+        $options = $dsn;
+        $dsn = $dsn['dsn'];
+        unset($options['dsn']);
+    }
+    
 	$matches = null;
 	if (!preg_match('/^([\w-]+)\:(.*)$/', $dsn, $matches)) return array('driver'=>$dsn);
-	return array('driver'=>$matches[1]) + split_set(';', $matches[2]);
+	return array('driver'=>$matches[1]) + split_set(';', $matches[2]) + $options;
 }
 
 
