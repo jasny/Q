@@ -6,7 +6,7 @@ namespace Q;
  *
  * @package DB
  */
-interface DB_FieldAccess extends Countable
+interface DB_FieldAccess extends \Countable
 {
 	/**
 	 * Cast field to fieldname.
@@ -16,13 +16,6 @@ interface DB_FieldAccess extends Countable
 	public function __toString();
 	
 	
-	/**
-	 * Get the database connection.
-	 * 
-	 * @return DB
-	 */
-	public function getConnection();
-
 	/**
 	 * Get table, result or record containing this field.
 	 * 
@@ -37,21 +30,12 @@ interface DB_FieldAccess extends Countable
 	 */
 	public function getMode();
 
-	/**
-	 * Create an active field based on this field definition.
-	 *
-	 * @param mixed       $value
-	 * @param Q\DB_Record $parent
-	 * @param boolean     $default  Set value to default
-	 * @return DB_Field
-	 */
-	public function asActive($value, DB_Record $parent=null, $default=false);
-
     
 	/**
-	 * Return the name of a field
+	 * Return the name of a field.
+	 * Names will be concatinated when adding DB::FIELDNAME_LIST.
 	 *
-	 * @param int $format  A FIELDNAME_% constant
+	 * @param int $format  A DB::FIELDNAME_% constant
 	 * @return string
 	 */
 	public function getName($format=DB::FIELDNAME_FULL);
@@ -67,23 +51,10 @@ interface DB_FieldAccess extends Countable
 	/**
 	 * Get the value.
 	 * 
+	 * @param int $flags  Options as boolean set; DB::ORM or DB::FOR_SAVE
 	 * @return mixed
 	 */
-	public function getValue();
-
-	/**
-	 * Get the value as given by active record.
-	 * 
-	 * @return mixed
-	 */
-	public function getORMValue();
-		
-	/**
-	 * Get the value to update a record.
-	 * 
-	 * @return mixed
-	 */
-	public function getValueForSave();
+	public function getValue($flags=0);
 	
 	/**
 	 * Set the value

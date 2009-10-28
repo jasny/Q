@@ -427,14 +427,15 @@ class DB_MySQL extends DB
 	 * Quotes a string so it can be safely used as schema, table or field name.
 	 * Dots are seen as seperator and are kept out of quotes.
 	 * 
-	 * Return NULL if $identifier is not valid.
-	 *
+	 * Will not quote expressions without DB::QUOTE_STRICT. This means it is not secure without this option.
+	 * 
 	 * @param string $identifier
+	 * @param int    $flags       DB::QUOTE_LOOSE or DB::QUOTE_STRICT
 	 * @return string
 	 */
-	public function quoteIdentifier($identifier)
+	public function quoteIdentifier($identifier, $flags=DB::QUOTE_STRICT)
 	{
-	    return $this->sqlSplitter->quoteIdentifier($identifier);
+	    return $this->sqlSplitter->quoteIdentifier($identifier, $flags);
 	}
 		
 	/**

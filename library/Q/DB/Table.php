@@ -54,7 +54,7 @@ class DB_Table extends \ArrayObject
 			if (!isset($this['load'])) $this['load'] = $this['view'];
 			
 			if ((!isset($this['overview']) || !isset($this['descview'])) && isset($this->_fieldindex['#role:description'])) {
-				$fields = new DB_Fields();
+				$fields = new DB_FieldList();
 				$fields[] = $this->getPrimaryKey();
 				$fields[] = $this->_fieldindex['#role:description'];
 				if (isset($this->_fieldindex['#role:active'])) $fields[] = $this->_fieldindex['#role:active'];
@@ -221,12 +221,12 @@ class DB_Table extends \ArrayObject
 	{
 	    if ($this->hasField('#role:id')) return $this->getField('#role:id');
 	    
-	    $pk = null;
-	    foreach ($this->fields as $name=>$field) {
-        	if ($field['is_primary']) $pk = !isset($pk) ? $field : new DB_Fields($pk, $field);
+	    $pk = array();
+	    foreach ($this->fields as $field) {
+        	if ($field['is_primary']) $pk[] = $field;
 	    }
 	    
-	    return $pk;
+	    return empty($pk) ? null : (count($pk) == 1 ? reset($pk) : new DB_FieldList($pk));
 	}
 	
 	/**

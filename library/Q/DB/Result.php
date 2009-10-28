@@ -343,7 +343,7 @@ abstract class DB_Result
 	/**
 	 * Returns all fields
 	 * 
-	 * @return array
+	 * @return DB_FieldList
 	 */
 	function getFields()
 	{

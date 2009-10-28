@@ -1,7 +1,7 @@
 <?php
 namespace Q;
 
-require_once 'Q/Crypt.php';
+require_once 'Q/DB/FieldAccess.php';
 
 /**
  * An object representation for a database field or a field of a record.
@@ -21,16 +21,16 @@ class DB_Field extends \ArrayObject implements DB_FieldAccess
 	 * Database connection.
 	 * @var DB
 	 */
-	protected $connection = null;
+	protected $connection;
 
 	/**
 	 * Parent record or table.
 	 * @var DB_Table|DB_Result|DB_Record
 	 */
-	protected $parent = null;	
+	protected $parent;	
 	
 	/**
-	 * Mode of the field. MODE_DEFINITION: definition only, MODE_ACTIVE: hold value, MODE_NEW: active/new.
+	 * Mode of the field. MODE_DEFINITION: definition only, MODE_ACTIVE: hold value.
 	 * @var int
 	 */
 	protected $mode = self::MODE_DEFINITION;
@@ -40,7 +40,7 @@ class DB_Field extends \ArrayObject implements DB_FieldAccess
 	 * Value of the field
 	 * @var mixed
 	 */
-	protected $value = null;
+	protected $value;
 
 	/**
 	 * Original value of the field
@@ -72,17 +72,11 @@ class DB_Field extends \ArrayObject implements DB_FieldAccess
 	 *
 	 * @param mixed $parent      Parent record (Q\DB_Record), result (Q\DB_Result), table (Q\DB_Table) or Database connection (Q\DB)
 	 * @param array $properties  Field properties (can be passed as reference)
-	 * @param int   $mode        MODE_DEFINITION: definition only, MODE_ACTIVE: hold value, MODE_NEW: hold value for new record
 	 * @param mixed $value
 	 */
 	public function __construct($parent, $properties, $value=null)
 	{
-	    if ($parent instanceof DB) {
-	        $this->connection = $parent;
-	    } else {
-	        $this->parent = $parent;
-	        $this->connection = $parent->getConnection();
-	    }
+        $this->parent = $parent;
 	    
 		if (!isset($this->parent) || $this->parent instanceof DB_Record) {
 		    $this->mode = self::MODE_ACTIVE;
@@ -114,16 +108,6 @@ class DB_Field extends \ArrayObject implements DB_FieldAccess
 		return 1;
 	}
 	
-
-	/**
-	 * Get the database connection.
-	 * 
-	 * @return DB
-	 */
-	public function getConnection()
-	{
-		return $this->connection;
-	}
 
 	/**
 	 * Get table, result or record containing this field.
@@ -160,8 +144,6 @@ class DB_Field extends \ArrayObject implements DB_FieldAccess
 	    $field = clone $this;
 	    
 	    $field->parent = $parent;
-	    if (isset($parent)) $field->connection = $parent->getConnection();
-
 	    $field->mode = self::MODE_ACTIVE;
 
 	    if ($default) {
@@ -200,7 +182,7 @@ class DB_Field extends \ArrayObject implements DB_FieldAccess
 	}
 
 	/**
-	 * ArrayAccess; Set property
+	 * ArrayAccess; Set property.
 	 * 
 	 * @param string $key
 	 * @param string $value
@@ -209,6 +191,17 @@ class DB_Field extends \ArrayObject implements DB_FieldAccess
 	{
 		if (in_array($key, array('name', 'name_db', 'table', 'table_db', 'type'))) throw new Exception("Unable to set property '$key' for field '$this': This property is read-only");
 		parent::offsetSet($key, $value);
+	}
+	
+	/**
+	 * ArrayAccess; Don't use this function.
+	 * @ignore
+	 * 
+	 * @param array $input 
+	 */
+	public function exchangeArray($input)
+	{
+		trigger_error("Don't use DB_Field::exchangeArray", E_USER_ERROR);
 	}
 	
 	/**
@@ -287,34 +280,14 @@ class DB_Field extends \ArrayObject implements DB_FieldAccess
 	/**
 	 * Get the value.
 	 * 
+	 * @param int $flags  Options as boolean set; DB::ORM or DB::FOR_SAVE
 	 * @return mixed
 	 */
-	public function getValue()
+	public function getValue($flags=0)
 	{
 		if ($this->mode === self::MODE_DEFINITION) return null;
-		return $this->value;
-	}
-
-	/**
-	 * Get the value as given by active record.
-	 * 
-	 * @return mixed
-	 */
-	public function getORMValue()
-	{
-		return $this->getValue();
-	}
 		
-	/**
-	 * Get the value to update a record.
-	 * 
-	 * @return mixed
-	 */
-	public function getValueForSave()
-	{
-	    if ($this->mode === self::MODE_DEFINITION) return null;
-	    if (!$this->hasCanged()) return $this->getValue();
-	    
+	    if (~$flags & DB::FOR_SAVE || !$this->hasCanged()) return $this->value;
 	    return $this->castValue($this->cryptValue($this->getValue()), true);
 	}
 	
@@ -325,11 +298,7 @@ class DB_Field extends \ArrayObject implements DB_FieldAccess
 	 */
 	public function setValue($value)
 	{
-		if ($this->mode === self::MODE_DEFINITION) {
-			trigger_error("Unable to set a value for field '" . $this->getFullname() . "': Can't set a value of a field in definition mode.", E_USER_NOTICE);
-			return;
-		}
-		
+		if ($this->mode === self::MODE_DEFINITION) throw new Exception("Unable to set a value for field '$this': Can't set a value of a field in definition mode.");
 		$this->value = $this->castValue($value);
 	}
 	
@@ -386,7 +355,7 @@ class DB_Field extends \ArrayObject implements DB_FieldAccess
 				if (is_string($value)) $value = trim($value, '"');
 				$cast = (int)$value;
 				if (is_object($value) || is_array($value) || (!is_int($value) && !preg_match('/^-?\d*$/', $value))) {
-					if ($force) trigger_error("Field " . $this->getFullname() . ": Value $value is cast to integer $cast", E_USER_NOTICE);
+					if ($force) trigger_error("Field '$this': Value $value is cast to integer $cast", E_USER_NOTICE);
 					   else $cast = $value;
 				}
 				break;
@@ -401,7 +370,7 @@ class DB_Field extends \ArrayObject implements DB_FieldAccess
 				if (is_string($value)) $value = trim($value, '"');
 				$matches = null;
 				if (is_object($value) || is_array($value) || (!is_float($value) && !preg_match('/^(-?\d*)([\.,]?)(\d*)$/', $value, $matches)) && $force) {
-					trigger_error("Field " . $this->getFullname() . ": Value $value is cast to float " . (float)$value, E_USER_NOTICE);
+					trigger_error("Field '$this': Value $value is cast to float " . (float)$value, E_USER_NOTICE);
 				}
 				$cast = !empty($matches) ? $cast = (float)($matches[1] . '.' . $matches[3]) : (!$force ? $value : (float)$value);  
 				break;
@@ -422,7 +391,7 @@ class DB_Field extends \ArrayObject implements DB_FieldAccess
 			    
 			case 'time':
 				if (is_string($value) && preg_match('/^([0-1]\d|2[0-3])\:([0-5]\d)/', $value, $matches)) $cast = $matches[0];
-				  elseif ($force) trigger_error("Field " . $this->getFullname() . ": Value $value is not a valid time: set to NULL", E_USER_NOTICE);
+				  elseif ($force) trigger_error("Field '$this': Value $value is not a valid time: set to NULL", E_USER_NOTICE);
 				  else $cast = $value;
 				break;
 			
@@ -442,6 +411,7 @@ class DB_Field extends \ArrayObject implements DB_FieldAccess
 	 */
 	public function cryptValue($value)
 	{
+		load_class('Q\Crypt');
 		return empty($this['crypt']) || !isset($value) ? $value : Crypt::with($this['crypt'])->encrypt($value);
 	}
 }

@@ -6,10 +6,11 @@ require_once 'Q/SecurityException.php';
 require_once 'Q/DB/Exception.php';
 require_once 'Q/DB/ConstraintException.php';
 
+require_once 'Q/Multiton.php';
+require_once 'Q/DB/Table.php';
+
 require_once 'Q/Cache.php';
 require_once 'Q/Config.php';
-require_once 'Q/DB/Result.php';
-require_once 'Q/DB/Table.php';
 
 /**
  * A database abstraction layer, adding functionality as well as abstraction.
@@ -50,16 +51,23 @@ abstract class DB implements Multiton
 	const FIELDNAME_ORG = 0x3;
 	const FIELDNAME_IDENTIFIER = 0x100;
 	const FIELDNAME_WITH_ALIAS = 0x200;
+	const FIELDNAME_LIST = 0x400;
 		
 	/* Edit statement options */
 	const ADD_REPLACE = 0x1;
 	const ADD_PREPEND = 0x2;
 	const ADD_APPEND = 0x4;
 	const ADD_HAVING = 0x100;
+	const QUOTE_LOOSE = 0;
+	const QUOTE_STRICT = 0x1000;
 	
 	/* Sorting order */
 	const ASC = 1;
 	const DESC = 2;
+	
+	/* Get value */
+	const ORM = 1;
+	const FOR_SAVE = 2;
 	
 	/** Single row constraint */
 	const SINGLE_ROW = 1;
@@ -346,7 +354,7 @@ abstract class DB implements Multiton
     {
 		if (!isset(self::$instances[$name])) {
 		    if (!class_exists('Q\Config') || Config::i() instanceof Mock || !($dsn = Config::i()->get('db' . ($name != 'i' ? ".{$name}" : '')))) {
-		    	load_class('Q\Mock.php');
+		    	load_class('Q\Mock');
 		    	return new Mock(__CLASS__, $name, 'connect');
 		    }
 	        self::$instances[$name] = self::connect($dsn);

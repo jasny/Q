@@ -63,24 +63,18 @@ class DB_SQLStatement implements DB_Statement
 
 	
 	/**
-	 * The parts to add to base statement, prepending the existing part.
-	 * @var array
-	 */
-	protected $partsPrepend;
-
-	/**
-	 * The parts to add to base statement, appending the existing part.
-	 * @var array
-	 */
-	protected $partsAppend;
-	
-	/**
-	 * The parts to replace parts of to base statement.
+	 * The parts to replace the ones of the base statement.
 	 * @var array
 	 */
 	protected $partsReplace;
-		
-		
+
+	/**
+	 * The parts to add to base statement.
+	 * @var array
+	 */
+	protected $partsAdd;
+	
+	
 	/**
 	 * The build statements
 	 * @var string
@@ -155,7 +149,6 @@ class DB_SQLStatement implements DB_Statement
 	        throw new Exception("Parent of statement can only be a Q\DB or Q\DB_Table, not a " . (is_object($source) ? get_class($source) : gettype($source)));
 	    }
 
-		if (!isset($this->sqlSplitter)) trigger_error("The driver '" . (isset($this->connection) ? get_class($this->connection) : $source) . "' doesn't support query splitting. This will cause issues when you try to modify the statement.", E_USER_NOTICE);
 		$this->statement = $statement;
 	}
 	
@@ -199,16 +192,25 @@ class DB_SQLStatement implements DB_Statement
 	 * @param int    $flags   Options about how to quote $column
 	 * @return string
 	 */
-	public function getColumnDBName($column, $table=null, $flags=0)
+	public function getColumnDBName($column, $table=null, $alias=null, $flags=0)
 	{
-   		if (is_array($column)) return array_map(array($this, __FUNCTION__), $column, $table, $flags);
+   		if (is_array($column)) {
+   			foreach ($column as $a=>&$c) $c = $this->getColumnDBName($c, $table, is_int($a) ? null : $a, $flags);
+   			return $column;
+   		}
 		
-   		if ($column[0] !== '#') return $this->sqlSplitter->makeIdentifier($table, $column, $flags); // Most cases
+   		if (is_int($column)) {
+   			$fields = $this->getFields();
+   			if (!isset($fields[$column])) throw new Exception("Unable to get the name of field $column: Statement only has " . count($column) . " fields");
+   			return $this->sqlSplitter->makeIdentifier($fields[$column]['table'], $fields[$column]['name'], $alias);
+   		}
+   		
+   		if ($column[0] !== '#') return $this->sqlSplitter->makeIdentifier($table, $column, $alias); // Most cases
 		
    		if (!($table instanceof DB_Table)) $table = isset($table) && isset($this->connection) ? $this->connection->table($table) : $this->getBaseTable();
    		if (!$table) throw new DB_Exception("Unable to add criteria for column '$column'. Unable to resolve symantic data mapping, because statement does not have a base table.");
    		
-		return $this->sqlSplitter->makeIdentifier($table, $table->$column);
+		return $this->sqlSplitter->makeIdentifier($table, $table->$column, $alias);
 	}
 	
 	
@@ -222,7 +224,7 @@ class DB_SQLStatement implements DB_Statement
      */
 	public function getQueryType($subset=0)
 	{
-		if (array_key_exists($subset, $this->queryType)) return $this->queryType[$subset];
+		if (isset($this->queryType) && array_key_exists($subset, $this->queryType)) return $this->queryType[$subset];
 		
 		if ($subset > 0) {
 		    $sets = $this->sqlSplitter->extractSubsets($this->statement);
@@ -354,10 +356,14 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	public function getStatement($args=null)
 	{
-		if (empty($this->partsPrepend) && empty($this->partsAppend) && empty($this->partsReplace)) return $this->getBaseStatement();
-	
-		if (!isset($this->cachedStatement)) $this->cachedStatement = empty($this->partsAdd) && empty($this->partsReplace) ? $this->statement : $this->sqlSplitter->joinInject($this->getParts());
-		if (func_num_args() == 0) return $this->cachedStatement;
+		if (empty($this->partsAdd) && empty($this->partsReplace)) {
+			$stmt =& $this->statement;
+		} else {
+			if (!isset($this->cachedStatement)) $this->cachedStatement = $this->sqlSplitter->join($this->getParts());
+			$stmt =& $this->cachedStatement;
+		}
+		
+		if (func_num_args() == 0) return $stmt;
 		
 		if (func_num_args() > 1) $args = func_get_args();
 		return $this->sqlSplitter->parse($this->cachedStatement, $args);
@@ -371,34 +377,34 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	public function getParts($extract=false)
 	{
-		if (empty($this->partsPrepend) && empty($this->partsAppend) && empty($this->partsReplace)) return $this->getBaseParts($extract);
+		if (empty($this->partsAdd) && empty($this->partsReplace)) return $this->getBaseParts($extract);
 		if (isset($this->cachedParts[$extract])) return $this->cachedParts[$extract];
 		
 		$use_subsets = $extract || sizeof($this->partsAdd) > (int)isset($this->partsAdd[0]) || sizeof($this->partsReplace) > (int)isset($this->partsReplace[0]);
 		if ($use_subsets) $sets_parts = $this->getBaseParts(true);
 		  else $sets_parts = array($this->getBaseParts(false));
 		
-		foreach ($sets_parts as $i=>$parts) {
+		foreach ($sets_parts as $i=>&$parts) {
 			if (!empty($this->partsReplace[$i])) $parts = array_merge($parts, $this->partsReplace[$i]);
+
+			if (empty($this->partsAdd[$i])) continue;
 			
-			if (!empty($this->partsAdd[$i])) {
-				foreach ($this->partsAdd[$i] as $key=>$newparts) { /* newparts[0] => prepend, newparts[1] => append */
-					if ($key === 'columns' || $key === 'set' || $key === 'group by' || $key === 'order by') {
-						$parts[$key] = join(', ', array_merge(isset($newparts[0]) ? $newparts[0] : array(), $parts[$key] !== null && trim($parts[$key]) !== '' ? array($parts[$key]) : array() , isset($newparts[1]) ? $newparts[1] : array()));
-					} elseif ($key === 'values') {
-						$parts[$key] = (isset($newparts[0]) ? ' (' . join('), (', $newparts[0]) . ')' : '') . (isset($newparts[0]) && trim($parts[$key]) !== '' ? ', ' : '') . $parts[$key] . (isset($newparts[1]) && trim($parts[$key]) !== '' ? ', ' : '') .  (isset($newparts[1]) ? ' (' . join('), (', $newparts[1]) . ')' : '');
-					} elseif ($key === 'from' || $key === 'into' || $key === 'tables') {
-						$parts[$key] = (isset($newparts[0]) ? join(' ', $newparts[0]) . ' ' : '') . '(' . $parts[$key] . ')' . (isset($newparts[1]) ? ' ' . join(' ', $newparts[1]) : '');
-					} elseif ($key === 'where' || $key === 'having') {
-						$items = array_merge(isset($newparts[0]) ? $newparts[0] : array(), $parts[$key] !== null && trim($parts[$key]) !== '' ? array($parts[$key]) : array() , isset($newparts[1]) ? $newparts[1] : array());
-						if (!empty($items)) $parts[$key] = '(' . join(') AND (', $items) . ')';
-					} else {
-						$parts[$key] = (isset($newparts[0]) ? join(' ', $newparts[0]) . ' ' : '') . $parts[$key] . (isset($newparts[1]) ? ' ' . join(' ', $newparts[1]) : '');
-					}
+			foreach ($this->partsAdd[$i] as $key=>&$partsAdd) {
+				if (!empty($parts[$key])) $parts[$key] = trim($parts[$key]);
+				
+				if ($key === 'columns' || $key === 'set' || $key === 'group by' || $key === 'order by') {
+					$parts[$key] = join(', ', array_merge(isset($partsAdd[DB::ADD_PREPEND]) ? $partsAdd[DB::ADD_PREPEND] : array(), !empty($parts[$key]) ? array($parts[$key]) : array(), isset($partsAdd[DB::ADD_APPEND]) ? $partsAdd[DB::ADD_APPEND] : array()));
+				} elseif ($key === 'values') {
+					$parts[$key] = (isset($partsAdd[DB::ADD_PREPEND]) ? ' (' . join('), (', $partsAdd[DB::ADD_PREPEND]) . ')' : '') . (isset($partsAdd[DB::ADD_PREPEND]) && !empty($parts[$key]) ? ', ' : '') . $parts[$key] . (isset($partsAdd[DB::ADD_APPEND]) && !empty($parts[$key]) ? ', ' : '') .  (isset($partsAdd[DB::ADD_APPEND]) ? ' (' . join('), (', $partsAdd[DB::ADD_APPEND]) . ')' : '');
+				} elseif ($key === 'from' || $key === 'into' || $key === 'tables') {
+					$parts[$key] = trim((isset($partsAdd[DB::ADD_PREPEND]) ? join(' ', $partsAdd[DB::ADD_PREPEND]) . ' ' : '') . (!empty($parts[$key]) ? '(' . $parts[$key] . ')' : '') . (isset($partsAdd[DB::ADD_APPEND]) ? ' ' . join(' ', $partsAdd[DB::ADD_APPEND]) : ''), ',');
+				} elseif ($key === 'where' || $key === 'having') {
+					$items = array_merge(isset($partsAdd[DB::ADD_PREPEND]) ? $partsAdd[DB::ADD_PREPEND] : array(), !empty($parts[$key]) ? array($parts[$key]) : array(), isset($partsAdd[DB::ADD_APPEND]) ? $partsAdd[DB::ADD_APPEND] : array());
+					if (!empty($items)) $parts[$key] = '(' . join(') AND (', $items) . ')';
+				} else {
+					$parts[$key] = (isset($partsAdd[DB::ADD_PREPEND]) ? join(' ', $partsAdd[DB::ADD_PREPEND]) . ' ' : '') . (!empty($parts[$key]) ? $parts[$key] : '') . (isset($partsAdd[DB::ADD_APPEND]) ? ' ' . join(' ', $partsAdd[DB::ADD_APPEND]) : '');
 				}
 			}
-			
-			$sets_parts[$i] = $parts;
 		}
 		
 		if ($extract) $this->cachedParts[true] = $sets_parts;
@@ -492,6 +498,8 @@ class DB_SQLStatement implements DB_Statement
 	
 	/**
 	 * Add a statement to any part of the query.
+	 * (fluent interface)
+	 * 
 	 * Use DB_SQLStatement::ADD_PREPEND in $flags to prepend a statement (append is default)
 	 *
 	 * @param mixed  $key        The key identifying the part
@@ -502,9 +510,10 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	public function addToPart($key, $statement, $flags=0, $subset=0)
 	{
-		$var = $flags & DB::ADD_REPLACE ? 'partsReplace' : ($flags & DB::ADD_PREPEND ? 'partsPrepend' : 'partsAppend');
-		$part =& $this->$var[$subset][strtolower($key)];
-		$part[] = $statement;
+		$key = strtolower($key);
+		
+		if ($flags & DB::ADD_REPLACE) $this->partsReplace[$subset][$key] = $statement;
+		  else $this->partsAdd[$subset][$key][$flags & DB::ADD_PREPEND ? DB::ADD_PREPEND : DB::ADD_APPEND][] = $statement;
 		
 		$this->clearCachedStatement();
 		if ($key == 'columns' || $key == 'set') $this->cachedColumns = null;
@@ -514,7 +523,8 @@ class DB_SQLStatement implements DB_Statement
 	}
 
 	/**
-	 * Replace any part of the query
+	 * Replace any part of the query.
+	 * (fluent interface)
 	 *
 	 * @param mixed  $key        The key identifying the part
 	 * @param string $statement
@@ -546,7 +556,7 @@ class DB_SQLStatement implements DB_Statement
    		$type = $this->getQueryType($subset);
    		$key = $type == 'UPDATE' || ($type == 'INSERT' && $this->hasPart('set', $subset)) ? 'set' : 'columns';
    		
-   		$column = $this->getColumnDBName($column, null, $flags);
+   		$column = $this->getColumnDBName($column, null, null, $flags);
 		$this->addToPart($key, is_array($column) ? join(', ', $column) : $column, $flags, $subset);
 		return $this;
    	}
@@ -554,7 +564,7 @@ class DB_SQLStatement implements DB_Statement
 	/**
 	 * Add a join statement to the from part.
 	 *
-	 * @param mixed  $table    tablename or "tablename ON querytable.column = tablename.column"
+	 * @param string $table    tablename
 	 * @param string $join     join type: INNER JOIN, LEFT JOIN, etc
 	 * @param string $on       "querytable.column = $table.column" or array(querytable.column, $table.column); 
 	 * @param int    $flags    Addition options as binairy set
@@ -569,13 +579,14 @@ class DB_SQLStatement implements DB_Statement
    			default:		$key = 'from';
    		}
    		
-   		if (is_array($on)) $on = $this->getColumnDbName($on[0]) . ' = ' . $this->getColumnDbName($on[1], $table);
+   		if (!isset($join) && ~$flags & DB::ADD_REPLACE) $join = ',';
+   		if (is_array($on)) $on = $this->getColumnDbName($on[0], null, null, $flags) . ' = ' . $this->getColumnDbName($on[1], $table, null, $flags);
    		  
-   		if ($flags & DB::ADD_PREPEND) {
-   			$this->addToPart($key, "$table $join", $flags, $subset);
+   		if ($flags & DB::ADD_PREPEND && ~$flags & DB::ADD_REPLACE) {
+   			$this->addToPart($key, $this->sqlSplitter->quoteIdentifier($table, $flags) . ' ' . $join, $flags, $subset);
    			if (isset($on)) $this->addToPart($key, "ON $on", $flags & ~DB::ADD_PREPEND, $subset);
    		} else {
-			$this->addToPart($key, "$join $table" . (isset($on) ? " ON $on" : ""), $flags, $subset);
+			$this->addToPart($key, $join . ' '. $this->sqlSplitter->quoteIdentifier($table, $flags) . (isset($on) ? " ON $on" : ""), $flags, $subset);
    		}
 
 		return $this;
@@ -616,8 +627,8 @@ class DB_SQLStatement implements DB_Statement
 		if (isset($parts['having']) && $flags & DB::ADD_HAVING) throw new Exception("Criteria doing an '$compare' comparision can only be used as WHERE not as HAVING expression.");
 		
 		if ($subset === 0 && $this->getQueryType() === 'INSERT' && $this->hasPart('query', 0)) $subset = 1;
-		$this->addWhere($parts['where'], $flags, $subset);
-		$this->addHaving($parts['having'], $flags, $subset);
+		if (isset($parts['where'])) $this->where($parts['where'], $flags, $subset);
+		if (isset($parts['having'])) $this->having($parts['having'], $flags, $subset);
 		
 		return $this;
 	}
@@ -632,7 +643,7 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	public function where($statement, $flags=0, $subset=0)
 	{
- 		$this->addToPart($flags & DB::ADD_HAVING ? 'having' : 'where', $statement, $flags, $subset);
+ 		$this->addToPart($flags & DB::ADD_HAVING ? 'having' : 'where', $this->sqlSplitter->quoteIdentifier($statement), $flags, $subset);
 		return $this;
 	}
 
@@ -646,7 +657,7 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	public function having($statement, $flags=0, $subset=0)
 	{
- 		$this->addWhere($statement, $flags | DB::ADD_HAVING, $subset);
+ 		$this->where($statement, $flags | DB::ADD_HAVING, $subset);
 		return $this;
 	}
 	
@@ -1062,8 +1073,8 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	final public function query($args=null)
 	{
-		$args = func_get_args();
-		return call_user_func_array(array($this, 'execute'), $args);
+		if (func_num_args() > 1) $args = func_get_args();
+		return $this->execute($args);
 	}
 
 	/**
@@ -1076,12 +1087,7 @@ class DB_SQLStatement implements DB_Statement
 	{
    	    if (!isset($this->connection)) throw new Exception("Unable to execute statement: Statement object isn't connectioned to a database connection."); 
 
-		// Parse arguments
-		if (func_num_args() > 2) {
-			$args = func_get_args();
-			array_shift($args);
-		}
-   	    
+		if (func_num_args() > 1) $args = func_get_args();
 		return $this->connection->query($this, $args);
 	}
 	
@@ -1115,28 +1121,7 @@ class DB_SQLStatement implements DB_Statement
    		return $this->emptyResult;
    	}
 	
-	/**
-	 * Return the position of a field, based on the fieldname.
-	 * 
-	 * @param string $index
-	 * @return int
-	 */
-   	public function getFieldIndex($index)
-   	{
-   		return $this->executeEmpty()->getFieldIndex($index);
-   	}
-   	
-	/**
-     * Returns the fieldnames for all columns.
-     *
-     * @param int $format  DB::FIELDNAME_* constant
-     * @return array
-     */
-   	public function getFieldNames($format=DB::FIELDNAME_COL)
-   	{
-   		return $this->executeEmpty()->getFieldNames($format);
-   	}
-   	   	
+	
 	/**
      * Get a set of fields (DB_Field) based on the columns of the query statement.
      *
@@ -1147,17 +1132,6 @@ class DB_SQLStatement implements DB_Statement
    		return $this->executeEmpty()->getFields();
    	}
 
-	/**
-     * Execute the statement and return a specific field.
-     *
-     * @param mixed $index  Fieldname or index
-     * @return DB_Field
-     */
-   	public function getField($index)
-   	{
-   		return $this->executeEmpty()->getField($index);
-   	}
-   	   	
    	/**
      * Return the number of rows that the resultset would contain if the statement was executed.
      * For better readability use: $result->countRows(DB::ALL_ROWS).
@@ -1177,31 +1151,6 @@ class DB_SQLStatement implements DB_Statement
    		return $this->connection->query($this->countStatement[$all])->fetchValue();
    	}
    	
-   	
-	/**
-	 * Load a record using this statement.
-	 *
-	 * @param mixed $criteria    Value for the first column or array(column=>value)
-	 * @param int   $resulttype  A DB::FETCH_% constant
-	 * @return DB_Record
-	 * 
-	 * @throws Q\DB_ConstraintException when statement would return multiple records
-	 */
-	function load($criteria, $resulttype=DB::FETCH_RECORD)
-	{
-		if ($this->getQueryType() != 'SELECT') throw new Exception("Unable to load data using a " . $this->getQueryType() . " statement");
-		
-		$stmt = $this->commit();
-		
-		if (is_scalar($criteria)) $criteria = array($this->getField(0)->getName(DB::FIELDNAME_DB)=>$criteria);
-		foreach ($criteria as $col=>$value) $stmt->addCriteria($col, $value);
-		
-		$result = $stmt->getStatement()->execute();
-		if ($stmt->countRows() > 1) throw new DB_ConstraintException("Unable to load record: Statement returned multiple records.");
-		
-		return $result->fetchRow($resulttype);
-	}
-	
 	/**
 	 * Create a new record using the fields of the result of this statement.
 	 * 

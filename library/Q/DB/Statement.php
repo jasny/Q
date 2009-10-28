@@ -11,10 +11,10 @@ interface DB_Statement
 	/**
 	 * Class constructor
 	 *
-	 * @param DB|DB_Table $source
-	 * @param string      $statement
+	 * @param mixed  $source     Optional: Q\DB, Q\DB_Table, Q\DB_SQLStatement or driver name (string)
+	 * @param string $statement  Query statement
 	 */
-	public function __construct($source, $statement);
+	public function __construct($statement);
 	
 	
 	/**
@@ -48,7 +48,14 @@ interface DB_Statement
 	 * @return int
 	 */
 	public function countPlaceholders();
-
+	
+	/**
+	 * Cast statement object to string
+	 *
+	 * @return string
+	 */
+	public function __toString();
+	
 	
    	//------------- Add/Set specific part ------------------------
 	
@@ -117,27 +124,11 @@ interface DB_Statement
 	public function execute($args=null);
 	
 	/**
-     * Returns the fieldnames for all columns.
-     *
-     * @param int $format  DB::FIELDNAME_% constant
-     * @return array
-     */
-   	public function getFieldNames($format=DB::FIELDNAME_COL);
-   	   	
-	/**
      * Get a set of fields based on the columns of the query statement.
      *
-     * @return DB_Field[]
+     * @return DB_FieldList
      */
    	public function getFields();
-
-	/**
-     * Execute the statement and return a specific field
-     *
-     * @param mixed $index  Fieldname or index
-     * @return DB_Field
-     */
-   	public function getField($index);
 
    	/**
      * Execute the statement and return the number of rows.
@@ -149,30 +140,10 @@ interface DB_Statement
 
    	
 	/**
-	 * Load a record using this statement.
-	 * {@internal This works, but please overwrite it for a method that isn't wasting as much.}}
-	 *
-	 * @param mixed $criteria    Value for column 0 or array(column=>value)
-	 * @param int   $resulttype  A DB::FETCH_% constant
-	 * @return DB_Record
-	 * 
-	 * @throws Q\DB_Constraint_Exception when statement would return multiple records
-	 */
-	public function load($criteria=null, $resulttype=DB::FETCH_RECORD);
-
-	/**
 	 * Create a new record using the fields of the result of this statement.
 	 * 
 	 * @return DB_Record
 	 */
 	public function newRecord();
-	
-	
-	/**
-	 * Cast statement object to string
-	 *
-	 * @return string
-	 */
-	public function __toString();
 }
 

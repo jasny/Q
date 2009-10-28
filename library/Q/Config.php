@@ -79,7 +79,11 @@ class Config extends \ArrayObject
 
 	    if (empty($dsn)) {
 	        $const = 'CONFIG' . ($name != 'i' ? strtoupper("_{$name}") : ''); 
-            if (!defined($const)) return new Mock(__CLASS__, $name);
+            if (!defined($const)) {
+            	load_class('Q\Mock');
+            	return new Mock(__CLASS__, $name);
+            }
+            
             $dsn = constant($const);
 	    }
 	    
