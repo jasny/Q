@@ -21,10 +21,10 @@ interface DB_SQLSplitter
 	 * Quotes a string so it can be safely used as a table or column name.
 	 * 
 	 * @param string $identifier
-	 * @param int    $options     Quotation options (as binary set)
+	 * @param int    $flags       Optional DB::QUOTE_STRICT
 	 * @return string
 	 */
-	public static function quoteIdentifier($identifier, $options=0);
+	public static function quoteIdentifier($identifier, $flags=DB::QUOTE_LOOSE);
 	
 	/**
 	 * Check if a identifier is valid as field name or table name.
@@ -51,9 +51,10 @@ interface DB_SQLSplitter
 	 * @param string $group  Table name / DB name
 	 * @param string $name   Field name / Table name
 	 * @param string $alias
+	 * @param int    $flags  DB::QUOTE_%
 	 * @return boolean
 	 */
-	public static function makeIdentifier($group, $name, $alias=null);
+	public static function makeIdentifier($group, $name, $alias=null, $flags=DB::QUOTE_LOOSE);
 	
 	/**
 	 * Parse arguments into a statement on placeholders.

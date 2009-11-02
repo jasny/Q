@@ -4,7 +4,7 @@ namespace Q;
 require_once 'Q/Exception.php';
 require_once 'Q/SecurityException.php';
 require_once 'Q/DB/Exception.php';
-require_once 'Q/DB/ConstraintException.php';
+require_once 'Q/DB/LimitException.php';
 
 require_once 'Q/Multiton.php';
 require_once 'Q/DB/Table.php';
@@ -43,6 +43,7 @@ abstract class DB implements Multiton
 	const FETCH_ROLES = 35;
 	const FETCH_OBJECT = 5;
 	const FETCH_NON_RECURSIVE = 0x100;
+	const FETCH_CURRENT = 0x200;
 	
 	/* Field name format */
 	const FIELDNAME_COL = 0x0;
@@ -52,14 +53,15 @@ abstract class DB implements Multiton
 	const FIELDNAME_IDENTIFIER = 0x100;
 	const FIELDNAME_WITH_ALIAS = 0x200;
 	const FIELDNAME_LIST = 0x400;
-		
+	
 	/* Edit statement options */
 	const ADD_REPLACE = 0x1;
 	const ADD_PREPEND = 0x2;
 	const ADD_APPEND = 0x4;
 	const ADD_HAVING = 0x100;
 	const QUOTE_LOOSE = 0;
-	const QUOTE_STRICT = 0x1000;
+	const QUOTE_NONE = 0x1000;
+	const QUOTE_STRICT = 0x2000;
 	
 	/* Sorting order */
 	const ASC = 1;
@@ -842,7 +844,7 @@ abstract class DB implements Multiton
 	 * @param mixed  $criteria  The value for the primairy key (int/string or array(value, ...)) or array(field=>value, ...)
 	 * @return DB_Statement
 	 */
-	abstract public function selectStatement($table=null, $fields=null, $criteria=null);
+	abstract public function select($table=null, $fields=null, $criteria=null);
 	
 	/**
 	 * Build an insert or insert/update query statement.
@@ -852,9 +854,9 @@ abstract class DB implements Multiton
 	 * @param Give additional arguments (arrays) to insert/update multiple rows. $value should be array(fieldname, ...) instead. U can also use Q\DB::args(values, $rows).
 	 * @return DB_Statement
 	 * 
-	 * @throws Q\DB_ConstraintException when no rows are given.
+	 * @throws Q\DB_LimitException when no rows are given.
 	 */
-	abstract public function storeStatement($table=null, $values=null);
+	abstract public function store($table=null, $values=null);
 	
 	/**
 	 * Build a update query statement.
@@ -863,7 +865,7 @@ abstract class DB implements Multiton
 	 * @param array  $values  Assasioted array as (fielname=>value, ...) or ordered array (value, ...) with 1 value for each field
 	 * @return DB_Statement
 	 */
-	abstract public function updateStatement($table=null, $values=null);
+	abstract public function update($table=null, $values=null);
 
 	/**
 	 * Build a delete query statement.
@@ -871,7 +873,7 @@ abstract class DB implements Multiton
 	 * @param string $table  Tablename
 	 * @return DB_Statement
 	 */
-	abstract public function deleteStatement($table=null);
+	abstract public function delete($table=null);
 	
 	// -----	
 	
@@ -892,6 +894,13 @@ abstract class DB implements Multiton
 	
 	
 	/**
+	 * Load a record (from global space).
+	 * 
+	 * @return DB_Record
+	 */
+	abstract public function load($id, $resulttype=DB::FETCH_RECORD);
+	
+	/**
 	 * Excecute a query statement.
 	 * Returns DB_Result for 'SELECT', 'SHOW', etc queries, returns new id for 'INSERT' query, returns TRUE for other
 	 * 
@@ -908,28 +917,6 @@ abstract class DB implements Multiton
 	 */
 	abstract public function affectedRows();
 	
-	
-	/**
-	 * Select a single value from a table.
-	 * 
-	 * @param string $table      Table name
-	 * @param mixed  $fieldname  The fieldname for the column to fetch the value from. CAUTION: the fieldname is *not* quoted!
-	 * @param mixed  $id         The value for a primairy (or as array(key, ..) if multiple key fields ) or array(field=>value, ...)
-	 * @return mixed
-	 * 
-	 * @throws DB_ConstraintException if query results in > 1 record
-	 */
-	abstract public function lookupValue($table, $fieldname, $id);
-
-	/**
-	 * Count the number of rows in a table (with the given criteria)
-	 * 
-	 * @param string $table     Table name
-	 * @param mixed  $criteria  The value for a primairy (or as array(key, ..) if multiple key fields ) or array(field=>value, ...)
-	 * @return int
-	 */
-	abstract public function countRows($table, $criteria=null);
-
 	
 	/**
 	 * Query statement and return the result based on the set fetch type.
@@ -1014,11 +1001,16 @@ abstract class DB implements Multiton
 	 * @param mixed $statement  String or query object
 	 * @param array $args       Parsed on placeholder
 	 * @return array
+	 * 
+	 * @throws DB_LimitException if query results in > 1 record
 	 */
 	public function fetchRow($statement, $args=null)
 	{
 		$ret = $this->query($statement, $args);
-		return $ret instanceof DB_Result ? $ret->fetch($this->fetchMode) : $ret;
+		if (!($ret instanceof DB_Result)) return $ret;
+		
+		if ($ret->countRows() > 1) throw new DB_LimitException("Query returned " . $ret->countRows() . " rows, while only 1 row was expected");
+		return $ret->fetch($this->fetchMode);
 	}
 
 	/**
@@ -1027,11 +1019,16 @@ abstract class DB implements Multiton
 	 * @param mixed $statement  String or query object
 	 * @param array $args       Parsed on placeholder
 	 * @return array
+	 * 
+	 * @throws DB_LimitException if query results in > 1 record
 	 */
 	public function fetchValue($statement, $args=null)
 	{
 		$ret = $this->query($statement, $args);
-		return $ret instanceof DB_Result ? $ret->fetchValue() : $ret;
+		if (!($ret instanceof DB_Result)) return $ret;
+		
+		if ($ret->countRows() > 1) throw new DB_LimitException("Query returned " . $ret->countRows() . " rows, while only 1 row was expected");
+		return $ret->fetchValue();
 	}
 
 	/**
@@ -1040,107 +1037,12 @@ abstract class DB implements Multiton
 	 * @param mixed $statement  String or query object
 	 * @param array $args       Parsed on placeholder
 	 * @return array
+	 * 
+	 * @throws DB_LimitException if query results in > 1 record
 	 */
 	final public function fetchOne($statement, $args=null)
 	{
 		return $this->fetchValue($statement, $args);
-	}
-	
-
-	/**
-	 * Select a single record from a table.
-	 * 
-	 * @param string $table       Tablename or 'SELECT' query with one ? (per primairy key field)
-	 * @param mixed  $id          The value for a primairy (or as array(key, ..) if multiple key fields ) or array(field=>value, ...)
-	 * @param int    $resulttype  Specify how to format the result. A DB::FETCH_% constant
-	 * @return array
-	 * 
-	 * @throws DB_ConstraintException if query results in > 1 record
-	 */
-	abstract public function load($table, $id, $resulttype=DB::FETCH_RECORD);
-	
-	/**
-	 * Alias of Q\DB::store().
-	 * Note that if the row can't be inserted because of primairy/unique key constraints (the record already exists), the specific row is updated instead.
-	 * 
-	 * @param string $table
-	 * @param array  $values  Assasioted array as (fielname=>value, ...) or ordered array (value, ...) with 1 value for each field
-	 * @param Give additional args to insert/update multiple rows. $value should be array(fieldname, ...) instead.
-	 * @return int Returns the last inserted/updated id
-	 * 
-	 * @throws Q\DB_ConstraintException when no rows are given.
-	 */
-	final public function insert($table, $values)
-	{
-		$args = func_get_args();
-		call_user_func_array(array($this, 'store'), $values);
-	}
-	
-	/**
-	 * Inserts or updates rows for a table.
-	 * If the row can't be inserted because of primairy/unique key constraints (the record already exists), the specific row is updated instead.
-	 * 
-	 * Fields for which there is no key in the array, are not affected.
-	 * If a record is inserted in a table that has an unique key other than the primary key and the value for the unique key already exists, the record is updated but the id is not changed.
-	 * 
-	 * @param string $table
-	 * @param array  $values  Assasioted array as (fielname=>value, ...) or ordered array (value, ...) with 1 value for each field
-	 * @param Give additional args to insert/update multiple rows. $value should be array(fieldname, ...) instead.
-	 * @return int  Returns the last inserted/updated id
-	 * 
-	 * @throws Q\DB_ConstraintException when no rows are given.
-	 */
-	public function store($table, $values)
-	{
-	    $args = func_get_args();
-	    return call_user_func_array(array($this, 'prepareStore'), $args)->execute();
-	}
-
-	/**
-	 * Update rows of a table.
-	 * Fields for which there is no key in the array, are not affected.
-	 * 
-	 * @param string $table
-	 * @param mixed  $id          The value for a primairy (or as array(value, ..) if multiple key fields) or array(field=>value, ...)
-	 * @param array  $values      Assasioted array as (fielname=>value, ...) or ordered array (value, ...) with 1 value for each field
-	 * @param int    $constraint  Constraint based on the number or rows: SINGLE_ROW, MULTIPLE_ROWS, ALL_ROWS.
-	 * @return int  Returns the number of rows affected by the update
-	 * 
-	 * @throws Q\DB_ConstraintException if query results in > 1 record and constraint == SINGLE_ROW
-	 */
-	public function update($table, $id, $values, $constraint=DB::MULTIPLE_ROWS)
-	{
-	    if ((int)$constraint == DB::ALL_ROWS && isset($id)) throw new Exception("Update on `$table` failed: Can't use all rows constraint together with id value.");
-	    
-	    $stmt = $this->prepareUpdate($table, $id, $values);
-	    if ($constraint == DB::SINGLE_ROW && $stmt->countRows() > 1) throw new DB_ConstraintException("Update on table `$table` failed: Query would affect in multiple records. " . $stmt->getStatement());
-	    $stmt->execute();
-	    
-	    return $this->affectedRows();
-	}
-	
-	/**
-	 * Delete a single record or multiple records from a table.
-	 * 
-	 * @param string $table
-	 * @param mixed  $id          The value for a primairy (or as array(value, ..) if multiple key fields) or array(field=>value, ...)
-	 * @param int    $constraint  Constraint based on the number or rows: SINGLE_ROW, MULTIPLE_ROWS, ALL_ROWS.
-	 * @return int  Returns the number of rows affected by the delete
-	 * 
-	 * @throws Q\DB_ConstraintException if query results in > 1 record and constraint == SINGLE_ROW
-	 */
-	public function delete($table, $id, $constraint=self::SINGLE_ROW)
-	{
-        if ((int)$constraint == DB::ALL_ROWS) {
-            if (isset($id)) throw new Exception("Truncate table `$table` failed: Can't use all rows constraint together with id value.");
-            $id = (object)array('#truncate'=>true);
-        }
-        
-        $stmt = $this->prepareDelete($table, $id);
-        if ($constraint == DB::SINGLE_ROW && $stmt->countRows() > 1) throw new DB_ConstraintException("Update on table `$table` failed: Query would affect in multiple records. " . $stmt->getStatement());
-        $stmt->execute();
-        
-        return $this->affectedRows();
 	}
 }
 

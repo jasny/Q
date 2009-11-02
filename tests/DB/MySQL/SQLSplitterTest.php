@@ -139,6 +139,16 @@ class DB_MySQL_SQLSplitterTest extends PHPUnit_Framework_TestCase
     	$this->assertEquals('count(`abc`.`test`) AS `count`', $this->qs->quoteIdentifier("count(abc.test) AS count"));
     }
 
+    public function testQuoteIdentifier_Cast()
+    {
+    	$this->assertEquals('`qqq`, cast(`abc`.`test` AS DATETIME)', $this->qs->quoteIdentifier("qqq, cast(`abc`.test AS DATETIME)"));
+    }
+
+    public function testQuoteIdentifier_Cast_Confuse()
+    {
+    	$this->assertEquals('`qqq`, cast(myfn(`abc`.`test` as `myarg`) AS DATETIME) AS `date`', $this->qs->quoteIdentifier("qqq, cast(myfn(`abc`.test as myarg) AS DATETIME) AS date"));
+    }
+    
     public function testQuoteIdentifier_Expression()
     {
     	$this->assertEquals('`abc`.`test` - `def`.`total`*10 AS `grandtotal`', $this->qs->quoteIdentifier("abc.test - def.total*10 AS grandtotal"));
@@ -160,50 +170,411 @@ class DB_MySQL_SQLSplitterTest extends PHPUnit_Framework_TestCase
     	$this->qs->quoteIdentifier("`abc`.`test`-10", DB::QUOTE_STRICT);
     }
     
-	//--------
+    
+    public function testValidIdentifier_Simple()
+    {
+    	$this->assertTrue($this->qs->validIdentifier('test'));
+    }
 
-    /**
-     * Test parsing null into the query statement
-     */
+    public function testValidIdentifier_Quoted()
+    {
+    	$this->assertTrue($this->qs->validIdentifier('`test`'));
+    }
+
+    public function testValidIdentifier_TableColumn()
+    {
+    	$this->assertTrue($this->qs->validIdentifier('abc.test'));
+    }
+
+    public function testValidIdentifier_TableColumn_Quoted()
+    {
+    	$this->assertTrue($this->qs->validIdentifier('`abc`.`test`'));
+    }
+
+    public function testValidIdentifier_Strange()
+    {
+    	$this->assertFalse($this->qs->validIdentifier('ta-$38.934#34@dhy'));
+    }
+    
+    public function testValidIdentifier_Strange_Quoted()
+    {
+    	$this->assertTrue($this->qs->validIdentifier('`ta-$38.934#34@dhy`'));
+    }
+
+    public function testValidIdentifier_NoGroup_Simple()
+    {
+    	$this->assertTrue($this->qs->validIdentifier('test', false));
+    }
+
+    public function testValidIdentifier_NoGroup_Quoted()
+    {
+    	$this->assertTrue($this->qs->validIdentifier('`test`', false));
+    }
+
+    public function testValidIdentifier_NoGroup_TableColumn()
+    {
+    	$this->assertFalse($this->qs->validIdentifier('abc.test', false));
+    }
+
+    public function testValidIdentifier_NoGroup_TableColumn_Quoted()
+    {
+    	$this->assertFalse($this->qs->validIdentifier('`abc`.`test`', false));
+    }
+
+    public function testValidIdentifier_NoGroup_Strange()
+    {
+    	$this->assertFalse($this->qs->validIdentifier('ta-$38.934#34@dhy', false));
+    }
+    
+    public function testValidIdentifier_NoGroup_Strange_Quoted()
+    {
+    	$this->assertTrue($this->qs->validIdentifier('`ta-$38.934#34@dhy`', false));
+    }
+    
+    public function testValidIdentifier_WithGroup_Simple()
+    {
+    	$this->assertFalse($this->qs->validIdentifier('test', true));
+    }
+
+    public function testValidIdentifier_WithGroup_Quoted()
+    {
+    	$this->assertFalse($this->qs->validIdentifier('`test`', true));
+    }
+
+    public function testValidIdentifier_WithGroup_TableColumn()
+    {
+    	$this->assertTrue($this->qs->validIdentifier('abc.test', true));
+    }
+
+    public function testValidIdentifier_WithGroup_TableColumn_Quoted()
+    {
+    	$this->assertTrue($this->qs->validIdentifier('`abc`.`test`', true));
+    }
+
+    public function testValidIdentifier_WithGroup_Strange()
+    {
+    	$this->assertFalse($this->qs->validIdentifier('ta-$38.934#34@dhy', true));
+    }
+    
+    public function testValidIdentifier_WithGroup_Strange_Quoted()
+    {
+    	$this->assertFalse($this->qs->validIdentifier('`ta-$38.934#34@dhy`', true));
+    }
+    
+    public function testValidIdentifier_WithoutAlias_AsAlias()
+    {
+    	$this->assertFalse($this->qs->validIdentifier('`test` AS def'));
+    }
+    
+    public function testValidIdentifier_WithoutAlias_SpaceAlias()
+    {
+    	$this->assertFalse($this->qs->validIdentifier('`test` def'));
+    }
+    
+    public function testValidIdentifier_WithoutAlias_Full()
+    {
+    	$this->assertFalse($this->qs->validIdentifier('`abc`.`test` AS def'));
+    }
+    
+    public function testValidIdentifier_WithAlias_AsAlias()
+    {
+    	$this->assertTrue($this->qs->validIdentifier('`test` AS def', null, true));
+    }
+
+    public function testValidIdentifier_WithAlias_SpaceAlias()
+    {
+    	$this->assertTrue($this->qs->validIdentifier('`test` def', null, true));
+    }
+    
+    public function testValidIdentifier_WithAlias_Full()
+    {
+    	$this->assertTrue($this->qs->validIdentifier('`abc`.`test` AS def', null, true));
+    }
+
+    public function testValidIdentifier_WithGroupWithAlias_AsAlias()
+    {
+    	$this->assertFalse($this->qs->validIdentifier('`test` AS def', true, true));
+    }
+    
+    public function testValidIdentifier_WithGroupWithAlias_Full()
+    {
+    	$this->assertTrue($this->qs->validIdentifier('`abc`.`test` AS def', true, true));
+    }
+    
+    
+    public function testSplitIdentifier_Column()
+    {
+    	$this->assertEquals(array(null, 'test', null), $this->qs->splitIdentifier("test"));
+    }
+
+    public function testSplitIdentifier_Column_Quoted()
+    {
+    	$this->assertEquals(array(null, 'test', null), $this->qs->splitIdentifier("`test`"));
+    }
+    
+    public function testSplitIdentifier_TableColumn()
+    {
+    	$this->assertEquals(array('abc', 'test', null), $this->qs->splitIdentifier("abc.test"));
+    }
+
+    public function testSplitIdentifier_TableColumn_Quoted()
+    {
+    	$this->assertEquals(array('abc', 'test', null), $this->qs->splitIdentifier("`abc`.`test`"));
+    }
+
+    public function testSplitIdentifier_SchemaTableColumn()
+    {
+    	$this->assertEquals(array('mydb.abc', 'test', null), $this->qs->splitIdentifier("mydb.abc.test"));
+    }
+
+    public function testSplitIdentifier_SchemaTableColumn_Quoted()
+    {
+    	$this->assertEquals(array('mydb.abc', 'test', null), $this->qs->splitIdentifier("`mydb`.`abc`.`test`"));
+    }
+    
+    public function testSplitIdentifier_QuotedDot()
+    {
+    	$this->assertEquals(array(null, 'abc.test', null), $this->qs->splitIdentifier("`abc.test`"));
+    }
+
+    public function testSplitIdentifier_Column_AsAlias()
+    {
+    	$this->assertEquals(array(null, 'test', 'def'), $this->qs->splitIdentifier("test AS def"));
+    }
+    
+    public function testSplitIdentifier_Column_SpaceAlias()
+    {
+    	$this->assertEquals(array(null, 'test', 'def'), $this->qs->splitIdentifier("test def"));
+    }
+    
+    public function testSplitIdentifier_TableColumn_AsAlias()
+    {
+    	$this->assertEquals(array('abc', 'test', 'def'), $this->qs->splitIdentifier("`abc`.`test` AS `def`"));
+    }
+    
+    public function testSplitIdentifier_TableColumn_SpaceAlias()
+    {
+    	$this->assertEquals(array('abc', 'test', 'def'), $this->qs->splitIdentifier("`abc`.`test` `def`"));
+    }
+
+    
+    public function testMakeIdentifier_Column()
+    {
+    	$this->assertEquals('`test`', $this->qs->makeIdentifier(null, 'test'));
+    }
+
+    public function testMakeIdentifier_TableColumn()
+    {
+    	$this->assertEquals('`abc`.`test`', $this->qs->makeIdentifier('abc', 'test'));
+    }
+    
+    public function testMakeIdentifier_TableColumnAlias()
+    {
+    	$this->assertEquals('`abc`.`test` AS `def`', $this->qs->makeIdentifier('abc', 'test', 'def'));
+    }
+
+    public function testMakeIdentifier_SchemaTableColumn()
+    {
+    	$this->assertEquals('`mydb`.`abc`.`test`', $this->qs->makeIdentifier('mydb.abc', 'test'));
+    }
+
+    public function testMakeIdentifier_NoQuote()
+    {
+    	$this->assertEquals('abc.test AS def', $this->qs->makeIdentifier('abc', 'test', 'def', DB::QUOTE_NONE));
+    }
+    
+    public function testMakeIdentifier_Expression()
+    {
+    	$this->assertEquals('`test`-`qqq` AS `grandtotal`', $this->qs->makeIdentifier('abc', "test-qqq", 'grandtotal'));
+    }
+
+    public function testMakeIdentifier_Expression_Strict()
+    {
+    	$this->assertEquals('`abc`.`test-qqq` AS `grandtotal`', $this->qs->makeIdentifier('abc', "test-qqq", 'grandtotal', DB::QUOTE_STRICT));
+    }
+
+    public function testMakeIdentifier_Expression_NoQuote()
+    {
+    	$this->assertEquals('test-qqq AS grandtotal', $this->qs->makeIdentifier('abc', "test-qqq", 'grandtotal', DB::QUOTE_NONE));
+    }
+
+    public function testMakeIdentifier_Quoted()
+    {
+    	$this->assertEquals('`abc`.`test-qqq` AS `grandtotal`', $this->qs->makeIdentifier('abc', "`test-qqq`", 'grandtotal'));
+    }
+    
+    public function testMakeIdentifier_Quoted_NoQuote()
+    {
+    	$this->assertEquals('abc.`test-qqq` AS grandtotal', $this->qs->makeIdentifier('abc', "`test-qqq`", 'grandtotal', DB::QUOTE_NONE));
+    }
+    
+    
+    //--------
+
     public function testParse_Null()
     {
         $this->assertEquals('UPDATE phpunit_test SET description=NULL', $this->qs->parse('UPDATE phpunit_test SET description=?', array(null)));
     }
     
-    /**
-     * Test parsing a number / boolean into the query statement
-     */
-    public function testParse_Numeric()
+    public function testParse_Integer()
     {
         $this->assertEquals('SELECT * FROM phpunit_test WHERE status=10', $this->qs->parse("SELECT * FROM phpunit_test WHERE status=?", array(10)));
-        $this->assertEquals('SELECT * FROM phpunit_test WHERE status=33.7', $this->qs->parse("SELECT * FROM phpunit_test WHERE status=?", array(33.7)));
-
-        $this->assertEquals('SELECT * FROM phpunit_test WHERE status=TRUE AND disabled=FALSE', $this->qs->parse("SELECT * FROM phpunit_test WHERE status=? AND disabled=?", array(true, false)));
     }
 
-    /**
-     * Test parsing a string into the query statement
-     */
+    public function testParse_Float()
+    {
+    	$this->assertEquals('SELECT * FROM phpunit_test WHERE status=33.7', $this->qs->parse("SELECT * FROM phpunit_test WHERE status=?", array(33.7)));
+    }
+    
+    public function testParse_Boolean()
+    {
+    	$this->assertEquals('SELECT * FROM phpunit_test WHERE status=TRUE AND disabled=FALSE', $this->qs->parse("SELECT * FROM phpunit_test WHERE status=? AND disabled=?", array(true, false)));
+    }
+
     public function testParse_String()
     {
-        $this->assertEquals('SELECT * FROM phpunit_test WHERE status="ACTIVE"', $this->qs->parse('SELECT * FROM phpunit_test WHERE status=?', array('ACTIVE')));
         $this->assertEquals('SELECT id, "test" AS `desc` FROM phpunit_test WHERE status="ACTIVE"', $this->qs->parse('SELECT id, ? AS `desc` FROM phpunit_test WHERE status=?', array('test', 'ACTIVE')));
-
-        $this->assertEquals('SELECT id, "?" AS `desc ?`, \'?\' AS x FROM phpunit_test WHERE status="ACTIVE"', $this->qs->parse('SELECT id, "?" AS `desc ?`, \'?\' AS x FROM phpunit_test WHERE status=?', array('ACTIVE', 'not me', 'not me', 'not me')));
-        
-        $this->assertEquals('SELECT * FROM phpunit_test WHERE description="This is a \\"test\\""', $this->qs->parse('SELECT * FROM phpunit_test WHERE description=?', array('This is a "test"')));
-        $this->assertEquals('SELECT * FROM phpunit_test WHERE description="This is a \\"test\\"\\nWith another line"', $this->qs->parse('SELECT * FROM phpunit_test WHERE description=?', array('This is a "test"' . "\n" . 'With another line')));
     }
 
-    /**
-     * Test parsing a boolean value into the query statement
-     */
+    public function testParse_String_Confuse()
+    {
+        $this->assertEquals('SELECT id, "?" AS `desc ?`, \'?\' AS x FROM phpunit_test WHERE status="ACTIVE"', $this->qs->parse('SELECT id, "?" AS `desc ?`, \'?\' AS x FROM phpunit_test WHERE status=?', array('ACTIVE', 'not me', 'not me', 'not me')));
+    }
+    
+    public function testParse_String_Quote()
+    {
+    	$this->assertEquals('SELECT * FROM phpunit_test WHERE description="This is a \\"test\\""', $this->qs->parse('SELECT * FROM phpunit_test WHERE description=?', array('This is a "test"')));
+    }
+    
+    public function testParse_String_Multiline()
+    {
+    	$this->assertEquals('SELECT * FROM phpunit_test WHERE description="This is a \\"test\\"\\nWith another line"', $this->qs->parse('SELECT * FROM phpunit_test WHERE description=?', array('This is a "test"' . "\n" . 'With another line')));
+    }
+
     public function testParse_Array()
     {
         $this->assertEquals('SELECT * FROM phpunit_test WHERE description IN ("test", 10, FALSE, "another test")', $this->qs->parse('SELECT * FROM phpunit_test WHERE description IN (?)', array(array("test", 10, FALSE, "another test"))));
     }
+	
+    public function testParse_NoQuote()
+    {
+        $this->assertEquals('SELECT id, test AS `desc` FROM phpunit_test WHERE status="ACTIVE"', $this->qs->parse('SELECT id, ?! AS `desc` FROM phpunit_test WHERE status=?', array('test', 'ACTIVE')));
+    }
 
+    public function testParse_AllNulls()
+    {
+        $this->assertEquals('SELECT id, (NULL) AS `desc` FROM phpunit_test WHERE status=(NULL)', $this->qs->parse('SELECT id, ?! AS `desc` FROM phpunit_test WHERE status=?', null));
+    }
+    
+    public function testParse_Named()
+    {
+        $this->assertEquals('SELECT id, "test" AS `desc` FROM phpunit_test WHERE status="ACTIVE"', $this->qs->parse('SELECT id, :desc AS `desc` FROM phpunit_test WHERE status=?', array('desc'=>'test', 'ACTIVE')));
+    }
+    
+    public function testParse_Named_NoQuote()
+    {
+        $this->assertEquals('SELECT id, test AS `desc` FROM phpunit_test WHERE status="ACTIVE"', $this->qs->parse('SELECT id, :!desc AS `desc` FROM phpunit_test WHERE status=?', array('desc'=>'test', 'ACTIVE')));
+    }
+
+    public function testParse_Named_AllNulls()
+    {
+        $this->assertEquals('SELECT id, (NULL) AS `desc` FROM phpunit_test WHERE status=(NULL)', $this->qs->parse('SELECT id, :desc AS `desc` FROM phpunit_test WHERE status=?', null));
+    }
+    
+    
+    public function testCountPlaceholders()
+    {
+    	$this->assertEquals(2, $this->qs->countPlaceholders('SELECT id, ? AS `desc`, :named AS `named` FROM phpunit_test WHERE status=?'));
+    }
+
+    public function testCountPlaceholders_Confuse()
+    {
+    	$this->assertEquals(1, $this->qs->countPlaceholders('SELECT id, "?" AS `desc ?`, \'?\' AS x FROM phpunit_test WHERE status=?'));
+    }
+    
+    
 	//--------
+    
+    public function testGetQueryType_Select()
+    {
+    	$this->assertEquals('SELECT', $this->qs->getQueryType("SELECT id, description FROM `test`"));
+    }
+    
+    public function testGetQueryType_Select_Word()
+    {
+    	$this->assertEquals('SELECT', $this->qs->getQueryType("SELECT"));
+    }
+    
+    public function testGetQueryType_Select_LowerCase()
+    {
+    	$this->assertEquals('SELECT', $this->qs->getQueryType("select id, description from `test`"));
+    }
+    
+    public function testGetQueryType_Select_Spaces()
+    {
+    	$this->assertEquals('SELECT', $this->qs->getQueryType("\n\t\n  SELECT id, description FROM `test`"));
+    }
+    
+    public function testGetQueryType_Insert()
+    {
+    	$this->assertEquals('INSERT', $this->qs->getQueryType("INSERT INTO `test` SELECT 10"));
+    }
+
+    public function testGetQueryType_Replace()
+    {
+    	$this->assertEquals('REPLACE', $this->qs->getQueryType("REPLACE INTO `test` VALUES (10, 'UPDATE')"));
+    }
+
+    public function testGetQueryType_Delete()
+    {
+    	$this->assertEquals('DELETE', $this->qs->getQueryType("DELETE FROM `test` WHERE `select`=10"));
+    }
+    
+    public function testGetQueryType_Truncate()
+    {
+    	$this->assertEquals('TRUNCATE', $this->qs->getQueryType("TRUNCATE `test`"));
+    }
+
+    public function testGetQueryType_AlterTable()
+    {
+    	$this->assertEquals('ALTER TABLE', $this->qs->getQueryType("ALTER TABLE `test`"));
+    }
+
+    public function testGetQueryType_AlterView_Spaces()
+    {
+    	$this->assertEquals('ALTER VIEW', $this->qs->getQueryType("ALTER\n\t\tVIEW `test`"));
+    }
+
+    public function testGetQueryType_AlterUnknown()
+    {
+    	$this->assertNull($this->qs->getQueryType("ALTER test set abc"));
+    }
+    
+    public function testGetQueryType_Set()
+    {
+    	$this->assertEquals('SET', $this->qs->getQueryType("SET @select=10"));
+    }
+
+    public function testGetQueryType_Begin()
+    {
+    	$this->assertEquals('START TRANSACTION', $this->qs->getQueryType("BEGIN"));
+    }
+
+    public function testGetQueryType_LoadDataInfile()
+    {
+    	$this->assertEquals('LOAD DATA INFILE', $this->qs->getQueryType("LOAD DATA INFILE"));
+    }
+
+    public function testGetQueryType_Comment()
+    {
+    	$this->assertNull($this->qs->getQueryType("-- SELECT `test`"));
+    }
+
+    public function testGetQueryType_Unknown()
+    {
+    	$this->assertNull($this->qs->getQueryType("something"));
+    }
+    
     
 	public function testSplit_Select_Simple()
     {
@@ -423,16 +794,16 @@ class DB_MySQL_SQLSplitterTest extends PHPUnit_Framework_TestCase
     	$this->assertEquals(array("relation.id", "IF( name = '', CONVERT( concat_name(last_name, suffix, first_name, '')USING latin1 ) , name ) AS fullname"), array_map('trim', $columns));
     }
 
-    public function testSplitColumns__SplitFieldname()
+    public function testSplitColumns_SplitFieldname()
     {
 		$columns = $this->qs->splitColumns("abc AS qqq, xyz, MYFUNC(x AS y, bla) AS tst, mytable.`field1`, mytable.`field2` AS ad, mytable.field3 + 10", true);
     	$this->assertEquals(array(array("", "abc", "qqq"), array("", "xyz", ""), array("", "MYFUNC(x AS y, bla)", "tst"), array("mytable", "field1", ""), array("mytable", "field2", "ad"), array("", "mytable.field3 + 10", "")), $columns);
     }    
     
-    public function testSplitColumns__Assoc()
+    public function testSplitColumns_Assoc()
     {
-		$columns = $this->qs->splitColumns("abc AS qqq, xyz, MYFUNC(x AS y, bla) AS tst, mytable.`field1`, adb.mytable.`field2` AS ad, mytable.field3 + 10", false, true);
-    	$this->assertEquals(array("qqq"=>"abc", "xyz"=>"xyz", "tst"=>"MYFUNC(x AS y, bla)", 'field1'=>"mytable.`field1`", 'ad'=>"adb.mytable.`field2`", 'mytable.field3 + 10'=>"mytable.field3 + 10"), array_map('trim', $columns));
+		$columns = $this->qs->splitColumns("abc AS qqq, xyz, MYFUNC(x AS y, bla) AS tst, mytable.`field1`, adb.mytable.`field2` AS ad, `mytable`.field3 + 10", false, true);
+    	$this->assertEquals(array("qqq"=>"abc", "xyz"=>"xyz", "tst"=>"MYFUNC(x AS y, bla)", 'field1'=>"mytable.`field1`", 'ad'=>"adb.mytable.`field2`", '`mytable`.field3 + 10'=>"`mytable`.field3 + 10"), array_map('trim', $columns));
     }
 
     // -------
@@ -596,7 +967,7 @@ class DB_MySQL_SQLSplitterTest extends PHPUnit_Framework_TestCase
     {
 		$s = $this->prepare("SELECT id, description FROM `test` LEFT JOIN x ON test.x_id = x.id");
     	$s->addTable("abc", "LEFT JOIN", "test.id = abc.idTest");
-		$this->assertEquals("SELECT id, description FROM (`test` LEFT JOIN x ON test.x_id = x.id) LEFT JOIN `abc` ON test.id = abc.idTest", self::cleanQuery($s->getStatement()));
+		$this->assertEquals("SELECT id, description FROM (`test` LEFT JOIN x ON test.x_id = x.id) LEFT JOIN `abc` ON `test`.`id` = `abc`.`idTest`", self::cleanQuery($s->getStatement()));
     }
 
     public function testSelectStatement_AddTable_StraightJoin()
@@ -617,7 +988,7 @@ class DB_MySQL_SQLSplitterTest extends PHPUnit_Framework_TestCase
     {
 		$s = $this->prepare("SELECT id, description FROM `test` LEFT JOIN x ON test.x_id = x.id");
     	$s->addTable("abc", 'LEFT JOIN', "test.id = abc.idTest", DB::ADD_PREPEND);
-		$this->assertEquals("SELECT id, description FROM `abc` LEFT JOIN (`test` LEFT JOIN x ON test.x_id = x.id) ON test.id = abc.idTest", self::cleanQuery($s->getStatement()));
+		$this->assertEquals("SELECT id, description FROM `abc` LEFT JOIN (`test` LEFT JOIN x ON test.x_id = x.id) ON `test`.`id` = `abc`.`idTest`", self::cleanQuery($s->getStatement()));
     }
         
     public function testSelectStatement_Where_Simple()
@@ -805,7 +1176,7 @@ class DB_MySQL_SQLSplitterTest extends PHPUnit_Framework_TestCase
     {
     	$s = $this->prepare("INSERT INTO `test` SELECT DEFAULT, description, type_id FROM abc");
     	$s->addColumn("xyz", 0, 1);
-		$this->assertEquals("INSERT INTO `test` SELECT DEFAULT, description, type_id, xyz FROM abc", self::cleanQuery($s->getStatement()));    	
+		$this->assertEquals("INSERT INTO `test` SELECT DEFAULT, description, type_id, `xyz` FROM abc", self::cleanQuery($s->getStatement()));    	
     }    
     
     public function testInsertSelectStatement_AddCriteria()
@@ -829,77 +1200,77 @@ class DB_MySQL_SQLSplitterTest extends PHPUnit_Framework_TestCase
     {
     	$s = $this->prepare("UPDATE `test` SET description='abc', type_id=10");
     	$s->addColumn("abc=12");
-		$this->assertEquals("UPDATE `test` SET description='abc', type_id=10, abc=12", self::cleanQuery($s->getStatement()));
+		$this->assertEquals("UPDATE `test` SET description='abc', type_id=10, `abc`=12", self::cleanQuery($s->getStatement()));
     }
         	
     public function testUpdateStatement_AddColumns()
     {
 		$s = $this->prepare("UPDATE `test` SET description='abc', type_id=10 WHERE xyz=10");
     	$s->addColumn("abc=12");
-		$this->assertEquals("UPDATE `test` SET description='abc', type_id=10, abc=12 WHERE xyz=10", self::cleanQuery($s->getStatement()));    	
+		$this->assertEquals("UPDATE `test` SET description='abc', type_id=10, `abc`=12 WHERE xyz=10", self::cleanQuery($s->getStatement()));    	
     }
         	
     public function testUpdateStatement_AddColumns_Replace()
     {
 		$s = $this->prepare("UPDATE `test` SET description='abc', type_id=10 WHERE xyz=10");
     	$s->addColumn("abc=12", DB::ADD_REPLACE);
-		$this->assertEquals("UPDATE `test` SET abc=12 WHERE xyz=10", self::cleanQuery($s->getStatement()));    	
+		$this->assertEquals("UPDATE `test` SET `abc`=12 WHERE xyz=10", self::cleanQuery($s->getStatement()));    	
     }
 
     public function testUpdateStatement_AddTable()
     {
     	$s = $this->prepare("UPDATE `test` SET description='abc', type_id=10 WHERE xy > 10");
-    	$s->addTable("abc", "test.id = abc.idTest");
-		$this->assertEquals("UPDATE (`test`) LEFT JOIN abc ON test.id = abc.idTest SET description='abc', type_id=10 WHERE xy > 10", self::cleanQuery($s->getStatement()));
+    	$s->addTable("abc", "LEFT JOIN", array("test.id", "abc.idTest"));
+		$this->assertEquals("UPDATE (`test`) LEFT JOIN `abc` ON `test`.`id` = `abc`.`idTest` SET description='abc', type_id=10 WHERE xy > 10", self::cleanQuery($s->getStatement()));
     }
 
     public function testUpdateStatement_AddTable_String()
     {
 		$s = $this->prepare("UPDATE `test` LEFT JOIN x ON test.x_id = x.id SET description='abc', type_id=10");
-    	$s->addTable("abc ON test.id = abc.idTest");
-		$this->assertEquals("UPDATE (`test` LEFT JOIN x ON test.x_id = x.id) LEFT JOIN abc ON test.id = abc.idTest SET description='abc', type_id=10", self::cleanQuery($s->getStatement()));
+    	$s->addTable("abc", "LEFT JOIN", "test.id = abc.idTest");
+		$this->assertEquals("UPDATE (`test` LEFT JOIN x ON test.x_id = x.id) LEFT JOIN `abc` ON `test`.`id` = `abc`.`idTest` SET description='abc', type_id=10", self::cleanQuery($s->getStatement()));
     }
 
     public function testUpdateStatement_AddTable_StraightJoin()
     {
 		$s = $this->prepare("UPDATE `test` SET description='abc', type_id=10");
-    	$s->addTable("abc", null, "STRAIGHT JOIN");
-		$this->assertEquals("UPDATE (`test`) STRAIGHT JOIN abc SET description='abc', type_id=10", self::cleanQuery($s->getStatement()));
+    	$s->addTable("abc", "STRAIGHT JOIN");
+		$this->assertEquals("UPDATE (`test`) STRAIGHT JOIN `abc` SET description='abc', type_id=10", self::cleanQuery($s->getStatement()));
     }
 
     public function testUpdateStatement_AddTable_Replace()
     {
 		$s = $this->prepare("UPDATE `test` SET description='abc', type_id=10");
     	$s->addTable("abc", null, null, DB::ADD_REPLACE);
-		$this->assertEquals("UPDATE abc SET description='abc', type_id=10", self::cleanQuery($s->getStatement()));
+		$this->assertEquals("UPDATE `abc` SET description='abc', type_id=10", self::cleanQuery($s->getStatement()));
     }
 
     public function testUpdateStatement_AddTable_Prepend()
     {
 		$s = $this->prepare("UPDATE `test` LEFT JOIN x ON test.x_id = x.id SET description='abc', type_id=10");
-    	$s->addTable("abc", "test.id = abc.idTest", 'LEFT JOIN', DB::ADD_PREPEND);
-		$this->assertEquals("UPDATE abc LEFT JOIN (`test` LEFT JOIN x ON test.x_id = x.id) ON test.id = abc.idTest SET description='abc', type_id=10", self::cleanQuery($s->getStatement()));
+    	$s->addTable("abc", 'LEFT JOIN', "test.id = abc.idTest", DB::ADD_PREPEND);
+		$this->assertEquals("UPDATE `abc` LEFT JOIN (`test` LEFT JOIN x ON test.x_id = x.id) ON `test`.`id` = `abc`.`idTest` SET description='abc', type_id=10", self::cleanQuery($s->getStatement()));
     }
     
     public function testUpdateStatement_Where_Simple()
     {
     	$s = $this->prepare("UPDATE `test` SET description='abc', type_id=10");
     	$s->where("status = 1");
-		$this->assertEquals("UPDATE `test` SET description='abc', type_id=10 WHERE (status = 1)", self::cleanQuery($s->getStatement()));
+		$this->assertEquals("UPDATE `test` SET description='abc', type_id=10 WHERE (`status` = 1)", self::cleanQuery($s->getStatement()));
     }
     
     public function testUpdateStatement_Where()
     {
 		$s = $this->prepare("UPDATE `test` SET description='abc', type_id=10 WHERE id > 10");
     	$s->where("status = 1");
-    	$this->assertEquals("UPDATE `test` SET description='abc', type_id=10 WHERE (id > 10) AND (status = 1)", self::cleanQuery($s->getStatement()));
+    	$this->assertEquals("UPDATE `test` SET description='abc', type_id=10 WHERE (id > 10) AND (`status` = 1)", self::cleanQuery($s->getStatement()));
     }
     
     public function testUpdateStatement_Where_Prepend()
     {
     	$s = $this->prepare("UPDATE `test` SET description='abc', type_id=10 WHERE id > 10");
     	$s->where("status = 1", DB::ADD_PREPEND);
-    	$this->assertEquals("UPDATE `test` SET description='abc', type_id=10 WHERE (status = 1) AND (id > 10)", self::cleanQuery($s->getStatement()));
+    	$this->assertEquals("UPDATE `test` SET description='abc', type_id=10 WHERE (`status` = 1) AND (id > 10)", self::cleanQuery($s->getStatement()));
     }
     
     public function testUpdateStatement_Where_Replace()
@@ -907,35 +1278,35 @@ class DB_MySQL_SQLSplitterTest extends PHPUnit_Framework_TestCase
     	$s = $this->prepare("UPDATE `test` SET description='abc', type_id=10 WHERE id > 10");
     	$s->where("status = 1", DB::ADD_REPLACE);
     	$s->where("xyz = 1");
-    	$this->assertEquals("UPDATE `test` SET description='abc', type_id=10 WHERE (status = 1) AND (xyz = 1)", self::cleanQuery($s->getStatement()));
+    	$this->assertEquals("UPDATE `test` SET description='abc', type_id=10 WHERE (`status` = 1) AND (`xyz` = 1)", self::cleanQuery($s->getStatement()));
     }
 
     public function testUpdateStatement_AddCriteria()
     {
     	$s = $this->prepare("UPDATE `test` SET description='abc', type_id=10");
     	$s->addCriteria("status", 1);
-		$this->assertEquals("UPDATE `test` SET description='abc', type_id=10 WHERE (status = 1)", self::cleanQuery($s->getStatement()));
+		$this->assertEquals("UPDATE `test` SET description='abc', type_id=10 WHERE (`status` = 1)", self::cleanQuery($s->getStatement()));
     }
 
     public function testUpdateStatement_AddCriteria_Or()
     {
 		$s = $this->prepare("UPDATE `test` SET description='abc', type_id=10");
     	$s->addCriteria(array('xyz', 'abc'), 10);
-		$this->assertEquals("UPDATE `test` SET description='abc', type_id=10 WHERE (xyz = 10 OR abc = 10)", self::cleanQuery($s->getStatement()));
+		$this->assertEquals("UPDATE `test` SET description='abc', type_id=10 WHERE (`xyz` = 10 OR `abc` = 10)", self::cleanQuery($s->getStatement()));
     }
 
     public function testUpdateStatement_AddCriteria_Between()
     {
 		$s = $this->prepare("UPDATE `test` SET description='abc', type_id=10");
 		$s->addCriteria('xyz', array(10, 12), 'BETWEEN');
-		$this->assertEquals("UPDATE `test` SET description='abc', type_id=10 WHERE (xyz BETWEEN 10 AND 12)", self::cleanQuery($s->getStatement()));
+		$this->assertEquals("UPDATE `test` SET description='abc', type_id=10 WHERE (`xyz` BETWEEN 10 AND 12)", self::cleanQuery($s->getStatement()));
     }
 
     public function testUpdateStatement_AddCriteria_LikeWildcard()
     {
 		$s = $this->prepare("UPDATE `test` SET description='abc', type_id=10");
 		$s->addCriteria('description', 'bea', 'LIKE%');
-		$this->assertEquals("UPDATE `test` SET description='abc', type_id=10 WHERE (description LIKE \"bea%\")", self::cleanQuery($s->getStatement()));
+		$this->assertEquals("UPDATE `test` SET description='abc', type_id=10 WHERE (`description` LIKE \"bea%\")", self::cleanQuery($s->getStatement()));
     }
     
     public function testUpdateStatement_Limit()
@@ -960,49 +1331,49 @@ class DB_MySQL_SQLSplitterTest extends PHPUnit_Framework_TestCase
     {
     	$s = $this->prepare("DELETE FROM `test`");
     	$s->addColumn("test.*");
-		$this->assertEquals("DELETE test.* FROM `test`", self::cleanQuery($s->getStatement()));
+		$this->assertEquals("DELETE `test`.* FROM `test`", self::cleanQuery($s->getStatement()));
     }    
 
     public function testDeleteStatement_AddTable()
     {
     	$s = $this->prepare("DELETE FROM `test`");
-    	$s->addTable("abc", "test.id = abc.idTest");
-		$this->assertEquals("DELETE FROM (`test`) LEFT JOIN abc ON test.id = abc.idTest", self::cleanQuery($s->getStatement()));
+    	$s->addTable("abc", "LEFT JOIN", array("test.id", "abc.idTest"));
+		$this->assertEquals("DELETE FROM (`test`) LEFT JOIN `abc` ON `test`.`id` = `abc`.`idTest`", self::cleanQuery($s->getStatement()));
     }    
 
     public function testDeleteStatement_AddTable_String()
     {
 		$s = $this->prepare("DELETE FROM `test` LEFT JOIN x ON test.x_id = x.id");
-    	$s->addTable("abc ON test.id = abc.idTest");
-		$this->assertEquals("DELETE FROM (`test` LEFT JOIN x ON test.x_id = x.id) LEFT JOIN abc ON test.id = abc.idTest", self::cleanQuery($s->getStatement()));
+    	$s->addTable("abc", "LEFT JOIN", "test.id = abc.idTest");
+		$this->assertEquals("DELETE FROM (`test` LEFT JOIN x ON test.x_id = x.id) LEFT JOIN `abc` ON `test`.`id` = `abc`.`idTest`", self::cleanQuery($s->getStatement()));
     }    
 
     public function testDeleteStatement_AddTable_StraightJoin()
     {
 		$s = $this->prepare("DELETE FROM `test`");
-    	$s->addTable("abc", null, "STRAIGHT JOIN");
-		$this->assertEquals("DELETE FROM (`test`) STRAIGHT JOIN abc", self::cleanQuery($s->getStatement()));
+    	$s->addTable("abc", "STRAIGHT JOIN");
+		$this->assertEquals("DELETE FROM (`test`) STRAIGHT JOIN `abc`", self::cleanQuery($s->getStatement()));
     }    
 
     public function testDeleteStatement_AddTable_Replace()
     {
 		$s = $this->prepare("DELETE FROM `test`");
     	$s->addTable("abc", null, null, DB::ADD_REPLACE);
-		$this->assertEquals("DELETE FROM abc", self::cleanQuery($s->getStatement()));
+		$this->assertEquals("DELETE FROM `abc`", self::cleanQuery($s->getStatement()));
     }    
 
     public function testDeleteStatement_AddTable_Prepend()
     {
 		$s = $this->prepare("DELETE FROM `test` LEFT JOIN x ON test.x_id = x.id");
-    	$s->addTable("abc", "test.id = abc.idTest", 'LEFT JOIN', DB::ADD_PREPEND);
-		$this->assertEquals("DELETE FROM abc LEFT JOIN (`test` LEFT JOIN x ON test.x_id = x.id) ON test.id = abc.idTest", self::cleanQuery($s->getStatement()));
+    	$s->addTable("abc", 'LEFT JOIN', "test.id = abc.idTest", DB::ADD_PREPEND);
+		$this->assertEquals("DELETE FROM `abc` LEFT JOIN (`test` LEFT JOIN x ON test.x_id = x.id) ON `test`.`id` = `abc`.`idTest`", self::cleanQuery($s->getStatement()));
     }
     
     public function testDeleteStatement_Where_Simple()
     {
     	$s = $this->prepare("DELETE FROM `test`");
     	$s->where("status = 1");
-		$this->assertEquals("DELETE FROM `test` WHERE (status = 1)", self::cleanQuery($s->getStatement()));
+		$this->assertEquals("DELETE FROM `test` WHERE (`status` = 1)", self::cleanQuery($s->getStatement()));
     }
     
     public function testDeleteStatement_Where()
@@ -1024,7 +1395,7 @@ class DB_MySQL_SQLSplitterTest extends PHPUnit_Framework_TestCase
     	$s = $this->prepare("DELETE FROM `test` WHERE id > 10");
     	$s->where("status = 1", DB::ADD_REPLACE);
     	$s->where("xyz = 1");
-    	$this->assertEquals("DELETE FROM `test` WHERE (status = 1) AND (`xyz` = 1)", self::cleanQuery($s->getStatement()));
+    	$this->assertEquals("DELETE FROM `test` WHERE (`status` = 1) AND (`xyz` = 1)", self::cleanQuery($s->getStatement()));
     }
 
     public function testDeleteStatement_AddCriteria()

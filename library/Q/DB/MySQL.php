@@ -19,6 +19,10 @@ require_once 'Q/Cache.php';
  */
 class DB_MySQL extends DB
 {
+	const NESTED_LEFT = "nested:left";
+	const NESTED_RIGHT = "nested:right";
+	const NESTED_CHILDREN = "nested:children";
+	
 	/**
 	 * Class of objects created by Q\DB_MySQL.
 	 * This may be overwritten, but make sure to extend the correct class. This is assumed and not checked!
@@ -551,14 +555,13 @@ class DB_MySQL extends DB
 	 * @param string $where     Additional criteria as string
 	 * @return DB_SQLStatement
 	 */
-	public function selectStatement($table=null, $fields=null, $criteria=null, $where=null)
+	public function select($table=null, $fields=null, $criteria=null, $where=null)
 	{
-		$source = $table instanceof DB_Table && $table->getConnection() === $this ? $table : $this;
 	    $this->resolveCriteria($table, $criteria);
 	    
 		if (is_array($fields)) {
     		foreach ($fields as &$field) {
-    			if (is_string($field) && $field[0] === '#') $field = $this->table($table)->$field;
+    			if (is_string($field) && $field[0] === '#') $field = $table->$field;
     		}
 		}
 		
@@ -575,7 +578,7 @@ class DB_MySQL extends DB
 	 * 
 	 * @throws Q\DB_Constraint_Exception when no rows are given.
 	 */
-	public function storeStatement($table=null, $values=null)
+	public function store($table=null, $values=null)
 	{
 		$parent = $table instanceof DB_Table && $table->getConnection() === $this ? $table : $this;
 		if ($table instanceof DB_Table) $table = $table->getTableName(); 
@@ -613,7 +616,7 @@ class DB_MySQL extends DB
 	 * @param array  $values  Assasioted array as (fielname=>value, ...) or ordered array (value, ...) with 1 value for each field
 	 * @return DB_SQLStatement
 	 */
-	public function updateStatement($table=null, $id=null, $values=null)
+	public function update($table=null, $id=null, $values=null)
 	{
 		$parent = $table instanceof DB_Table && $table->getConnection() === $this ? $table : $this;
 		if ($table instanceof DB_Table) $table = $table->getTableName(); 
@@ -637,12 +640,11 @@ class DB_MySQL extends DB
 	 * @param mixed  $id     The value for a primairy (or as array(value, ..) if multiple key fields) or array(field=>value, ...)
 	 * @return DB_SQLStatement
 	 */
-	public function deleteStatement($table=null, $id=null)
+	public function delete($table=null, $id=null)
 	{
 		$parent = $table instanceof DB_Table && $table->getConnection() === $this ? $table : $this;
 		if ($table instanceof DB_Table) $table = $table->getTableName(); 
 
-		$this->
         $statement = $this->sqlSplitter->buildDeleteStatement($table, $id);
 		
 	    return new self::$classes['Statement']($parent, $statement);
@@ -655,18 +657,12 @@ class DB_MySQL extends DB
 	 * @param mixed  $id     The value for a primairy (or as array(value, ..) if multiple key fields) or array(field=>value, ...)
 	 * @return DB_SQLStatement
 	 */
-	public function truncateStatement($table=null, $id=null)
+	public function truncate($table=null, $id=null)
 	{
 		$parent = $table instanceof DB_Table && $table->getConnection() === $this ? $table : $this;
 		if ($table instanceof DB_Table) $table = $table->getTableName(); 
 
-		if (is_object($id) && !empty($id->{'#truncate'})) {
-		    $statement = $this->sqlSplitter->buildTruncateStatement($table);
-		} else { 
-            
-            $statement = $this->sqlSplitter->buildDeleteStatement($table, $id);
-	    }
-		
+	    $statement = $this->sqlSplitter->buildTruncateStatement($table);
 	    return new self::$classes['Statement']($parent, $statement);
 	}	
 	
@@ -696,6 +692,16 @@ class DB_MySQL extends DB
 	
 	
 	/**
+	 * Load a record (from global space).
+	 * 
+	 * @throws Exception
+	 */
+	public function load($id, $resulttype=DB::FETCH_RECORD)
+	{
+		throw new Exception("Unable to load record '$id': MySQL holds records in tables, so use DB::i()->table(..)->load()");
+	}
+	
+	/**
 	 * Excecute query.
 	 * Returns DB_MySQL_Result for 'SELECT', 'SHOW', etc queries, returns new id for 'INSERT' query, returns TRUE for other
 	 * 
@@ -723,21 +729,24 @@ class DB_MySQL extends DB
 
 		// Execute query statement
 		$result = $this->nativeQuery($tree[0]);
-		if (!$result) throw new DB_QueryException($this->native->error, $tree[0]);
+		if (!$result) {
+			// TODO: Throw constraint exception on constraint error
+			throw new DB_QueryException($this->native->error, $tree[0], $this->native->errno);
+		}
 		
 		// Return value if query did not return a mysql_result object
 		if (!is_object($result)) return $this->native->insert_id ? $this->native->insert_id : $result;
 
 		// Create result object
 		$class = count($tree) > 1 ? self::$classes['Result_Tree'] : self::$classes['Result'];
-		while (($field = $result->fetch_field())) {
-		    if ($field->name === DB_MySQL_Result_NestedSet::FIELDNAME_LEFT) {
+		while ($field = $result->fetch_field()) {
+		    if ($field->name === self::NESTED_LEFT) {
 		        $class = self::$classes['Result_NestedSet'];
 		        break;
 		    }
 		}
 		
-		echo $class, "\n";
+		load_class($class);
 		$ob = new $class(isset($source) ? $source : $this, $result, $statement);
 		
 		// If statement has any childqueries, create tree result
@@ -762,109 +771,6 @@ class DB_MySQL extends DB
 	public function affectedRows()
 	{
 		return $this->native->affected_rows;
-	}
-	
-	
-	/**
-	 * Select a single value from a table.
-	 * 
-	 * @param string $table      Table name
-	 * @param mixed  $fieldname  The fieldname for the column to fetch the value from. CAUTION: the fieldname is *not* quoted!
-	 * @param mixed  $id         The value for a primairy (or as array(key, ..) if multiple key fields ) or array(field=>value, ...)
-	 * @return mixed
-	 * 
-	 * @throws Q\DB_Constraint_Exception if query results in > 1 record
-	 */
-	public function lookupValue($table, $fieldname, $id)
-	{
-		$where = array();
-		$keys = is_array($id) && is_string(key($id)) ? array_keys($id) : (array)$this->getPrimaryKey($table);
-		$values = is_array($id) ? array_values($id) : array($id);
-		foreach ($keys as $i=>$key) $where[] = $this->sqlSplitter->quoteIdentifier($key) . ' = ' . $this->sqlSplitter->quote($values[$i]);
-
-		if ($fieldname{0} === '#') $fieldname = $this->getFieldProperty(array($table, $fieldname), 'name_db');
-
-		$statement = "SELECT $fieldname FROM " . $this->sqlSplitter->quoteIdentifier($table) . " WHERE " . join(' AND ', $where);
-		$result = $this->nativeQuery($statement);
-		
-		if (!$result) throw new DB_QueryException("Select on table `$table` failed: " . $this->native->error . "\nQuery: $statement");
-		if (!is_object($result)) throw new Exception("Select value on table `$table` failed: Query did not return a result.");
-		if ($result->num_rows > 1) throw new DB_Constraint_Exception("Select value on table `$table` failed: Query resulted in multiple records.");
-		
-		$row = $result->fetch_row();
-		return isset($row[0]) ? $row[0] : null;
-	}
-
-	/**
-	 * Count the number of rows in a table (with the given criteria)
-	 * 
-	 * @param string $table     Table name
-	 * @param mixed  $criteria  The value for a primairy (or as array(key, ..) if multiple key fields ) or array(field=>value, ...)
-	 * @return int
-	 */
-	public function countRows($table, $criteria=null)
-	{
-		if (isset($criteria)) {
-			$where = array();
-			$keys = is_array($criteria) && is_string(key($criteria)) ? array_keys($criteria) : (array)$this->getPrimaryKey($table);
-			$values = is_array($criteria) ? array_values($criteria) : array($criteria);
-			foreach ($keys as $i=>$key) $where[] = $this->sqlSplitter->quoteIdentifier($key) . ' = ' . $this->sqlSplitter->quote($values[$i]);
-		}
-
-		$statement = "SELECT COUNT(*) FROM " . $this->sqlSplitter->quoteIdentifier($table) . (isset($where) ? " WHERE " . join(' AND ', $where) : "");
-		
-		$result = $this->nativeQuery($statement);
-		if (!$result) throw new DB_QueryException("Select on table `$table` failed: " . $this->native->error . "\nQuery: $statement");
-		
-		list($count) = $result->fetch_row();
-		return $count;
-	}
-	
-	/**
-	 * Select a single record from a table.
-	 * 
-	 * @param string $table       Table name or 'SELECT' query with one ? (per primairy key field)
-	 * @param mixed  $id          The value for a primairy (or as array(key, ..) if multiple key fields ) or array(field=>value, ...)
-	 * @param int    $resulttype  Specify how to format the result. A DB::FETCH_% constant
-	 * @return DB_Record
-	 * 
-	 * @throws Q\DB_Constraint_Exception if query results in > 1 record
-	 */
-	public function load($table, $id, $resulttype=DB::FETCH_RECORD)
-	{
-		if (preg_match('/^\s*select\b/i', $table)) {
-		    $statement = $this->parse($table, (array)$id);
-		} else {
-		    $criteria = $id;
-    		if (!is_array($criteria) || !is_string(key($criteria))) {
-                $keys = $this->getPrimaryKey($table, false, true);
-                $criteria = (array)$criteria;
-    			if (empty($keys)) throw new Exception("Unable to select record for $table: Unable to determine a WHERE statement. The table might have no primary key.");
-    			if (count($keys) != count($criteria)) throw new Exception("Unable to select record for $table: " . count($criteria) . " values specified, while primary key from table consists of " . count($keys) . " keys (" . implode(', ', $keys) . ").");
-    			
-    			$criteria = array_combine($keys, $criteria);
-    		}
-    		
-    		$statement = $this->sqlSplitter->buildSelectStatement($table, '*', $criteria);
-		}
-
-        if ($resulttype == DB::FETCH_ORDERED || $resulttype == DB::FETCH_ASSOC || $resulttype == DB::FETCH_OBJECT || $resulttype == DB::FETCH_FULLARRAY) {
-		    $result = $this->nativeQuery($statement);
-        } else {
-            $result = $this->query($statement);
-        }
-		
-		if (!$result) throw new DB_QueryException("Select on table `$table` failed: " . $this->native->error . "\nQuery: $statement");
-		if (!is_object($result)) throw new Exception("Select on table `$table` failed: Query did not return a result.");
-		if (($result instanceof DB_Result ? $result->countRows() : $result->num_rows) > 1) throw new DB_Constraint_Exception("Select on table `$table` failed: Query resulted in multiple records.");
-
-		switch ($resulttype) {
-			case DB::FETCH_ORDERED:   return $result->fetch_row();
-			case DB::FETCH_ASSOC:     return $result->fetch_assoc();
-            case DB::FETCH_OBJECT:    return $result->fetch_object();
-			case DB::FETCH_FULLARRAY: return $result->fetch_array();
-			default:                  return $result->fetchRow($resulttype);
-		}
 	}
 }
 

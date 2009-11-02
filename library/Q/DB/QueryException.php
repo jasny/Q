@@ -26,12 +26,13 @@ class DB_QueryException extends DB_Exception
 	 * 
 	 * @param string $error      Error message
 	 * @param string $statement  Query statement
+	 * @param string $errno      Error code
 	 */
-	public function __construct($error, $statement)
+	public function __construct($error, $statement, $errno=0)
 	{
 	    $this->error = $error;
 	    $this->statement = $statement;
-		parent::construct("Query failed: $error\nQuery: $statement");
+		parent::construct("Query failed: $error\nQuery: $statement", $errno);
 	}
 	
 	/**

@@ -321,6 +321,24 @@ class DB_Table extends \ArrayObject
 	    return $this->_fields;
     }
     
+
+	/**
+	 * Select a single value from a table.
+	 * 
+	 * @param mixed $fieldname  The fieldname for the column to fetch the value from.
+	 * @param mixed $id         The value for a primairy (or as array(key, ..) if multiple key fields ) or array(field=>value, ...)
+	 * @return mixed
+	 * 
+	 * @throws DB_LimitException if query results in > 1 record
+	 */
+	public function lookupValue($fieldname, $id)
+	{
+		if (!$this->getConnection()) throw new Exception("Unable to load a record '$id' for table '$this': No database connection");
+		
+		$result = $this->getConnection()->select($this, $fieldname, isset($id) ? $id : false)->execute();
+		if ($result->countRows() > 1) throw new DB_LimitException("Query returned " . $result->countRows() . " rows, while only 1 row was expected");
+		return $result->fetchValue();
+	}
     
 	/**
 	 * Load a record for this table
@@ -329,6 +347,8 @@ class DB_Table extends \ArrayObject
 	 * @param string $mode        Use property 'load.$mode' (defaults back to property 'load' and 'view')
 	 * @param int    $resulttype  A Q\DB::FETCH_% constant
 	 * @return DB_Record
+	 * 
+	 * @throws DB_LimitException if query results in > 1 record
 	 */
 	public function load($id, $mode=null, $resulttype=DB::FETCH_RECORD)
 	{
@@ -344,10 +364,25 @@ class DB_Table extends \ArrayObject
 		if (isset($mode) && isset($this["load.$mode"])) $statement = $this["load.$mode"];
 		  else $statement = $this['load'];
 		
-		$result = $this->getConnection()->prepareSelect($this, $statement, isset($id) ? $id : false)->execute();
-		return isset($id) ? $result->fetchRow($resulttype) : $result->newRecord();
+		$result = $this->getConnection()->select($this, $statement, isset($id) ? $id : false)->execute();
+		if (!isset($id)) return $result->newRecord();
+		
+		if ($result->countRows() > 1) throw new DB_LimitException("Query returned " . $result->countRows() . " rows, while only 1 row was expected");
+		return $result->fetchRow($resulttype);
 	}
-
+	
+	/**
+	 * Count the number of rows in a table (with the given criteria)
+	 * 
+	 * @param string $table     Table name
+	 * @param mixed  $criteria  The value for a primairy (or as array(key, ..) if multiple key fields ) or array(field=>value, ...)
+	 * @return int
+	 */
+	public function countRows( $criteria=null)
+	{
+		
+	}
+	
 	/**
 	 * Create a record for this table.
 	 * Record is loaded if $values contains primary key
@@ -375,22 +410,9 @@ class DB_Table extends \ArrayObject
 	    }
 	    
 		$record = $this->load($id, $mode, DB::FETCH_RECORD);
-		if (!$record) throw new DB_ConstraintException("Could not load record '" . join(", ", $id) . "' from table " . $this->getName() . " (" . join(", ", $pk) . ")");
+		if (!$record) throw new DB_LimitException("Could not load record '" . join(", ", $id) . "' from table " . $this->getName() . " (" . join(", ", $pk) . ")");
 		
 		if (isset($values)) $record->setValues($values);
 		return $record;
-	}
-	
-	/**
-	 * Delete a single record or multiple records from this table.
-	 * 
-	 * @param mixed $id          The value for a primairy (or as array(value, ..) if multiple key fields) or criteria as array(field=>value, ...)
-	 * @param int   $constraint  Constraint based on the number or rows: SINGLE_ROW, MULTIPLE_ROWS, ALL_ROWS.
-	 * 
-	 * @throws Q\DB_Constraint_Exception if query results in > 1 record and $constraint == SINGLE_ROW
-	 */
-	public function delete($id, $constraint=DB::SINGLE_ROW)
-	{
-		$this->getConnection()->delete($this->getTablename(), $id, $constraint);
 	}
 }

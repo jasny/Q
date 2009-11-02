@@ -9,5 +9,5 @@ require_once 'Q/DB/Exception.php';
  * 
  * @package DB
  */
-class DB_ConstraintException extends DB_Exception
+class DB_LimitException extends DB_Exception
 {}

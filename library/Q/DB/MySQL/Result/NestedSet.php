@@ -12,12 +12,6 @@ require_once 'Q/DB/MySQL/Result.php';
  */
 class DB_MySQL_Result_NestedSet extends DB_MySQL_Result_Tree 
 {
-	const FETCH_CURRENT = 0x100000;
-	
-	const FIELDNAME_LEFT = "nested:left";
-	const FIELDNAME_RIGHT = "nested:right";
-	const FIELDNAME_CHILDREN = "nested:children";
-	
 	/**
 	 * Current record
 	 * @var int

@@ -38,7 +38,8 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 {
 	const REGEX_VALUES = '(?:\w++|`[^`]*+`|"(?:[^"\\\\]++|\\\\.)*+"|\'(?:[^\'\\\\]++|\\\\.)*+\'|\s++|[^`"\'\w\s])*?';
 	const REGEX_IDENTIFIER = '(?:(?:\w++|`[^`]*+`)(?:\.(?:\w++|`[^`]*+`)){0,2})';
-
+	const REGEX_QUOTED = '(?:`[^`]*+`|"(?:[^"\\\\]++|\\\\.)*+"|\'(?:[^\'\\\\]++|\\\\.)*+\')';
+	
 	//------------- Basics -----------------------
 	
 	/**
@@ -69,11 +70,15 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 	 * Will not quote expressions without DB::QUOTE_STRICT. This means it is not secure without this option. 
 	 * 
 	 * @param string $identifier
-	 * @param int    $flags       Optional DB::QUOTE_STRICT
+	 * @param int    $flags       DB::QUOTE_%
 	 * @return string
 	 */
-	public static function quoteIdentifier($identifier, $flags=0)
+	public static function quoteIdentifier($identifier, $flags=DB::QUOTE_LOOSE)
 	{
+		// None
+		if ($flags & DB::QUOTE_NONE) return $identifier;
+		
+		// Strict
 		if ($flags & DB::QUOTE_STRICT) {
 			if (strpos($identifier, '.') === false && strpos($identifier, '`') === false) return "`$identifier`";
 			
@@ -82,9 +87,30 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 			return $quoted;
 		}
 		
-		return preg_replace_callback('#(AS\b\s*)?(`[^`]++`|"(?:[^"\\\\]++|\\\\.)*+"|\'(?:[^\'\\\\]++|\\\\.)*+\'|NULL|TRUE|FALSE|DEFAULT|([a-z_][^\s`\(\)\.&~|^<=>+\-/*%!]+\b))(?!\()#e', "'\$1' . ('\$3' ? '`\$3`' : str_replace('\\\"', '\"', '\$2'))", $identifier);
+		// Loose
+		$quoted = preg_replace_callback('/' . self::REGEX_QUOTED . '|\b(?:NULL|TRUE|FALSE|DEFAULT|DIV|AND|OR|XOR|IN|IS|BETWEEN|R?LIKE|REGEXP|SOUNDS\s+LIKE|MATCH|AS|CASE|WHEN|ASC|DESC|BINARY)\b|\bCOLLATE\s+\w++|\bUSING\s+\w++|(\d*[a-z_][^\s`\(\)\.&~|^<=>+\-\/*%!]*\b)(?!\s*\()/i', function($match) {return !empty($match[1]) ? "`{$match[1]}`" : $match[0];}, $identifier);
+		if (preg_match('/CAST\s*\(/i', $quoted)) $quoted = self::quoteIdentifier_castCleanup($quoted);
+		return $quoted;
 	}
     
+	/**
+	 * Unquote up quoted types of CAST function.
+	 * 
+	 * @param string|array $match  Match or identifier
+	 * @return string  
+	 * @ignore
+	 */
+	protected static function quoteIdentifier_castCleanup($match)
+	{
+		if (is_array($match) && !isset($match[2])) return $match[0];
+		if (!is_array($match)) $match = array(2=>$match);
+		
+		$match[2] = preg_replace_callback('/((?:' . self::REGEX_QUOTED . '|[^()`"\']++)*)(?:\(((?R)*)\))?/i', array(__CLASS__, 'quoteIdentifier_castCleanup'), $match[2]);
+		if (!empty($match[1]) && preg_match('/\CAST\s*$/i', $match[1])) $match[2] = preg_replace('/(\bAS\b\s*)`([^`]++)`(\s*)$/i', '\1\2\3', $match[2]);
+		
+		return isset($match[0]) ? "{$match[1]}({$match[2]})" : $match[2]; 
+	}
+	
 	/**
 	 * Check if a identifier is valid as field name or table name
 	 *
@@ -95,7 +121,7 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 	 */
 	public static function validIdentifier($name, $withgroup=null, $withalias=false)
 	{	
-		return preg_match('/^' . ($withgroup !== false ? '((?:`([^`]*)`|(\d*[A-Za-z_]\w*))\.)' . ($withgroup ? '+' : '*') : '') . '(`([^`]*)`|(\d*[A-Za-z_]\w*))' . ($withalias ? '(?:\s*(?:\bAS\b\s*)?(`([^`]*)`|(\d*[A-Za-z_]\w*)))?' : '') . '$/', trim($name));
+		return (bool)preg_match('/^' . ($withgroup !== false ? '((?:`([^`]*)`|(\d*[a-z_]\w*))\.)' . ($withgroup ? '+' : '*') : '') . '(`([^`]*)`|(\d*[a-z_]\w*))' . ($withalias ? '(?:\s*(?:\bAS\b\s*)?(`([^`]*)`|(\d*[a-z_]\w*)))?' : '') . '$/i', trim($name));
 	}
     
 	/**
@@ -108,7 +134,7 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 	public static function splitIdentifier($name)
 	{
 		$matches = null;
-		if (preg_match('/^(?:((?:`([^`]*)`|(\d*[A-Za-z_]\w*))(?:\.(?:`([^`]*)`|(\d*[A-Za-z_]\w*)))*)\.)(`([^`]*)`|(\d*[A-Za-z_]\w*))(?:\s+AS\s+(`([^`]*)`|(\d*[A-Za-z_]\w*)))?$/', trim($name), $matches)) return array(str_replace('`', '', $matches[1]), trim($matches[2], '`'), isset($matches[3]) ? trim($matches[3], '`') : null);
+		if (preg_match('/^(?:((?:`(?:[^`]*)`|(?:\d*[a-z_]\w*))(?:\.(?:`(?:[^`]*)`|(?:\d*[a-z_]\w*)))*)\.)?(`(?:[^`]*)`|(?:\d*[a-z_]\w*))(?:(?:\s*\bAS\b)?\s*(`(?:[^`]*)`|(?:\d*[a-z_]\w*)))?$/i', trim($name), $matches)) return array(str_replace('`', '', $matches[1]), trim($matches[2], '`'), isset($matches[3]) ? trim($matches[3], '`') : null);
 		return array(null, trim($name, '`'), null);
 	}
 	
@@ -118,12 +144,12 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 	 * @param string $group  Table name / DB name
 	 * @param string $name   Field name / Table name
 	 * @param string $alias
-	 * @param int    $flags  Optional DB::QUOTE_STRICT
+	 * @param int    $flags  DB::QUOTE_%
 	 * @return boolean
 	 */
-	public static function makeIdentifier($group, $name, $alias=null, $flags=0)
+	public static function makeIdentifier($group, $name, $alias=null, $flags=DB::QUOTE_LOOSE)
 	{
-		return (!empty($group) && self::validIdentifier($name, false) ? self::quoteIdentifier($group, DB::QUOTE_STRICT) . '.' . self::quoteIdentifier($name, DB::QUOTE_STRICT) : self::quoteIdentifier($name, $flags)) . (!empty($alias) ? ' AS ' . self::quoteIdentifier($alias, DB::QUOTE_STRICT) : '');
+		return (!empty($group) && ($flags & DB::QUOTE_STRICT || self::validIdentifier($name, false, true)) ? self::quoteIdentifier($group, $flags | DB::QUOTE_STRICT) . '.' : '') . self::quoteIdentifier($name, $flags) . (!empty($alias) ? ' AS ' . self::quoteIdentifier($alias, $flags | DB::QUOTE_STRICT) : '');
 	}
 	
 	/**
@@ -135,24 +161,19 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 	 */
 	public static function parse($statement, $args)
 	{
-        if (empty($args)) return $statement;
-        
-		if (is_object($statement)) {
-		    $source = $statement;
-		    $statement = $statement->getStatement();
-		}
-        
-		if (!is_array($args) && isset($args)) $args = array($args);
-		
-		$i = 0;
-		$statement = preg_replace('/`[^`]*+`|"(?:[^"\\\\]++|\\\\.)*+"|\'(?:[^\'\\\\]++|\\\\.)*+\'|(\?\!?)|:(\!)?(\w++)/e', !isset($args) ? "'$1$3' ? null : str_replace('\\\"', '\"', '\$0')" : "'\$3' && array_key_exists('\$3', \$args) ? ('\$2' ? \$args[':\$3'] : Q\DB_MySQL_SQLSplitter::quote(\$args[':\$3'])) : ('\$1' ? ('\$1' === '?!' ? \$args[\$i++] : Q\DB_MySQL_SQLSplitter::quote(\$args[\$i++])) : str_replace('\\\"', '\"', '\$0'))", $statement);
-		
-		if (isset($source)) {
-		    $class = get_class($source);
-		    return new $class($source, $statement);
+		if (!isset($args)) {
+			$fn = function($match) {return !empty($match[1]) || !empty($match[3]) ? '(NULL)' : $match[0];};
+		} else {
+			if (!is_array($args)) $args = array($args);
+			  else ksort($args);
+			$fn = function($match) use(&$args) {return !empty($match[3]) && array_key_exists($match[3], $args) ? ($match[2] === ':!' ? (isset($args[":{$match[3]}"]) ? $args[":{$match[3]}"] : $args[$match[3]]) : DB_MySQL_SQLSplitter::quote(isset($args[":{$match[3]}"]) ? $args[":{$match[3]}"] : $args[$match[3]])) : (!empty($match[1]) ? ($match[1] === '?!' ? array_shift($args) : DB_MySQL_SQLSplitter::quote(array_shift($args))) : $match[0]);};
 		}
 		
-		return $statement;
+		$parsed = preg_replace_callback('/`[^`]*+`|"(?:[^"\\\\]++|\\\\.)*+"|\'(?:[^\'\\\\]++|\\\\.)*+\'|(\?\!?)|(:\!?)(\w++)/', $fn, $statement);
+		if (!($statement instanceof DB_Statement)) return $parsed;
+		
+	    $class = get_class($statement);
+	    return new $class($statement, $parsed);
 	}
 	
 	/**
@@ -183,37 +204,14 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 	{
 		$matches = null;
 		if (is_array($sql)) $sql = $sql[0];
-		return preg_match('/^\s*(SELECT|INSERT|REPLACE|UPDATE|DELETE|TRUNCATE|ALTER|CREATE|DROP|RENAME|DESCRIBE|SET|SHOW)\b/i', $sql, $matches) ? strtoupper($matches[1]) : null;
+		if (!preg_match('/^\s*(SELECT|INSERT|REPLACE|UPDATE|DELETE|TRUNCATE|CALL|DO|HANDLER|LOAD\s+(?:DATA|XML)\s+INFILE|(?:ALTER|CREATE|DROP|RENAME)\s+(?:DATABASE|TABLE|VIEW|FUNCTION|PROCEDURE|TRIGGER|INDEX)|PREPARE|EXECUTE|DEALLOCATE\s+PREPARE|DESCRIBE|EXPLAIN|HELP|USE|LOCK\s+TABLES|UNLOCK\s+TABLES|SET|SHOW|START\s+TRANSACTION|BEGIN|COMMIT|ROLLBACK|SAVEPOINT|RELEASE SAVEPOINT|CACHE\s+INDEX|FLUSH|KILL|LOAD|RESET|PURGE\s+BINARY\s+LOGS|START\s+SLAVE|STOP\s+SLAVE)\b/si', $sql, $matches)) return null;
+		
+		$type = strtoupper(preg_replace('/\s++/', ' ', $matches[1]));
+		if ($type === 'BEGIN') $type = 'START TRANSACTION';
+		
+		return $type;
 	}
 
-	/**
-	 * Convert a query statement to another type.
-	 *
-	 * @todo Currently only works for SELECT to DELETE and vise versa
-	 * 
-	 * @param string $sql   SQL query statement (or an array with parts)
-	 * @param string $type  New query type
-	 * @return string
-	 */
-	public static function convertStatement($sql, $type)
-	{
-		$type = strtoupper($type);
-		if ($type !== 'SELECT' && $type !== 'DELETE') throw new Exception("Unable to convert query statement to $type: Type is not supported.");
-
-		$oldtype = self::getQueryType($sql);
-		if ($oldtype !== 'SELECT' && $oldtype !== 'DELETE') throw new Exception("Unable to convert $oldtype query statement: Type is not supported.");
-		
-		$parts = self::split($sql);
-		$parts[0] = $type;
-		
-		switch ($type) {
-		    case 'SELECT': if (empty($parts['columns'])) $parts['columns'] = '*'; break;
-		    case 'DELETE': if (!empty($parts['columns']) && strpos(',', $parts['columns']) === false && !preg_match('/\.\*\s*$/', $parts['columns'])) $parts['columns'] = ''; break;
-		}
-		
-		return self::join($parts);
-	}
-		
 	/**
 	 * Split a query in different parts.
 	 * If a part is not set whitin the SQL query, the part is an empty string.
@@ -231,6 +229,7 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 			case 'UPDATE':	 return self::splitUpdateQuery($sql);
 			case 'DELETE':   return self::splitDeleteQuery($sql);
 			case 'TRUNCATE': return self::splitTruncateQuery($sql);
+			case 'SET':      return self::splitSetQuery($sql);
 		}
 		
 		throw new Exception("Unable to split " . (!empty($type) ? "$type " : "") . "query. $sql");
@@ -259,7 +258,22 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 		return join(' ', $sql_parts);
 	}
 
-
+	/**
+	 * Convert a query statement to another type.
+	 *
+	 * @todo Currently only works for SELECT to DELETE and vise versa
+	 * 
+	 * @param string $sql   SQL query statement (or an array with parts)
+	 * @param string $type  New query type
+	 * @return string
+	 */
+	public static function convertStatement($sql, $type)
+	{
+		$type = strtoupper($type);
+		
+	}
+		
+	
 	//------------- Extract subsets --------------------
 	
 	
@@ -271,12 +285,15 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 	 * @param  array  $sets  Do not use!
 	 * @return array
 	 */
-	public static function extractSubsets($sql, $sets=array())
+	public static function extractSubsets($sql, &$sets=null)
 	{
+		$ret_offset = isset($sets);
+		$sets = (array)$sets;
+		
 		// There are certainly no subqueries
 		if (stripos($sql, 'SELECT', 6) === false) {
-			$sets[] = $sql;
-			return $sets;
+			$offset = array_push($sets, $sql) - 1;
+			return $ret_offset ? $offset : $sets;
 		}
 
 		// Extract any subqueries
@@ -285,7 +302,7 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 		if (self::getQueryType($sql) === 'INSERT') {
 			$parts = self::split($sql);
 			if (isset($parts['query'])) {
-				$sets = self::extractSubsets($parts['query'], $sets);
+				self::extractSubsets($parts['query'], $sets);
 				$parts['query'] = '#sub' . ($offset+1);
 				$sql = self::join($parts);
 			}
@@ -295,27 +312,12 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 			do {
 				$matches = null;
 				preg_match('/(?:`[^`]*+`|"(?:[^"\\\\]++|\\\\.)*+"|\'(?:[^\'\\\\]++|\\\\.)*+\'|\((\s*SELECT\b.*\).*)|\w++|[^`"\'\w])*$/si', $sql, $matches, PREG_OFFSET_CAPTURE);
-				if (isset($matches[1])) $sql = substr($sql, 0, $matches[1][1]) . preg_replace('/(?:`[^`]*+`|"(?:[^"\\\\]++|\\\\.)*+"|\'(?:[^\'\\\\]++|\\\\.)*+\'|([^`"\'()]+)|\((?R)\))*/sie', "'#sub' . self::extractSubsets_callback('\$0', \$sets)", substr($sql, $matches[1][1]), 1);
+				if (isset($matches[1])) $sql = substr($sql, 0, $matches[1][1]) . preg_replace_callback('/(?:`[^`]*+`|"(?:[^"\\\\]++|\\\\.)*+"|\'(?:[^\'\\\\]++|\\\\.)*+\'|([^`"\'()]+)|\((?R)\))*/si', function($match) use(&$sets) {return '#sub' . DB_MySQL_SQLSplitter::extractSubsets($match[0], $sets);}, substr($sql, $matches[1][1]), 1);
 			} while (isset($matches[1]));
 		}
 		
 		$sets[$offset] = $sql;
-		return $sets;
-	}
-
-	/**
-	 * Recursive callback for preg_replace in extractSubset
-	 * @ignore 
-	 * 
-	 * @param string $sql
-	 * @param array  $sets
-	 * @return string
-	 */
-	public static function extractSubsets_callback($sql, &$sets=array())
-	{
-		$key = sizeof($sets);
-		$sets = self::extractSubsets($sql, $sets);
-		return $key;
+		return $ret_offset ? $offset : $sets;
 	}
 	
 	/**
@@ -338,13 +340,13 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 			$ret =& $main[0];
 		}
 		
-		$set = null;
 		foreach ($sets as &$set) {
 			if (is_array($set)) $set = self::join($set);
 		}
 		
+		$fn = function($match) use(&$sets) {return $match[1] . $sets[$match[2]];};
 		$count = -1;
-		while ($count) $main = preg_replace('/^(' . self::REGEX_VALUES . ')\#sub(\d+)/e', "'\$1' . \$sets['\$2']", $main, 0xFFFF, $count);
+		while ($count) $main = preg_replace_callback('/^(' . self::REGEX_VALUES . ')\#sub(\d+)/', $fn, $main, 0xFFFF, $count);
 		
 		return $ret;
 	}
@@ -423,8 +425,8 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
         $sets = array_map(array(__CLASS__, 'join'), $parts);
         return count($sets) == 1 ? reset($sets) : self::injectSubsets($sets);
     }    
-    	
-	
+
+    
 	//------------- Split specific type --------------------
 	
 	/**
@@ -434,7 +436,7 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 	 * @param string $sql  SQL SELECT query statement
 	 * @return array
 	 */
-	static protected function splitSelectQuery($sql)
+	protected static function splitSelectQuery($sql)
 	{
 		if (preg_match('/\(\s*SELECT\b/i', $sql)) {
 			$sets = self::extractSubsets($sql);
@@ -470,7 +472,7 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 	 * @param string $sql  SQL INSERT query statement
 	 * @return array
 	 */
-	static protected function splitInsertQuery($sql)
+	protected static function splitInsertQuery($sql)
 	{
 		$parts = null;
 		if (preg_match('/\bVALUES\b/i', $sql) && preg_match('/^\s*' .
@@ -517,7 +519,7 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 	 * @param string $sql  SQL UPDATE query statement
 	 * @return array
 	 */
-	static protected function splitUpdateQuery($sql)
+	protected static function splitUpdateQuery($sql)
 	{
 		if (preg_match('/\(\s*SELECT\b/i', $sql)) {
 			$sets = self::extractSubsets($sql);
@@ -546,7 +548,7 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 	 * @param string $sql  SQL DELETE query statement
 	 * @return array
 	 */
-	static protected function splitDeleteQuery($sql)
+	protected static function splitDeleteQuery($sql)
 	{
 		if (preg_match('/\(\s*SELECT\b/i', $sql)) {
 			$sets = self::extractSubsets($sql);
@@ -577,17 +579,35 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 	 * @param string $sql  SQL DELETE query statement
 	 * @return array
 	 */
-	static protected function splitTruncateQuery($sql)
+	protected static function splitTruncateQuery($sql)
 	{
 		$parts = null;
 		if (!preg_match('/^\s*' .
-		  '(TRUNCATE\b(?:\s+(?:TABLE)\b)*)\s*' .
+		  '(TRUNCATE\b(?:\s+TABLE\b)?)\s*' .
 		  '(' . self::REGEX_VALUES . ')' .
-		  '(?:;|$)/si', $sql, $parts)) throw new Exception("Unable to split TRUNCATE query, invalid syntax:\n" . $sql);
+		  '(?:;|$)/si', $sql, $parts)) throw new Exception("Unable to split TRUNCATE query, invalid syntax: $sql");
 
 		array_shift($parts);
 		return array_combine(array(0, 'tables'), $parts);
-	}	
+	}
+	
+	/**
+	 * Split set query in different parts
+	 *
+	 * @param string $sql  SQL SET query statement
+	 * @return array
+	 */
+	protected static function splitSetQuery($sql)
+	{
+		$parts = null;
+		if (!preg_match('/^\s*' .
+		  'SET\b\s*' .
+		  '(' . self::REGEX_VALUES . ')' .
+		  '(?:;|$)/si', $sql, $parts)) throw new Exception("Unable to split SET query, invalid syntax: $sql");
+
+		array_shift($parts);
+		return array_combine(array('set'), $parts);
+	}
 	
 	
 	//------------- Split columns --------------------
@@ -597,44 +617,19 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 	 * 
 	 * @param string  $sql             SQL query or 'column, column, ...'
 	 * @param boolean $splitFieldname  Split fieldname in array(table, field, alias)
-	 * @param boolean $assoc           Remove '[AS] alias' (for SELECT) or 'to=' (for INSERT/UPDATE) and return as associated array
+	 * @param boolean $assoc           Remove '[AS] alias' (for SELECT) or 'to=' (for SET/INSERT/UPDATE) and return as associated array
 	 * @return array
-	 * 
-	 * @todo Implemented splitColumns() for INSERT, REPLACE and UPDATE
-	 * @todo Sets might be parsed in to early. Test this and solve if needed.
 	 */
 	public static function splitColumns($sql, $splitFieldname=false, $assoc=false)
 	{
 		$type = self::getQueryType($sql);
-
-		if (!isset($type) || $type === '') {
-			// No action
+		
+		if ($type) {
+			$parts = self::split($sql);
 			
-		} elseif ($type === 'SELECT') {
-			$sets = null;
-			$matches = null;
-			
-			while (preg_match('/^((?:`[^`]*+`|"(?:[^"\\\\]++|\\\\.)*+"|\'(?:[^\'\\\\]++|\\\\.)*+\'|\w++|[^`"\'\w])*?)(\bFROM\b|\(\s*SELECT\b.*$)/si', $sql, $matches) && strtoupper($matches[2]) !== 'FROM') {
-				if (!isset($sets)) $sets = array(null);
-				$sql = $matches[1] . preg_replace('/\((?:`[^`]*+`|"(?:[^"\\\\]++|\\\\.)*+"|\'(?:[^\'\\\\]++|\\\\.)*+\'|([^`"\'()]+)|(?R))*\)/sie', "'#sub' . (array_push(\$sets, '\$0')-1) . ' '", $matches[2], 1);
-			}
-
-			preg_match('/^\s*SELECT\b\s*(' . self::REGEX_VALUES . ')(?:\bFROM\b|$)/si', $sql, $matches);
-			$sql = isset($matches[1]) ? $matches[1] : null;
-
-			if (isset($sets) && sizeof($sets) > 1 && strpos($sql, '#sub') !== false) $sql = preg_replace('/(' . self::REGEX_VALUES . ')\#sub(\d+)\s?/e', "'\$1' . \$sets['\$2']", $sql);
-			
-		} elseif($type === 'DELETE') {
-			$matches = null;
-			preg_match('/^\s*DELETE\b\s*(' . self::REGEX_VALUES . ')\bFROM\b.*$/si', $sql, $matches);
-			$sql = isset($matches[1]) ? $matches[1] : null;
-
-		} elseif ($type === 'INSERT' || $type === 'REPLACE' || $type === 'UPDATE') {
-			trigger_error("Splitting columns for $type queries is not yet implemented.", E_USER_WARNING);
-			return array();
-
-		} else {
-			throw new Exception("Unable to split the column for " . (!empty($type) ? "a $type" : "") . "query:\n" . $sql);
+			if (isset($parts['columns'])) $sql = $parts['columns'];
+			  elseif (isset($parts['set'])) $sql = $parts['set'];
+			  else throw new Exception("Unable to split the column for $type query: $sql");
 		}
 		
 		// Simple split on comma
@@ -643,23 +638,33 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 			return $matches[0];
 		}
 		
-		// Extract fullname(1), tablename(2), fieldname(3 or 4) and alias (5)
+		// Extract (tablename+fieldname or expression) and alias
 		$matches = null;
-		preg_match_all('/\s*(' .
-		  '(?:(?:(`[^`]*+`|\w++)\.))?(`[^`]*+`|\w++)\s*+|' .
-		  '((?:`[^`]*+`|"(?:[^"\\\\]++|\\\\.)*"|\'(?:[^\'\\\\]|\\\\.)*\'|\((?:[^()]*+|(?R))\)|\s++|\w++(?<!\bAS)|[^`"\'\w\s(),])+)' .
-		  ')(?:(?:\bAS\s*)?(`[^`]*+`|\b\w++))?\s*+(?=,|$)' .
-		  '/si', $sql, $matches, PREG_PATTERN_ORDER);
+		
+		if (!isset($parts['set'])) {
+			preg_match_all('/\s*(?P<fullname>' .
+			  '(?:(?P<table>(?:(?:`[^`]*+`|\w++)\.)*(?:`[^`]*+`|\w++))\.)?(?P<field>`[^`]*+`|\w++)\s*+|' .
+			  '(?:`[^`]*+`|"(?:[^"\\\\]++|\\\\.)*"|\'(?:[^\'\\\\]|\\\\.)*\'|\((?:[^()]*+|(?R))\)|\s++|\w++(?<!\bAS)|[^`"\'\w\s(),])+' .
+			  ')(?:(?:\bAS\s*)?(?P<alias>`[^`]*+`|\b\w++)\s*+)?(?=,|$)' .
+			  '/si', $sql, $matches, PREG_PATTERN_ORDER);
+		} else {
+			preg_match_all('/\s*(?:(?P<alias>(?:(`[^`]*+`|\w++)\.)*(`[^`]*+`|\w++)\s*+)=\s*+)?' .
+			  '(?P<fullname>' . 
+			  '(?:(?P<table>(?:(?:`[^`]*+`|\w++)\.)*(?:`[^`]*+`|\w++))\.)?(?P<field>`[^`]*+`|\w++)\s*+|' .
+			  '(?:`[^`]*+`|"(?:[^"\\\\]++|\\\\.)*"|\'(?:[^\'\\\\]|\\\\.)*\'|\((?:[^()]*+|(?R))\)|\s++|\w++(?<!\bAS)|[^`"\'\w\s(),])+' .
+			  ')(?=,|$)' .
+			  '/si', $sql, $matches, PREG_PATTERN_ORDER);
+		}
 
 		if ($assoc) {
     		$alias = array();
-            for ($i=0; $i<sizeof($matches[0]); $i++) $alias[$i] = !empty($matches[5][$i]) ? trim($matches[5][$i]) : (!empty($matches[3][$i]) ? trim($matches[3][$i], ' `') : trim($matches[4][$i]));
+            for ($i=0; $i<sizeof($matches[0]); $i++) $alias[$i] = !empty($matches['alias'][$i]) ? str_replace('`', '', trim($matches['alias'][$i])) : (!empty($matches['field'][$i]) ? str_replace('`', '', trim($matches['field'][$i])) : trim($matches['fullname'][$i]));
 		}
 		
-		if (!$splitFieldname) return array_combine($alias, array_map('trim', $matches[1]));
+		if (!$splitFieldname) return array_combine($alias, array_map('trim', $matches['fullname']));
 		
 	 	$values = array();
-		for ($i=0; $i<sizeof($matches[0]); $i++) $values[$i] = array(trim($matches[2][$i], ' `'), !empty($matches[3][$i]) ? trim($matches[3][$i], ' `') : trim($matches[4][$i]), isset($matches[5][$i]) ? trim($matches[5][$i], ' `') : null);
+		for ($i=0; $i<sizeof($matches[0]); $i++) $values[$i] = array(!empty($matches['table'][$i]) ? str_replace('`', '', trim($matches['table'][$i])) : null, !empty($matches['field'][$i]) ? str_replace('`', '', trim($matches['field'][$i])) : trim($matches['fullname'][$i]), !empty($matches['alias'][$i]) ? str_replace('`', '', trim($matches['alias'][$i])) : null);
 		
 		return $assoc ? array_combine($alias, $values) : $values;
     }
@@ -926,32 +931,41 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 	/**
 	 * Build query to count the number of rows
 	 * 
-	 * @param mixed $statement  
+	 * @param mixed $statement  Statement or table
      * @param bool  $all        Don't use limit
      * @return string
 	 */
 	public static function buildCountStatement($statement, $all=false)
 	{
-		$parts = is_array($statement) ? $statement : self::split($statement);
-		if (self::getQueryType($statement) == 'insert' && isset($parts['query'])) $parts = self::split($parts['query']);
-   		
-   		if (!isset($parts['from']) && !isset($parts['into']) && !isset($parts['tables'])) return null; # Unable to determine a from, so no rowcount query possible
+		if (!($statement instanceof DB_Table)) $type = self::getQueryType($statement);
+		
+		if (isset($type)) {
+			$parts = is_array($statement) ? $statement : self::split($statement);
+			if ($type == 'insert' && isset($parts['query'])) $parts = self::split($parts['query']);
+
+   			if (!isset($parts['from']) && !isset($parts['into']) && !isset($parts['tables'])) return null; # Unable to determine a from, so no rowcount query possible
+   			$table = isset($parts['from']) ? $parts['from'] : (isset($parts['into']) ? $parts['into'] : $parts['tables']);
+		} else {
+			$table = $statement;
+		}
 	
 		if ($all && isset($parts['limit'])) {
 			unset($parts['limit']);
 			$statement = $parts;
 		}
    		
-		if (!empty($parts['having'])) return "SELECT COUNT(*) FROM (" . (is_array($statement) ? self::join($statement) : $statement) . ")";
-   	
-		$distinct = null;
-		$column = preg_match('/DISTINCT\b.*?(?=\,|$)/si', $parts['columns'], $distinct) ? "COUNT(" . $distinct[0] . ")" : !empty($parts['group by']) ? "COUNT(DISTINCT " . $parts['group by'] . ")" : "COUNT(*)";
-   		if (isset($parts['limit'])) {
-   			list($limit, $offset) = self::splitLimit($parts['limit']);
-   			if (isset($limit)) $column = "LEAST($column, $limit " . (isset($offset) ? ", ($column) - $offset" : '') . ")";
-   		}
+		if (isset($parts)) {
+			if (!empty($parts['having'])) return "SELECT COUNT(*) FROM (" . (is_array($statement) ? self::join($statement) : $statement) . ")";
+	   	
+			$distinct = null;
+			$column = preg_match('/DISTINCT\b.*?(?=\,|$)/si', $parts['columns'], $distinct) ? "COUNT(" . $distinct[0] . ")" : !empty($parts['group by']) ? "COUNT(DISTINCT " . $parts['group by'] . ")" : "COUNT(*)";
+	   		if (isset($parts['limit'])) {
+	   			list($limit, $offset) = self::splitLimit($parts['limit']);
+	   			if (isset($limit)) $column = "LEAST($column, $limit " . (isset($offset) ? ", ($column) - $offset" : '') . ")";
+	   		}
+		}
    		
-   		return self::join(array(0=>'SELECT', 'columns'=>$column, 'from'=>isset($parts['from']) ? $parts['from'] : (isset($parts['into']) ? $parts['into'] : $parts['tables']), 'where'=>isset($parts['where']) ? $parts['where'] : ''));
+   		return self::join(array(0=>'SELECT', 'columns'=>$column, 'from'=>$table, 'where'=>isset($parts['where']) ? $parts['where'] : ''));
 	}
 	
 	/**
@@ -1035,5 +1049,59 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 	{
 	    return "TRUNCATE" . (isset($table) ? ' ' . self::quoteIdentifier($table) : null);
 	}
+
+
+	//------------- Convert statement to specific type --------------------
+    
+    /**
+     * Convert query to a select statement.
+     * 
+     * @param string $sql
+     * @return string
+     */
+    protected static function convertToSelectQuery($sql)
+    {
+    	$type = self::getQueryType($sql);
+		switch ($type) {
+			case 'SELECT':
+				return $sql;
+			
+			case 'INSERT':
+			case 'REPLACE':
+				$parts = self::split($sql);
+				if (!isset($parts['query'])) throw new Exception("Unable to convert $type statement into a SELECT statement: Statement does not contain a SELECT part");
+				return $parts['query'];
+			
+			case 'UPDATE':
+				$parts = self::split($sql);
+				$cols = self::splitColumns($parts, false, true);
+				return self::join(array(0=>'SELECT', array_keys($cols)));
+				
+		}
+		
+		throw new Exception("Unable to convert a $type statement into a SELECT statement");
+    }
+
+    /**
+     * Convert query to a insert/replace statement.
+     * 
+     * @param string $newtype
+     * @param string $sql
+     * @return string
+     */
+    protected static function convertToInsertQuery($newtype, $sql)
+    {
+    	$type = self::getQueryType($sql);
+		switch ($type) {
+			case 'SELECT' :
+				return "$newtype INTO $sql";
+				
+			case 'INSERT':
+			case 'REPLACE':
+				return preg_replace('/^\s*' . $newtype. '\b/i', $type, $sql);
+		}
+		
+		throw new Exception("Unable to convert a $type statement into a $newtype statement");
+    }
 }
 

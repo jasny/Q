@@ -3,6 +3,12 @@ namespace Q;
 
 require_once 'Q/DB/Statement.php';
 
+DB::i()->update('abc', array('def'=>10, 'egg'=>15), array('type'=>2));
+DB::i()->updateStatement('abc', array('def'=>10, 'egg'=>15))->addCriteria('type', 2)->execute();
+
+DB::i()->insert()->into('abc')->addColumn(array('def', 'egg'))->addValues(array(1, 34), array(17, 22))->execute();
+
+
 /**
  * Abstraction layer for SQL query statements.
  * All editing statements support fluent interfaces.
@@ -112,18 +118,14 @@ class DB_SQLStatement implements DB_Statement
 	/**
 	 * Class constructor
 	 *
-	 * @param mixed  $source     Optional: Q\DB, Q\DB_Table, Q\DB_SQLStatement or driver name (string)
 	 * @param string $statement  Query statement
+	 * @param mixed  $source     Q\DB, Q\DB_Table, Q\DB_SQLStatement or driver name (string)
 	 */
-	public function __construct($statement)
+	public function __construct($statement, $source=null)
 	{
-		if (func_num_args() > 1) {
-			$source = func_get_arg(0);
-			$statement = func_get_arg(1);
-		} else {
+		if (!isset($source)) {
 			if ($statement instanceof self) $source = $statement;
-			  else $source = DB::i();
-			if ($source instanceof Mock) $source = null;
+			  elseif (!(DB::i() instanceof Mock)) $source = DB::i();
 		}
 		
 		if (is_string($source)) {
@@ -146,7 +148,7 @@ class DB_SQLStatement implements DB_Statement
 	        $this->basetable = $source->getBaseTable();
 	        if (isset($source->sqlSplitter)) $this->sqlSplitter = $source->sqlSplitter;
 	    } elseif (isset($source)) {
-	        throw new Exception("Parent of statement can only be a Q\DB or Q\DB_Table, not a " . (is_object($source) ? get_class($source) : gettype($source)));
+	        throw new Exception("Source of statement can only be a Q\DB, Q\DB_Table, Q\DB_SQLStatement or driver name, not a " . (is_object($source) ? get_class($source) : gettype($source)));
 	    }
 
 		$this->statement = $statement;
@@ -187,8 +189,9 @@ class DB_SQLStatement implements DB_Statement
 	 * Get database name for column.
 	 * Mapped fieldname (starting with '#') will be resolved.
 	 *
-	 * @param mixed  $column  Column name or column index, multiple columns may be specified as array
+	 * @param mixed  $column  Field name or field index, multiple columns may be specified as array
 	 * @param string $table   Default table for column
+	 * @param string $alias   Alias the column
 	 * @param int    $flags   Options about how to quote $column
 	 * @return string
 	 */
@@ -346,7 +349,6 @@ class DB_SQLStatement implements DB_Statement
 	
 	
    	//------------- Get statement ------------------------
-	
 		
 	/**
 	 * Return the complete statement with any added or replaced parts.
@@ -439,6 +441,8 @@ class DB_SQLStatement implements DB_Statement
 			return isset($parts[$key]) ? $parts[$key] : null;
 		} else {
 			$parts = $this->getParts(true);
+			if (!isset($parts[$subset][$key])) return null;
+			
 			$parts[0] = $parts[$subset][$key];
 			return $this->sqlSplitter->injectSubsets($parts);
 		}
@@ -556,7 +560,12 @@ class DB_SQLStatement implements DB_Statement
    		$type = $this->getQueryType($subset);
    		$key = $type == 'UPDATE' || ($type == 'INSERT' && $this->hasPart('set', $subset)) ? 'set' : 'columns';
    		
-   		$column = $this->getColumnDBName($column, null, null, $flags);
+   		if ($type == 'set' && is_array($column)) {
+   			// TODO: addColumn as associated array should be interpreted as key=>value
+   		} else {
+   			$column = $this->getColumnDBName($column, null, null, $flags);
+   		}
+   		
 		$this->addToPart($key, is_array($column) ? join(', ', $column) : $column, $flags, $subset);
 		return $this;
    	}
@@ -581,12 +590,13 @@ class DB_SQLStatement implements DB_Statement
    		
    		if (!isset($join) && ~$flags & DB::ADD_REPLACE) $join = ',';
    		if (is_array($on)) $on = $this->getColumnDbName($on[0], null, null, $flags) . ' = ' . $this->getColumnDbName($on[1], $table, null, $flags);
+   		  else $on = $this->sqlSplitter->quoteIdentifier($on, DB::QUOTE_LOOSE);
    		  
    		if ($flags & DB::ADD_PREPEND && ~$flags & DB::ADD_REPLACE) {
    			$this->addToPart($key, $this->sqlSplitter->quoteIdentifier($table, $flags) . ' ' . $join, $flags, $subset);
-   			if (isset($on)) $this->addToPart($key, "ON $on", $flags & ~DB::ADD_PREPEND, $subset);
+   			if (!empty($on)) $this->addToPart($key, "ON $on", $flags & ~DB::ADD_PREPEND, $subset);
    		} else {
-			$this->addToPart($key, $join . ' '. $this->sqlSplitter->quoteIdentifier($table, $flags) . (isset($on) ? " ON $on" : ""), $flags, $subset);
+			$this->addToPart($key, $join . ' '. $this->sqlSplitter->quoteIdentifier($table, $flags) . (!empty($on) ? " ON $on" : ""), $flags, $subset);
    		}
 
 		return $this;
@@ -752,15 +762,15 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	protected function addTableAndColumns($table, $join=null, $on=null, $cols='*', $schema=null, $flags=0, $subset=0)
 	{
-		$table = isset($schema) ? $this->sqlSplitter->makeIdentifier($schema, $table) : $this->sqlSplitter->quoteIdentifier($table);
-		$this->addTable($table, $join, $on);
-		$this->addColumn($this->getColumnDBName($cols, $table));
+		$table = $this->sqlSplitter->makeIdentifier($schema, $table, null, $flags);
+		$this->addTable($table, $join, $on, $flags, $subset);
+		if (isset($cols)) $this->addColumn($this->getColumnDBName($cols, $table, null, $flags), $flags, $subset);
 		
 		return $this;
 	}
 	
 	/**
-	 * Adds a FROM table and optional columns to the query.
+	 * Adds a table and optional columns to the query.
 	 * 
      * @param array|string $table   The table name or an associative array relating table name to correlation name.
      * @param array|string $cols    The columns to select from this table.
@@ -771,9 +781,24 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	public function from($table, $cols='*', $schema=null, $flags=0, $subset=0)
 	{
+		if ($subset == 0 && $this->getQueryType() == 'INSERT') $subset = 1;
 		return $this->addTableAndColumns($table, null, null, $cols, $schema, $flags, $subset);
 	}
 
+	/**
+	 * Adds a table to the query.
+	 * 
+     * @param array|string $table   The table name or an associative array relating table name to correlation name.
+     * @param array|string $cols    The columns to select from this table.
+     * @param string       $schema  The schema name to specify, if any.
+	 * @param int          $flags   Addition options as binairy set
+	 * @return DB_SQLStatement
+	 */
+	public function into($table, $schema=null, $flags=0)
+	{
+		return $this->addTableAndColumns($table, null, null, null, $schema, $flags, 0);
+	}
+	
 	/**
 	 * Alias of Q\DB::joinInner()
 	 * 
@@ -1044,7 +1069,6 @@ class DB_SQLStatement implements DB_Statement
 		$this->cachedStatement = null;
 		$this->cachedParts = null;
 		$this->countStatement = null;
-		$this->emptyResult = null;
 	}
 
 	/**
@@ -1058,6 +1082,7 @@ class DB_SQLStatement implements DB_Statement
 		$this->clearCachedStatement();
 		$this->cachedColumns = null;
 		$this->cachedValues = null;
+		$this->emptyResult = null;
 		
 		return $this;
 	}
@@ -1117,7 +1142,7 @@ class DB_SQLStatement implements DB_Statement
    		$parts[0]['having'] = '';
    		
    		$class = get_class($this);
-   		$this->emptyResult = $this->connection->query(new $class($this, $this->connection->parse($this->sqlSplitter->joinInject($parts), false)));
+   		$this->emptyResult = $this->connection->query(new $class($this, $this->connection->parse($this->sqlSplitter->joinInject($parts), null)));
    		return $this->emptyResult;
    	}
 	
