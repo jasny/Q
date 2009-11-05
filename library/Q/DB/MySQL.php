@@ -203,7 +203,7 @@ class DB_MySQL extends DB
 	 */
 	public function getDSN()
 	{
-		return 'mysql:' . implode_assoc($this->settings);
+		return 'mysql:' . implode_set(',', $this->settings);
 	}
 
 	/**
@@ -224,8 +224,10 @@ class DB_MySQL extends DB
 	 */
 	public function nativeQuery($statement)
 	{
+		// Logging disabled
 	    if (!isset($this->log)) return $this->native->query($statement);
 	    
+	    // Logging enabled
 	    $sec = microtime(true);
 		$result = $this->native->query($statement);
 		$time = microtime(true) - $sec; unset($sec);
@@ -237,7 +239,7 @@ class DB_MySQL extends DB
 		$rows = array();
 		if (isset($this->logSettings['rows'])) {
 		    if (function_exists('mysqli_fetch_all')) $rows = $this->native->fetch_all(MYSQLI_NUM);
-              else while (($row = $this->native->fetch_row())) $rows[] = $row; break;
+              else while ($row = $this->native->fetch_row()) $rows[] = $row; break;
 		}
 
 		$args = call_user_func_array('compact', $this->logColumns);
@@ -281,7 +283,7 @@ class DB_MySQL extends DB
 		if ($result->num_rows == 0) return null;
 		
 		$tables = array();
-		while (($row = $result->fetch_row())) $tables[] = $row[0];
+		while ($row = $result->fetch_row()) $tables[] = $row[0];
 		return $tables;
 	}
 		
@@ -298,7 +300,7 @@ class DB_MySQL extends DB
 		if ($result->num_rows == 0) return null;
 		
 		$fieldnames = array();
-		while(($row = $result->fetch_assoc())) $fieldnames[] = $row['Field'];
+		while ($row = $result->fetch_assoc()) $fieldnames[] = $row['Field'];
         return $fieldnames;
 	}
 	
@@ -344,7 +346,7 @@ class DB_MySQL extends DB
 		
 		$properties = array();
 		$primaries = array();
-		while(($row = $result->fetch_assoc())) {
+		while ($row = $result->fetch_assoc()) {
 			$properties[$row['name']] = $this->convertFieldMeta($table, &$row);
 		}
 		
@@ -516,25 +518,25 @@ class DB_MySQL extends DB
 	/**
 	 * Resolve semantic mapping for fields in criteria.
 	 * 
-	 * @param string  $table
-	 * @param array   $criteria
-	 * @param boolean $keyvalue  Assume key/value pairs
+	 * @param DB_Table $table
+	 * @param array    $criteria
+	 * @param boolean  $keyvalue  Assume key/value pairs
 	 */
-	protected function resolveCriteria($table, &$criteria, $keyvalue=false)
+	protected function resolveCriteria(DB_Table $table, &$criteria, $keyvalue=false)
 	{
 		if (!isset($criteria)) return;
 
         if (!$keyvalue && (!is_array($criteria) || !is_string(key($criteria)))) {
-            $pk = $this->table($table)->getPrimaryKey();
+            $pk = $table->getPrimaryKey();
             if (empty($pk)) throw new Exception("Unable to select record for $table: Unable to determine a WHERE statement. The table might have no primary key.");
             
             $criteria = (array)$criteria;
-	    	if (count($pk) != count($criteria)) throw new Exception("Unable to select record for $table: " . count($criteria) . " values specified, while primary key from table consists of " . count($keys) . " keys (" . implode(', ', $keys) . ").");
+	    	if (count($pk) != count($criteria)) throw new Exception("Unable to select record for $table: " . count($criteria) . " values specified, while primary key from table consists of " . count($pk) . " fields (" . implode(', ', $pk) . ").");
 	    	
 	    	$criteria = array_combine((array)$pk->getName(DB::FIELDNAME_DB | DB::FIELDNAME_IDENTIFIER), $criteria);
 	    } else {
 	    	foreach ($criteria as $field=>&$value) {
-				if ($field[0] === '#') $keys[$i] = (string)$this->table($table)->$field;
+				if ($field[0] === '#') $keys[$i] = (string)$table->$field;					
 	        }
 	        
 	        // Most cases this is not needed, so merge afterwards
@@ -549,145 +551,73 @@ class DB_MySQL extends DB
 	/**
 	 * Create a select statement for a table
 	 *
-	 * @param string $table     Tablename
-	 * @param mixed  $fields    Array with fieldnames, fieldlist (string) or SELECT statement (string). NULL means all fields.
+	 * @param string $table     Table
+	 * @param mixed  $columns   Array with fieldnames or fieldlist (string); NULL means all fields.
 	 * @param mixed  $criteria  The value for the primairy key (int/string or array(value, ...)) or array(field=>value, ...)
-	 * @param string $where     Additional criteria as string
 	 * @return DB_SQLStatement
 	 */
-	public function select($table=null, $fields=null, $criteria=null, $where=null)
+	public function select($table=null, $columns=null, $criteria=null)
 	{
-	    $this->resolveCriteria($table, $criteria);
-	    
-		if (is_array($fields)) {
-    		foreach ($fields as &$field) {
-    			if (is_string($field) && $field[0] === '#') $field = $table->$field;
-    		}
+		if (isset($table)) {
+			if (!($table instanceof DB_Table)) $table = $this->table($table);
+			$this->resolveCriteria($table, $criteria);
 		}
 		
-		return new self::$classes['Statement']($source, $this->sqlSplitter->buildSelectStatement($table, $fields, $criteria, $where));
+		return new self::$classes['Statement']($this->sqlSplitter->buildSelectStatement($table, $columns, $criteria), isset($table) ? $table : $this);
 	}
 	
 	/**
-	 * Build an insert/update query statement.
+	 * Build an insert or insert/update query statement.
 	 *
-	 * @param string $table   Tablename
-	 * @param array  $values  Assasioted array as (fielname=>value, ...) or ordered array (value, ...) with 1 value for each field
-	 * @param Give additional arguments (arrays) to insert/update multiple rows. $value should be array(fieldname, ...) instead. U can also use Q\DB::args(values, $rows).
-	 * @return DB_SQLStatement
-	 * 
-	 * @throws Q\DB_Constraint_Exception when no rows are given.
+	 * @param string $table   Table
+	 * @param array  $colums  Assosiated array as (fielname=>value, ...) or ordered array (fielname, ...) with 1 value for each field
+	 * @param array  $values  Ordered array (value, ...) for one row  
+	 * @param Addition arrays as additional values (rows)
+	 * @return DB_Statement
 	 */
-	public function store($table=null, $values=null)
+	abstract public function store($table=null, $columns=null, $values=null)
 	{
-		$parent = $table instanceof DB_Table && $table->getConnection() === $this ? $table : $this;
-		if ($table instanceof DB_Table) $table = $table->getTableName(); 
+		if (isset($table) && !($table instanceof DB_Table)) $table = $this->table($table);
 		
-	    // Get the fieldnames and rows (values)
-		if (func_num_args() > 2) {
-			$fieldnames = $values;
-			
-		    $arg3 = func_get_arg(2);
-		    if (is_object($arg3) && !empty($arg3->{'#arg'})) {
-		        $rows = $arg3->value;
-		    } else {
-			    $rows = func_get_args();
-			    $rows = array_splice($rows, 2);
-		    }
-		} else {
-			$fieldnames = is_string(key($values)) ? array_keys($values) : null;
-			$rows = array($values);
-		}
-
-		if (empty($rows)) throw new DB_Constraint_Exception("No rows to store.");
-		
-		// Create statement
-		$pk = (array)$this->getPrimaryKey($table);
-		if ($fieldnames === null) $fieldnames = $this->getFieldNames($table);
-
-		return new self::$classes['Statement']($parent, $this->sqlSplitter->buildStoreStatement($table, $pk, $fieldnames, $rows));
+		$rows = isset($values) ? array_splice(func_get_args(), 2) : null;
+		return new self::$classes['Statement']($this->sqlSplitter->buildStoreStatement($table, isset($table) ? $table->getPrimaryKey() : null, $columns, $rows), isset($table) ? $table : $this);
 	}
 	
 	/**
 	 * Build a update query statement
 	 *
-	 * @param string $table   Tablename
-	 * @param mixed  $id      The value for a primairy (or as array(value, ..) if multiple key fields) or array(field=>value, ...)
-	 * @param array  $values  Assasioted array as (fielname=>value, ...) or ordered array (value, ...) with 1 value for each field
+	 * @param string $table     Table
+	 * @param array  $columns   Assasioted array as (fielname=>value, ...)
+	 * @param mixed  $criteria  The value for a primairy (or as array(value, ..) if multiple key fields) or array(field=>value, ...)
 	 * @return DB_SQLStatement
 	 */
-	public function update($table=null, $id=null, $values=null)
+	public function update($table=null, $columns=null, $criteria=null)
 	{
-		$parent = $table instanceof DB_Table && $table->getConnection() === $this ? $table : $this;
-		if ($table instanceof DB_Table) $table = $table->getTableName(); 
-		
-	    if (!is_array($id) || !is_string(key($id))) $id = array_combine((array)$this->getPrimaryKey($table), (array)$id);
-
-		foreach ($values as $fieldname=>$value) {
-		    if ($fieldname[0] == '#') {
-			    $values[(string)$this->table($table)->$fieldname] = $value;
-			    unset($values[$fieldname]);
-		    }
+		if (isset($table)) {
+			if (!($table instanceof DB_Table)) $table = $this->table($table);
+			
+			if (is_array($columns)) $this->resolveCriteria($table, $columns);
+		    $this->resolveCriteria($table, $criteria);
 		}
-	    
-		return new self::$classes['Statement']($parent, $this->sqlSplitter->buildUpdateStatement($table, $id, $values));
-	}
-
-	/**
-	 * Build a delete query statement.
-	 *
-	 * @param string $table  Tablename
-	 * @param mixed  $id     The value for a primairy (or as array(value, ..) if multiple key fields) or array(field=>value, ...)
-	 * @return DB_SQLStatement
-	 */
-	public function delete($table=null, $id=null)
-	{
-		$parent = $table instanceof DB_Table && $table->getConnection() === $this ? $table : $this;
-		if ($table instanceof DB_Table) $table = $table->getTableName(); 
-
-        $statement = $this->sqlSplitter->buildDeleteStatement($table, $id);
 		
-	    return new self::$classes['Statement']($parent, $statement);
+		return new self::$classes['Statement']($this->sqlSplitter->buildUpdateStatement($table, $columns, $criteria), isset($table) ? $table : $this);
 	}
-	
+
 	/**
 	 * Build a delete query statement.
 	 *
-	 * @param string $table  Tablename
-	 * @param mixed  $id     The value for a primairy (or as array(value, ..) if multiple key fields) or array(field=>value, ...)
+	 * @param string $table     Table
+	 * @param mixed  $criteria  The value for a primairy (or as array(value, ..) if multiple key fields) or array(field=>value, ...)
 	 * @return DB_SQLStatement
 	 */
-	public function truncate($table=null, $id=null)
+	public function delete($table=null, $criteria=null)
 	{
-		$parent = $table instanceof DB_Table && $table->getConnection() === $this ? $table : $this;
-		if ($table instanceof DB_Table) $table = $table->getTableName(); 
-
-	    $statement = $this->sqlSplitter->buildTruncateStatement($table);
-	    return new self::$classes['Statement']($parent, $statement);
-	}	
-	
-	/**
-	 * Start database transaction.
-	 */
-	public function beginTransaction()
-	{
-		$this->nativeQuery("START TRANSACTION");
-	}
-
-	/**
-	 * Commit changes made in the current transaction.
-	 */
-	public function commit()
-	{
-		$this->nativeQuery("COMMIT");
-	}
-
-	/**
-	 * Discard changes made in the current transaction.
-	 */
-	public function rollBack()
-	{
-		$this->nativeQuery("ROLLBACK");
+		if (isset($table)) {
+			if (!($table instanceof DB_Table)) $table = $this->table($table);
+		    $this->resolveCriteria($table, $criteria);
+		}
+		
+	    return new self::$classes['Statement']($this->sqlSplitter->buildDeleteStatement($table, $criteria), isset($table) ? $table : $this);
 	}
 	
 	
@@ -730,7 +660,10 @@ class DB_MySQL extends DB
 		// Execute query statement
 		$result = $this->nativeQuery($tree[0]);
 		if (!$result) {
-			// TODO: Throw constraint exception on constraint error
+			$match = null;
+			if ($this->native->errno == 1451 && preg_match('/^Cannot delete or update a parent row: a foreign key constraint fails \(`.*?`\.`(.*?)`, CONSTRAINT `.*?` FOREIGN KEY \(`(.*?)`\) REFERENCES `(.*?)` \(`(.*?)`\)\)/', $this->native->error, $match)) {
+				throw new DB_ConstraintException($this->native->error, $this->native->errno, $match[3], $match[4], $match[1], $match[2]);
+			}
 			throw new DB_QueryException($this->native->error, $tree[0], $this->native->errno);
 		}
 		
@@ -762,6 +695,29 @@ class DB_MySQL extends DB
 		return $ob;
 	}
 	
+	/**
+	 * Start database transaction.
+	 */
+	public function beginTransaction()
+	{
+		$this->nativeQuery("START TRANSACTION");
+	}
+
+	/**
+	 * Commit changes made in the current transaction.
+	 */
+	public function commit()
+	{
+		$this->nativeQuery("COMMIT");
+	}
+
+	/**
+	 * Discard changes made in the current transaction.
+	 */
+	public function rollBack()
+	{
+		$this->nativeQuery("ROLLBACK");
+	}
 	
 	/**
 	 * Gets the number of affected rows in a previous MySQL operation.

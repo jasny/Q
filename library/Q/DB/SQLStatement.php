@@ -3,12 +3,6 @@ namespace Q;
 
 require_once 'Q/DB/Statement.php';
 
-DB::i()->update('abc', array('def'=>10, 'egg'=>15), array('type'=>2));
-DB::i()->updateStatement('abc', array('def'=>10, 'egg'=>15))->addCriteria('type', 2)->execute();
-
-DB::i()->insert()->into('abc')->addColumn(array('def', 'egg'))->addValues(array(1, 34), array(17, 22))->execute();
-
-
 /**
  * Abstraction layer for SQL query statements.
  * All editing statements support fluent interfaces.
@@ -61,12 +55,6 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	protected $baseParts;
 	
-	/**
-	 * The column names ot the base statement.
-	 * @var array
-	 */
-	protected $baseColumns;
-
 	
 	/**
 	 * The parts to replace the ones of the base statement.
@@ -155,16 +143,6 @@ class DB_SQLStatement implements DB_Statement
 	}
 	
 	/**
-	 * Cast statement object to string.
-	 *
-	 * @return string
-	 */
-	public function __toString()
-	{
-	    return $this->getStatement();
-	}
-	
-	/**
 	 * Get the database connection.
 	 * 
 	 * @return DB
@@ -245,51 +223,22 @@ class DB_SQLStatement implements DB_Statement
    	//------------- Get base query ------------------------
 
 	/**
-     * Return the statement without any appended parts.
+     * Return the statement without any added or replaced parts.
      *
-	 * @param array $args  Argument to parse on placeholders
-     * @return string
+     * @return DB_SQLStatement
      */
-   	public function getBaseStatement($args=array())
+   	public function getBaseStatement()
    	{
-   		if ($args === array()) return $this->statement;
-		
-		if (func_num_args() > 1) $args = func_get_args();
-		return $this->sqlSplitter->parse($this->statement, $args);
+   		return new static($this, $this->statement);
    	}
 
-	/**
-     * Return a subquery without any added or replaced parts
-     *
-	 * @param int   $subset
-	 * @param array $args    Arguments to parse into subquery on placeholders 
-     * @return string
-     */
-	public function getBaseSubset($subset, $args=array())
-	{
-		if ($subset == 0) {
-			$statement = $this->statement;
-		} else {
-			$sets = $this->sqlSplitter->extractSubsets($this->statement);
-			if (!isset($sets[$subset])) return null;
-			
-			$sets[0] = $sets[$subset];
-			$statement = $this->sqlSplitter->injectSubsets($sets);
-		}
-
-		if ($args === array()) return $statement;
-		
-		if (func_num_args() > 2) $args = func_get_args();
-		return $this->sqlSplitter->parse($this->statement, $args);
-	}
-	
 	/**
      * Return all the parts of the base statement
      *
 	 * @param boolean $extract  Extract subsets from main statement and split each subset seperatly
      * @return array
      */
-	public function getBaseParts($extract=false)
+	protected function getBaseParts($extract=false)
 	{
 		if (!isset($this->baseParts[(bool)$extract])) {
 			if (!$extract) $this->baseParts[false] = $this->sqlSplitter->split($this->statement);
@@ -298,77 +247,33 @@ class DB_SQLStatement implements DB_Statement
 		
 		return $this->baseParts[(bool)$extract];
 	}
-
-	/**
-     * Return a specific part of the base statement
-     *
-	 * @param mixed $key     The key identifying the part
-	 * @param int   $subset  Get the parts of a subquery (0=main query)
-     * @return string
-     */
-	public function getBasePart($key, $subset=0)
-	{
-		if ($subset == 0) {
-			$parts = $this->getBaseParts(false);
-			return isset($parts[$key]) ? $parts[$key] : null;
-			
-		} else {
-			$parts = $this->getBaseParts(true);
-			$parts[0] = $parts[$subset][$key];
-			return $this->sqlSplitter->injectSubsets($parts);
-		}
-	}
-		
-	/**
-     * Return the column names of the base statement.
-     *
-	 * @param boolean $splitFieldname  Split fieldname in array(table, field, alias)
-	 * @param boolean $assoc           Remove '[AS] alias' (for SELECT) or 'to=' (for INSERT/UPDATE) and return as associated array
-	 * @param int     $subset          Get the columns of a subquery (0=main query)
-     * @return array
-     */
-	public function getBaseColumns($splitFieldname=false, $assoc=false, $subset=0)
-	{
-		if (!isset($this->baseColumns[$subset])) {
-			$this->baseColumns[$subset] = $this->sqlSplitter->splitColumns($subset == 0 ? $this->statement : $this->getBaseSubset($subset), $splitFieldname, $assoc);
-		}
-		return $this->baseColumns[$subset];
-	}
-	
-	/**
-     * Return the values of the base statement.
-     * Only for INSERT INTO ... VALUES ... statement.
-     *
-     * @return array
-     */
-	public function getBaseValues()
-	{
-		trigger_error("Sorry, parsing out values for an INSERT query is not yet implemented", E_USER_WARNING);
-		return array();
-	}
 	
 	
    	//------------- Get statement ------------------------
-		
+	
 	/**
-	 * Return the complete statement with any added or replaced parts.
+	 * Cast statement object to string.
+	 *
+	 * @return string
+	 */
+	public function __toString()
+	{
+		if (empty($this->partsAdd) && empty($this->partsReplace)) return $this->statement;
+		
+		if (!isset($this->cachedStatement)) $this->cachedStatement = $this->sqlSplitter->join($this->getParts());
+		return $this->cachedStatement;
+	}
+	
+	/**
+	 * Return the statement with parsed in arguments.
 	 * 
 	 * @param array $args  Arguments to parse on place holders
 	 * @return string
 	 */
-	public function getStatement($args=null)
+	public function parse($args)
 	{
-		if (empty($this->partsAdd) && empty($this->partsReplace)) {
-			$stmt =& $this->statement;
-		} else {
-			if (!isset($this->cachedStatement)) $this->cachedStatement = $this->sqlSplitter->join($this->getParts());
-			$stmt =& $this->cachedStatement;
-		}
-		
-		if (func_num_args() == 0) return $stmt;
-		
 		if (func_num_args() > 1) $args = func_get_args();
-		return $this->sqlSplitter->parse($this->cachedStatement, $args);
+		return $this->sqlSplitter->parse($this, $args);
 	}
 
 	/**
@@ -424,7 +329,10 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	public function hasPart($key, $subset=0)
 	{
-		return !empty($this->partsAppend[$subset][$key]) || !empty($this->partsPrepend[$subset][$key]) || !empty($this->partsReplace[$subset][$key]) || (bool)$this->getBasePart($key, $subset); 
+		if (!empty($this->partsAppend[$subset][$key]) || !empty($this->partsPrepend[$subset][$key]) || !empty($this->partsReplace[$subset][$key])) return true;
+		
+		$parts = $subset == 0 ? array($this->getBaseParts(false)) : $this->getBaseParts(true);
+		return isset($parts[$subset][$key]);
 	}
 	
 	/**
@@ -443,7 +351,7 @@ class DB_SQLStatement implements DB_Statement
 			$parts = $this->getParts(true);
 			if (!isset($parts[$subset][$key])) return null;
 			
-			$parts[0] = $parts[$subset][$key];
+			$parts[0] =& $parts[$subset][$key];
 			return $this->sqlSplitter->injectSubsets($parts);
 		}
 	}
@@ -451,27 +359,26 @@ class DB_SQLStatement implements DB_Statement
 	/**
 	 * Get the columns used in the statement.
 	 * 
-	 * @param boolean $splitFieldname  Split fieldname in array(table, field, alias)
-	 * @param boolean $assoc           Remove '[AS] alias' (for SELECT) or 'to=' (for INSERT/UPDATE) and return as associated array
-	 * @param int     $subset          Get the columns of a subquery (0=main query)
+	 * @param int $flags   DB::SPLIT_% option
+	 * @param int $subset  Get the columns of a subquery (0=main query)
 	 * @return array
 	 */
-	public function getColumns($splitFieldname=false, $assoc=false, $subset=0)
+	public function getColumns($flags=0, $subset=0)
 	{
-		if (empty($this->partsAdd) && empty($this->partsReplace)) return $this->getBaseColumns($splitFieldname, $assoc, $subset);
 		if (array_key_exists($subset, $this->cachedColumns)) return $this->cachedColumns[$subset];
 		
 		if ($subset == 0) {
 			$parts = $this->getParts();
 		} else {
 			$sets = $this->getParts(true);
-			$sets[0] = $sets[$subset];
+			if (!isset($sets[$subset])) throw new Exception("Unable to get columns for subset $subset: Subset does not exist."); 
+			$sets[0] =& $sets[$subset];
 			$parts = $this->sqlSplitter->injectSubsets($sets);
 		}
 		
-		if (isset($parts['columns'])) $this->cachedColumns[$subset] = $this->sqlSplitter->splitColumns($parts['columns']);
-		  elseif (isset($parts['set'])) $this->cachedColumns[$subset] = $this->sqlSplitter->splitColumns($parts['set']);
-		 
+		if (!isset($parts['columns']) && !isset($parts['set'])) throw new Exception("It's not possible to extract columns of a " . $this->getQueryType() . " query.");
+
+		$this->cachedColumns[$subset] = $this->sqlSplitter->splitColumns(isset($parts['columns']) ? $parts['columns'] : $parts['set'], $flags);
 		return $this->cachedColumns[$subset];
 	}
 
@@ -560,7 +467,7 @@ class DB_SQLStatement implements DB_Statement
    		$type = $this->getQueryType($subset);
    		$key = $type == 'UPDATE' || ($type == 'INSERT' && $this->hasPart('set', $subset)) ? 'set' : 'columns';
    		
-   		if ($type == 'set' && is_array($column)) {
+   		if ($key == 'set' && is_array($column)) {
    			// TODO: addColumn as associated array should be interpreted as key=>value
    		} else {
    			$column = $this->getColumnDBName($column, null, null, $flags);

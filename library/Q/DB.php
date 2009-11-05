@@ -63,21 +63,21 @@ abstract class DB implements Multiton
 	const QUOTE_NONE = 0x1000;
 	const QUOTE_STRICT = 0x2000;
 	
-	/* Sorting order */
+	/** Split fieldname in array(table, field, alias) */
+	const SPLIT_IDENTIFIER = 0x1;
+	/** Remove '[AS] alias' (for SELECT) or 'to=' (for INSERT/UPDATE) and return as associated array */
+	const SPLIT_ASSOC = 0x2;
+	
+	/** Sort ascending */
 	const ASC = 1;
+	/** Sort descending */
 	const DESC = 2;
 	
-	/* Get value */
+	/* Get value as record */
 	const ORM = 1;
+	/* Get value to used in store query */
 	const FOR_SAVE = 2;
 	
-	/** Single row constraint */
-	const SINGLE_ROW = 1;
-	/** No single row constraint */
-	const MULTIPLE_ROWS = 2;
-	/** Force to all rows */
-	const ALL_ROWS = 3;
-
 	/** Special keys for add/replace part */
     const COMMAND_PART = 0;
 	
@@ -840,7 +840,7 @@ abstract class DB implements Multiton
 	 * @internal If $fields is an array, $fields[0] may be a SELECT statement and the other elements are additional fields
 	 *
 	 * @param string $table     Tablename
-	 * @param mixed  $fields    Array with fieldnames, fieldlist (string) or SELECT statement (string). NULL means all fields.
+	 * @param mixed  $fields    Array with fieldnames or fieldlist (string); NULL means all fields.
 	 * @param mixed  $criteria  The value for the primairy key (int/string or array(value, ...)) or array(field=>value, ...)
 	 * @return DB_Statement
 	 */
@@ -849,19 +849,18 @@ abstract class DB implements Multiton
 	/**
 	 * Build an insert or insert/update query statement.
 	 *
-	 * @param string $table   Tablename
-	 * @param array  $values  Assasioted array as (fielname=>value, ...) or ordered array (value, ...) with 1 value for each field
-	 * @param Give additional arguments (arrays) to insert/update multiple rows. $value should be array(fieldname, ...) instead. U can also use Q\DB::args(values, $rows).
+	 * @param string $table   Table
+	 * @param array  $colums  Assosiated array as (fielname=>value, ...) or ordered array (fielname, ...) with 1 value for each field
+	 * @param array  $values  Ordered array (value, ...) for one row  
+	 * @param Addition arrays as additional values (rows)
 	 * @return DB_Statement
-	 * 
-	 * @throws Q\DB_LimitException when no rows are given.
 	 */
-	abstract public function store($table=null, $values=null);
+	abstract public function store($table=null, $columns=null, $values=null);
 	
 	/**
 	 * Build a update query statement.
 	 *
-	 * @param string $table   Tablename
+	 * @param string $table   Table
 	 * @param array  $values  Assasioted array as (fielname=>value, ...) or ordered array (value, ...) with 1 value for each field
 	 * @return DB_Statement
 	 */
@@ -870,7 +869,7 @@ abstract class DB implements Multiton
 	/**
 	 * Build a delete query statement.
 	 *
-	 * @param string $table  Tablename
+	 * @param string $table  Table
 	 * @return DB_Statement
 	 */
 	abstract public function delete($table=null);
@@ -902,11 +901,13 @@ abstract class DB implements Multiton
 	
 	/**
 	 * Excecute a query statement.
-	 * Returns DB_Result for 'SELECT', 'SHOW', etc queries, returns new id for 'INSERT' query, returns TRUE for other
+	 * Returns DB_Result for select queries, new id for store queries and TRUE for other
 	 * 
-	 * @param mixed $statement  String or query object
-	 * @param array $args       Arguments to be parsed into the query on placeholders
+	 * @param string $statement  Query statement
+	 * @param array  $args       Arguments to be parsed into the query on placeholders
 	 * @return DB_Result
+	 * 
+	 * @throws DB_QueryException if query fails
 	 */
 	abstract public function query($statement, $args=null);
 	

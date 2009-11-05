@@ -126,9 +126,9 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
     
 	/**
 	 * Split a column name in table, column and alias OR table name in db, table and alias.
-	 * Returns array(table, fieldname, alias) / array(db, table, alias)
+	 * Returns array(table, field, alias) / array(db, table, alias)
 	 *
-	 * @param string $fieldname  Full fieldname
+	 * @param string $name  Full field/table name
 	 * @return array
 	 */
 	public static function splitIdentifier($name)
@@ -615,25 +615,24 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 	/**
 	 * Return the columns of a (partual) query.
 	 * 
-	 * @param string  $sql             SQL query or 'column, column, ...'
-	 * @param boolean $splitFieldname  Split fieldname in array(table, field, alias)
-	 * @param boolean $assoc           Remove '[AS] alias' (for SELECT) or 'to=' (for SET/INSERT/UPDATE) and return as associated array
+	 * @param string  $sql    SQL query or 'column, column, ...'
+	 * @param int     $flags  DB::SPLIT_% option
 	 * @return array
 	 */
-	public static function splitColumns($sql, $splitFieldname=false, $assoc=false)
+	public static function splitColumns($sql, $flags=0)
 	{
 		$type = self::getQueryType($sql);
 		
 		if ($type) {
 			$parts = self::split($sql);
 			
-			if (isset($parts['columns'])) $sql = $parts['columns'];
+			if (isset($parts['columns'])) $sql = preg_replace('/^\s*\((.*)\)\s*$/', '\1', $parts['columns']);
 			  elseif (isset($parts['set'])) $sql = $parts['set'];
-			  else throw new Exception("Unable to split the column for $type query: $sql");
+			  else throw new Exception("It's not possible to extract columns of a $type query. $sql");
 		}
 		
 		// Simple split on comma
-		if (!$assoc && !$splitFieldname) {
+		if ($flags & (DB::SPLIT_IDENTIFIER | DB::SPLIT_ASSOC) == 0) {
 			preg_match_all('/(?:`[^`]*+`|"(?:[^"\\\\]++|\\\\.)*+"|\'(?:[^\'\\\\]++|\\\\.)*+\'|\((?:[^()]++|(?R))*\)|[^`"\'(),]++)++/', $sql, $matches, PREG_PATTERN_ORDER);
 			return $matches[0];
 		}
@@ -644,29 +643,29 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 		if (!isset($parts['set'])) {
 			preg_match_all('/\s*(?P<fullname>' .
 			  '(?:(?P<table>(?:(?:`[^`]*+`|\w++)\.)*(?:`[^`]*+`|\w++))\.)?(?P<field>`[^`]*+`|\w++)\s*+|' .
-			  '(?:`[^`]*+`|"(?:[^"\\\\]++|\\\\.)*"|\'(?:[^\'\\\\]|\\\\.)*\'|\((?:[^()]*+|(?R))\)|\s++|\w++(?<!\bAS)|[^`"\'\w\s(),])+' .
-			  ')(?:(?:\bAS\s*)?(?P<alias>`[^`]*+`|\b\w++)\s*+)?(?=,|$)' .
+			  '(?:`[^`]*+`|"(?:[^"\\\\]++|\\\\.)*"|\'(?:[^\'\\\\]|\\\\.)*\'|\((?:[^()]++|(?R))*\)|\s++|\w++(?<!\bAS)|[^`"\'\w\s(),])+' .
+			  ')(?:(?:\bAS\s*)?(?P<alias>`[^`]*+`|\b\w++)\s*+)?(?=,|$|\))' .
 			  '/si', $sql, $matches, PREG_PATTERN_ORDER);
 		} else {
-			preg_match_all('/\s*(?:(?P<alias>(?:(`[^`]*+`|\w++)\.)*(`[^`]*+`|\w++)\s*+)=\s*+)?' .
+			preg_match_all('/\s*((?P<alias>(?:(?:`[^`]*+`|\w++)\.)*(?:`[^`]*+`|\w++)|@+\w++)\s*+=\s*+)?' .
 			  '(?P<fullname>' . 
 			  '(?:(?P<table>(?:(?:`[^`]*+`|\w++)\.)*(?:`[^`]*+`|\w++))\.)?(?P<field>`[^`]*+`|\w++)\s*+|' .
-			  '(?:`[^`]*+`|"(?:[^"\\\\]++|\\\\.)*"|\'(?:[^\'\\\\]|\\\\.)*\'|\((?:[^()]*+|(?R))\)|\s++|\w++(?<!\bAS)|[^`"\'\w\s(),])+' .
-			  ')(?=,|$)' .
+			  '(?:`[^`]*+`|"(?:[^"\\\\]++|\\\\.)*"|\'(?:[^\'\\\\]|\\\\.)*\'|\((?:[^()]++|(?R))*\)|\s++|\w++|[^`"\'\w\s(),])+' .
+			  ')(?=,|$|\))' .
 			  '/si', $sql, $matches, PREG_PATTERN_ORDER);
 		}
 
-		if ($assoc) {
+		if ($flags & DB::SPLIT_ASSOC) {
     		$alias = array();
             for ($i=0; $i<sizeof($matches[0]); $i++) $alias[$i] = !empty($matches['alias'][$i]) ? str_replace('`', '', trim($matches['alias'][$i])) : (!empty($matches['field'][$i]) ? str_replace('`', '', trim($matches['field'][$i])) : trim($matches['fullname'][$i]));
 		}
 		
-		if (!$splitFieldname) return array_combine($alias, array_map('trim', $matches['fullname']));
+		if (~$flags & DB::SPLIT_IDENTIFIER) return array_combine($alias, array_map('trim', $matches['fullname']));
 		
 	 	$values = array();
 		for ($i=0; $i<sizeof($matches[0]); $i++) $values[$i] = array(!empty($matches['table'][$i]) ? str_replace('`', '', trim($matches['table'][$i])) : null, !empty($matches['field'][$i]) ? str_replace('`', '', trim($matches['field'][$i])) : trim($matches['fullname'][$i]), !empty($matches['alias'][$i]) ? str_replace('`', '', trim($matches['alias'][$i])) : null);
 		
-		return $assoc ? array_combine($alias, $values) : $values;
+		return isset($alias) ? array_combine($alias, $values) : $values;
     }
 
 	/**
@@ -884,88 +883,28 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 	/**
 	 * Create a select statement for a table
 	 *
-	 * @param string  $table      Tablename
-	 * @param mixed   $fields     Array with fieldnames, fieldlist (string) or SELECT statement (string). NULL means all fields.
-	 * @param mixed   $criteria   The value for the primairy key (int/string or array(value, ...)) or array(field=>value, ...)
-	 * @param string  $add_where  Additional criteria as string
+	 * @param string  $table     Table
+	 * @param mixed   $columns   Array with fieldnames or fieldlist (string); NULL means all fields.
+	 * @param mixed   $criteria  False, where string or array(field=>value, ...)
 	 * @return string
 	 */
-	public static function buildSelectStatement($table=null, $fields=null, $criteria=null, $add_where=null)
+	public static function buildSelectStatement($table=null, $columns=null, $criteria=null)
 	{
-		// Create where part from $criteria
+		if (!isset($columns) && isset($table)) {
+			$columns = '*';
+		} elseif (!is_scalar($columns)) {
+			foreach ($columns as $alias=>&$col) $col = self::makeIdentifier($table, $col, is_int($alias) ? null : $alias);
+			$columns = join(', ', $columns);
+		}
+		
 		if ($criteria === false) {
-			$where = 'FALSE';
-			
-		} elseif (isset($criteria)) {
-		    $keys = array_keys($criteria);
-			$criteria = array_values($criteria);
-	
-			$where = array();
-			foreach ($keys as $i=>$key) $where[] = self::quoteIdentifier($key) . ' = ' . self::quote($criteria[$i]);
-			$where = join(' AND ', $where) . (isset($add_where) ? " AND ($add_where)" : '');
-			
-		} else {
-			$where = $add_where;
+			$criteria = 'FALSE';
+		} elseif (!is_scalar($criteria)) {
+			array_walk($criteria, function($key, $value) {return DB_MySQL_SQLSplitter::makeIdentifier($table, $key) . ' = ' . DB_MySQL_SQLSplitter::quote($value);});
+			$criteria = join(' AND ', $criteria);
 		}
 		
-		// If first field is a full SELECT query
-		if (isset($fields)) {
-			$main_field = is_array($fields) ? reset($fields) : $fields;
-			if (preg_match('/^\s*select\b/i', $main_field)) {
-				$parts = self::split($main_field);
-				if (!empty($where)) $parts['where'] = !empty($parts['where']) && $where !== 'FALSE' ? "(" . $parts['where'] . ") AND ($where)" : $where;
-	
-				if (is_array($fields) && sizeof($fields) > 1) $parts['columns'] .= (isset($parts['columns']) ? ', ' : '') . join(',', array_splice($fields, 1));
-	
-				return self::join($parts);
-			}
-		}
-				
-		// otherwise
-		if (!isset($fields) && isset($table)) $fields = '*';
-		  elseif (is_array($fields)) $fields = join(',', $fields);
-		
-		return "SELECT $fields" . (isset($table) ? " FROM " . self::quoteIdentifier($table) : '') . (isset($where) ? " WHERE $where" : '');
-	}
-	
-	/**
-	 * Build query to count the number of rows
-	 * 
-	 * @param mixed $statement  Statement or table
-     * @param bool  $all        Don't use limit
-     * @return string
-	 */
-	public static function buildCountStatement($statement, $all=false)
-	{
-		if (!($statement instanceof DB_Table)) $type = self::getQueryType($statement);
-		
-		if (isset($type)) {
-			$parts = is_array($statement) ? $statement : self::split($statement);
-			if ($type == 'insert' && isset($parts['query'])) $parts = self::split($parts['query']);
-
-   			if (!isset($parts['from']) && !isset($parts['into']) && !isset($parts['tables'])) return null; # Unable to determine a from, so no rowcount query possible
-   			$table = isset($parts['from']) ? $parts['from'] : (isset($parts['into']) ? $parts['into'] : $parts['tables']);
-		} else {
-			$table = $statement;
-		}
-	
-		if ($all && isset($parts['limit'])) {
-			unset($parts['limit']);
-			$statement = $parts;
-		}
-   		
-		if (isset($parts)) {
-			if (!empty($parts['having'])) return "SELECT COUNT(*) FROM (" . (is_array($statement) ? self::join($statement) : $statement) . ")";
-	   	
-			$distinct = null;
-			$column = preg_match('/DISTINCT\b.*?(?=\,|$)/si', $parts['columns'], $distinct) ? "COUNT(" . $distinct[0] . ")" : !empty($parts['group by']) ? "COUNT(DISTINCT " . $parts['group by'] . ")" : "COUNT(*)";
-	   		if (isset($parts['limit'])) {
-	   			list($limit, $offset) = self::splitLimit($parts['limit']);
-	   			if (isset($limit)) $column = "LEAST($column, $limit " . (isset($offset) ? ", ($column) - $offset" : '') . ")";
-	   		}
-		}
-   		
-   		return self::join(array(0=>'SELECT', 'columns'=>$column, 'from'=>$table, 'where'=>isset($parts['where']) ? $parts['where'] : ''));
+		return "SELECT $columns" . (isset($table) ? " FROM " . self::quoteIdentifier($table) : '') . (isset($criteria) ? " WHERE $criteria" : '');
 	}
 	
 	/**
@@ -973,12 +912,12 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 	 * 
 	 * @param string  $table
 	 * @param array   $primairy_key  Array with fields of primary key
-	 * @param array   $fieldnames
+	 * @param array   $columns
 	 * @param array   $rows          As array(array(value, value, ...), array(value, value, ...), ...)
 	 * @param boolean $overwrite     Add ON DUPLICATE KEY UPDATE
 	 * @return string
 	 */
-	public static function buildStoreStatement($table, $primairy_key=null, $fieldnames=array(), $rows=array(), $overwrite=true)
+	public static function buildStoreStatement($table, $primairy_key=null, $columns=null, $rows=null, $overwrite=true)
 	{
 		$sql_fields = array();
 		$sql_update = array();
@@ -1005,11 +944,11 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 	 * Create query to update rows of a table.
 	 * 
 	 * @param string $table
+	 * @param array  $columns   Assasioted array as (fielname=>value, ...)
 	 * @param array  $criteria  As array(field=>value, ...)
-	 * @param array  $values    Assasioted array as (fielname=>value, ...)
 	 * @return string
 	 */
-	public static function buildUpdateStatement($table=null, $criteria=array(), $values=array())
+	public static function buildUpdateStatement($table=null, $columns=null, $criteria=null)
 	{
 		foreach ($criteria as $key=>$value) {
 		    $where = (isset($where) ? "$where AND " : '') . self::quoteIdentifier($key) . ' = ' . self::quote($value);
@@ -1050,7 +989,47 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 	    return "TRUNCATE" . (isset($table) ? ' ' . self::quoteIdentifier($table) : null);
 	}
 
+	/**
+	 * Build query to count the number of rows
+	 * 
+	 * @param mixed $statement  Statement or table
+     * @param bool  $all        Don't use limit
+     * @return string
+	 */
+	public static function buildCountStatement($statement, $all=false)
+	{
+		if (!($statement instanceof DB_Table)) $type = self::getQueryType($statement);
+		
+		if (isset($type)) {
+			$parts = is_array($statement) ? $statement : self::split($statement);
+			if ($type == 'insert' && isset($parts['query'])) $parts = self::split($parts['query']);
 
+   			if (!isset($parts['from']) && !isset($parts['into']) && !isset($parts['tables'])) return null; # Unable to determine a from, so no rowcount query possible
+   			$table = isset($parts['from']) ? $parts['from'] : (isset($parts['into']) ? $parts['into'] : $parts['tables']);
+		} else {
+			$table = $statement;
+		}
+	
+		if ($all && isset($parts['limit'])) {
+			unset($parts['limit']);
+			$statement = $parts;
+		}
+   		
+		if (isset($parts)) {
+			if (!empty($parts['having'])) return "SELECT COUNT(*) FROM (" . (is_array($statement) ? self::join($statement) : $statement) . ")";
+	   	
+			$distinct = null;
+			$column = preg_match('/DISTINCT\b.*?(?=\,|$)/si', $parts['columns'], $distinct) ? "COUNT(" . $distinct[0] . ")" : !empty($parts['group by']) ? "COUNT(DISTINCT " . $parts['group by'] . ")" : "COUNT(*)";
+	   		if (isset($parts['limit'])) {
+	   			list($limit, $offset) = self::splitLimit($parts['limit']);
+	   			if (isset($limit)) $column = "LEAST($column, $limit " . (isset($offset) ? ", ($column) - $offset" : '') . ")";
+	   		}
+		}
+   		
+   		return self::join(array(0=>'SELECT', 'columns'=>$column, 'from'=>$table, 'where'=>isset($parts['where']) ? $parts['where'] : ''));
+	}
+	
+	
 	//------------- Convert statement to specific type --------------------
     
     /**

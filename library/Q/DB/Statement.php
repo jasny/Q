@@ -11,50 +11,40 @@ interface DB_Statement
 	/**
 	 * Class constructor
 	 *
-	 * @param mixed  $source     Optional: Q\DB, Q\DB_Table, Q\DB_SQLStatement or driver name (string)
 	 * @param string $statement  Query statement
+	 * @param mixed  $source     Q\DB, Q\DB_Table, Q\DB_Statement or driver name (string)
 	 */
-	public function __construct($statement);
-	
-	
+	public function __construct($statement, $source=null);
+		
 	/**
-     * Return the statement without any appended parts.
+     * Return the statement without any added or replaced parts.
      *
-	 * @param Passed arguments are parsed into prepared statement.
-     * @return string
+     * @return DB_Statement
      */
    	public function getBaseStatement();
 
-	/**
-     * Return a subquery without any added or replaced parts
-     *
-	 * @param int $subset  Specify to wich subset the change applies (0=main query)
-	 * @param Additional arguments are parsed into subquery statement.
-     * @return string
-     */
-	public function getBaseSubset($subset);
-	
-	/**
-	 * Return the query statement.
+   	/**
+	 * Cast statement object to string.
 	 * 
 	 * @param Passed arguments are parsed into prepared statement.
 	 * @return string
 	 */
-	public function getStatement();
-	
+	public function __toString();
+   	
+	/**
+	 * Return the statement with parsed in arguments.
+	 * 
+	 * @param array $args  Arguments to parse on place holders
+	 * @return string
+	 */
+	public function parse($args);
+		
 	/**
 	 * Count the number of placeholders in the statement.
 	 *
 	 * @return int
 	 */
 	public function countPlaceholders();
-	
-	/**
-	 * Cast statement object to string
-	 *
-	 * @return string
-	 */
-	public function __toString();
 	
 	
    	//------------- Add/Set specific part ------------------------
@@ -68,32 +58,32 @@ interface DB_Statement
 	 * @param mixed  $column   Column name, column number or array of column names ($column[0]=$value OR $column[1]=$value)
 	 * @param mixed  $value    Value or array of values ($column=$value[0] OR $column=$value[1])
 	 * @param string $compare  Comparision operator: =, !=, >, <, =>, <=, LIKE, LIKE%, %LIKE%, REVERSE LIKE (value LIKE column), IN, NOT IN, ALL and BETWEEN
-	 * @param int    $options  Addition options as binairy set
+	 * @param int    $flags    Addition options as binairy set
 	 * @param mixed  $subset   Specify to which subset (subquery, node) the change applies
 	 * @return DB_Statement
 	 */
-	public function addCriteria($column, $value, $compare="=", $options=0, $subset=null);
+	public function addCriteria($column, $value, $compare="=", $flags=0, $subset=null);
 
 	/**
 	 * Set the result of of the query statement.
 	 *
-	 * @param string $column   ORDER BY statement
-	 * @param int    $options  Addition options as binairy set
-	 * @param mixed  $subset   Specify to which subset (subquery, node) the change applies
+	 * @param string $column  ORDER BY statement
+	 * @param int    $flags   Addition options as binairy set
+	 * @param mixed  $subset  Specify to which subset (subquery, node) the change applies
 	 * @return DB_Statement
 	 */
-	public function orderBy($column, $options=0, $subset=null);
+	public function orderBy($column, $flags=0, $subset=null);
 
 	/**
 	 * Set the limit for the number of rows returned when excecuted.
 	 *
 	 * @param int   $rowcount  Number of rows
 	 * @param int   $offset    Start at row
-	 * @param int   $options   Addition options as binairy set
+	 * @param int   $flags     Addition options as binairy set
 	 * @param mixed $subset    Specify to which subset (subquery, node) the change applies
 	 * @return DB_Statement
 	 */
-	public function limit($rowcount, $offset=0, $options=0, $subset=null);
+	public function limit($rowcount, $offset=0, $flags=0, $subset=null);
 	
 	
    	//------------- Finalize changes ------------------------
@@ -137,7 +127,6 @@ interface DB_Statement
      * @return int
      */
    	public function countRows($all=false);
-
    	
 	/**
 	 * Create a new record using the fields of the result of this statement.

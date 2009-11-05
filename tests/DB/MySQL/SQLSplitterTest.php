@@ -722,8 +722,8 @@ class DB_MySQL_SQLSplitterTest extends PHPUnit_Framework_TestCase
 
 	public function testSplit_UpdateAdvanced()
     {
-		$parts = $this->qs->split("UPDATE `test` LEFT JOIN atst ON `test`.id = atst.idTest SET fld1=DEFAULT, afld = CONCAT(a, f, ' (SELECT TRANSPORT)'), status='ACTIVE' WHERE id = 10");
-    	$this->assertEquals(array(0=>'UPDATE', 'tables'=>'`test` LEFT JOIN atst ON `test`.id = atst.idTest', 'set'=>"fld1=DEFAULT, afld = CONCAT(a, f, ' (SELECT TRANSPORT)'), status='ACTIVE'", 'where'=>'id = 10', 'limit'=>''), array_map('trim', $parts));
+		$parts = $this->qs->split("UPDATE `test` LEFT JOIN atst ON `test`.id = atst.idTest SET fld1=DEFAULT, afld = CONCAT(a, f, ' (SELECT TRANSPORT)'), status='ACTIVE' WHERE id = 10 LIMIT 20 OFFSET 10");
+    	$this->assertEquals(array(0=>'UPDATE', 'tables'=>'`test` LEFT JOIN atst ON `test`.id = atst.idTest', 'set'=>"fld1=DEFAULT, afld = CONCAT(a, f, ' (SELECT TRANSPORT)'), status='ACTIVE'", 'where'=>'id = 10', 'limit'=>'20 OFFSET 10'), array_map('trim', $parts));
     }
     
 	public function testSplit_UpdateSubquery()
@@ -732,7 +732,18 @@ class DB_MySQL_SQLSplitterTest extends PHPUnit_Framework_TestCase
     	$this->assertEquals(array(0=>'UPDATE', 'tables'=>'`test` LEFT JOIN (SELECT idTest, a, f, count(*) AS cnt FROM atst) AS atst ON `test`.id = atst.idTest', 'set'=>"fld1=DEFAULT, afld = CONCAT(a, f, ' (SELECT TRANSPORT)'), status='ACTIVE'", 'where'=>'id IN (SELECT id FROM whatever LIMIT 100)', 'limit'=>''), array_map('trim', $parts));
     }    
 
-    
+    public function testJoin_UpdateSimple()
+    {
+		$sql = $this->qs->join(array(0=>'UPDATE', 'tables'=>'`test`', 'set'=>"status='ACTIVE'", 'where'=>'id=10', 'limit'=>''));
+    	$this->assertEquals("UPDATE `test` SET status='ACTIVE' WHERE id=10", $sql);
+	}
+
+    public function testJoin_UpdateAdvanced()
+    {
+		$sql = $this->qs->join(array(0=>'UPDATE', 'tables'=>'`test` LEFT JOIN atst ON `test`.id = atst.idTest', 'set'=>"fld1=DEFAULT, afld = CONCAT(a, f, ' (SELECT TRANSPORT)'), status='ACTIVE'", 'where'=>'id = 10', 'limit'=>'20 OFFSET 10'));
+    	$this->assertEquals("UPDATE `test` LEFT JOIN atst ON `test`.id = atst.idTest SET fld1=DEFAULT, afld = CONCAT(a, f, ' (SELECT TRANSPORT)'), status='ACTIVE' WHERE id = 10 LIMIT 20 OFFSET 10", $sql);
+	}
+	
     //--------
 
     
@@ -744,8 +755,8 @@ class DB_MySQL_SQLSplitterTest extends PHPUnit_Framework_TestCase
         
 	public function testSplit_DeleteAdvanced()
     {
-		$parts = $this->qs->split("DELETE `test`.* FROM `test` INNER JOIN `dude where is my car`.`import` ON dude_import ON `test`.ref = dude_import.ref WHERE dude_import.sql NOT LIKE '% on duplicate key update' AND status = 10 ORDER BY xyz");
-    	$this->assertEquals(array(0=>'DELETE', 'columns'=>'`test`.*', 'from'=>'`test` INNER JOIN `dude where is my car`.`import` ON dude_import ON `test`.ref = dude_import.ref', 'where'=>"dude_import.sql NOT LIKE '% on duplicate key update' AND status = 10", 'order by'=>'xyz', 'limit'=>''), array_map('trim', $parts));
+		$parts = $this->qs->split("DELETE `test`.* FROM `test` INNER JOIN `dude where is my car`.`import` AS dude_import ON `test`.ref = dude_import.ref WHERE dude_import.sql NOT LIKE '% on duplicate key update' AND status = 10 ORDER BY xyz LIMIT 1");
+    	$this->assertEquals(array(0=>'DELETE', 'columns'=>'`test`.*', 'from'=>'`test` INNER JOIN `dude where is my car`.`import` AS dude_import ON `test`.ref = dude_import.ref', 'where'=>"dude_import.sql NOT LIKE '% on duplicate key update' AND status = 10", 'order by'=>'xyz', 'limit'=>'1'), array_map('trim', $parts));
     }
 
 	public function testSplit_DeleteSubquery()
@@ -754,6 +765,32 @@ class DB_MySQL_SQLSplitterTest extends PHPUnit_Framework_TestCase
     	$this->assertEquals(array(0=>'DELETE', 'columns'=>'`test`.*', 'from'=>"`test` INNER JOIN (SELECT * FROM dude_import GROUP BY x_id WHERE status = 'OK' HAVING COUNT(*) > 1) AS dude_import ON `test`.ref = dude_import.ref", 'where'=>"status = 10", 'order by'=>'', 'limit'=>''), array_map('trim', $parts));
     }
 
+	public function testJoin_DeleteSimple()
+    {
+		$sql = $this->qs->join(array(0=>'DELETE', 'columns'=>'', 'from'=>'`test`', 'where'=>'id=10', 'order by'=>'', 'limit'=>''));
+    	$this->assertEquals("DELETE FROM `test` WHERE id=10", $sql);
+    }
+        
+	public function testJoin_DeleteAdvanced()
+    {
+		$sql = $this->qs->join(array(0=>'DELETE', 'columns'=>'`test`.*', 'from'=>'`test` INNER JOIN `dude where is my car`.`import` AS dude_import ON `test`.ref = dude_import.ref', 'where'=>"dude_import.sql NOT LIKE '% on duplicate key update' AND status = 10", 'order by'=>'xyz', 'limit'=>'1'));
+    	$this->assertEquals("DELETE `test`.* FROM `test` INNER JOIN `dude where is my car`.`import` AS dude_import ON `test`.ref = dude_import.ref WHERE dude_import.sql NOT LIKE '% on duplicate key update' AND status = 10 ORDER BY xyz LIMIT 1", $sql);
+    }
+    
+    //--------
+
+    
+    public function testSplit_Set()
+    {
+    	$parts = $this->qs->split("SET abc=10, @def='test'");
+    	$this->assertEquals(array('set'=>"abc=10, @def='test'"), array_map('trim', $parts));
+    }
+
+    public function testJoin_Set()
+    {
+    	$sql = $this->qs->join(array('set'=>"abc=10, @def='test'"));
+    	$this->assertEquals("SET abc=10, @def='test'", $sql);
+    }
     
     //--------
 
@@ -769,7 +806,37 @@ class DB_MySQL_SQLSplitterTest extends PHPUnit_Framework_TestCase
 		$columns = $this->qs->splitColumns("abc, CONCAT('abc', 'der', 10+22, IFNULL(`qq`, 'Q')), test, 10+3 AS `bb`, 'Ho, Hi' AS HoHi, 22");
     	$this->assertEquals(array("abc", "CONCAT('abc', 'der', 10+22, IFNULL(`qq`, 'Q'))", "test", "10+3 AS `bb`", "'Ho, Hi' AS HoHi", "22"), array_map('trim', $columns));
     }
-	
+
+    public function testSplitColumns_SplitFieldname()
+    {
+		$columns = $this->qs->splitColumns("abc AS qqq, xyz, CONCAT('abc', 'der', 10+22, MYFUNC(x AS y, bla)) AS tst, mytable.`field1`, mytable.`field2` AS ad, `mytable`.field3 + 10", DB::SPLIT_IDENTIFIER);
+    	$this->assertEquals(array(array("", "abc", "qqq"), array("", "xyz", ""), array("", "CONCAT('abc', 'der', 10+22, MYFUNC(x AS y, bla))", "tst"), array("mytable", "field1", ""), array("mytable", "field2", "ad"), array("", "`mytable`.field3 + 10", "")), $columns);
+    }    
+    
+    public function testSplitColumns_Assoc()
+    {
+		$columns = $this->qs->splitColumns("abc AS qqq, xyz, CONCAT('abc', 'der', 10+22, MYFUNC(x AS y, bla)) AS tst, mytable.`field1`, adb.mytable.`field2` AS ad, `mytable`.field3 + 10", DB::SPLIT_ASSOC);
+    	$this->assertEquals(array("qqq"=>"abc", "xyz"=>"xyz", "tst"=>"CONCAT('abc', 'der', 10+22, MYFUNC(x AS y, bla))", 'field1'=>"mytable.`field1`", 'ad'=>"adb.mytable.`field2`", '`mytable`.field3 + 10'=>"`mytable`.field3 + 10"), array_map('trim', $columns));
+    }
+
+    public function testSplitColumns_SplitFieldnameAssoc()
+    {
+		$columns = $this->qs->splitColumns("abc AS qqq, xyz, CONCAT('abc', 'der', 10+22, MYFUNC(x AS y, bla)) AS tst, mytable.`field1`, mytable.`field2` AS ad, mytable.field3 + 10", DB::SPLIT_IDENTIFIER);
+    	$this->assertEquals(array("qqq"=>array("", "abc", "qqq"), "xyz"=>array("", "xyz", ""), "tst"=>array("", "CONCAT('abc', 'der', 10+22, MYFUNC(x AS y, bla))", "tst"), 'field1'=>array("mytable", "field1", ""), 'ad'=>array("mytable", "field2", "ad"), '`mytable`.field3 + 10'=>array("", "`mytable`.field3 + 10", "")), $columns);
+    }    
+    
+    public function testSplitColumns_Set()
+    {
+		$columns = $this->qs->splitColumns("SET @abc=18, def=CONCAT('test', '123', DATE_FORMAT(NOW(), '%d-%m-%Y %H:%M')), @uid=NULL");
+    	$this->assertEquals(array("@abc=18", "def=CONCAT('test', '123', DATE_FORMAT(NOW(), '%d-%m-%Y %H:%M'))", "@uid=NULL"), array_map('trim', $columns));
+    }
+
+    public function testSplitColumns_Set_Assoc()
+    {
+		$columns = $this->qs->splitColumns("SET @abc=18, def=CONCAT('test', '123', DATE_FORMAT(NOW(), '%d-%m-%Y %H:%M')), @uid=NULL", DB::SPLIT_ASSOC);
+    	$this->assertEquals(array("@abc"=>"18", "def"=>"CONCAT('test', '123', DATE_FORMAT(NOW(), '%d-%m-%Y %H:%M'))", "@uid"=>"NULL"), array_map('trim', $columns));
+    }
+    
     public function testSplitColumns_Select()
     {
 		$columns = $this->qs->splitColumns("SELECT abc, CONCAT('abc', 'der', 10+22, IFNULL(`qq`, 'Q')), test, 10+3 AS `bb`, 'Ho, Hi' AS HoHi, 22 FROM test INNER JOIN contact WHERE a='X FROM Y'");
@@ -794,18 +861,24 @@ class DB_MySQL_SQLSplitterTest extends PHPUnit_Framework_TestCase
     	$this->assertEquals(array("relation.id", "IF( name = '', CONVERT( concat_name(last_name, suffix, first_name, '')USING latin1 ) , name ) AS fullname"), array_map('trim', $columns));
     }
 
-    public function testSplitColumns_SplitFieldname()
+    public function testSplitColumns_InsertValues()
     {
-		$columns = $this->qs->splitColumns("abc AS qqq, xyz, MYFUNC(x AS y, bla) AS tst, mytable.`field1`, mytable.`field2` AS ad, mytable.field3 + 10", true);
-    	$this->assertEquals(array(array("", "abc", "qqq"), array("", "xyz", ""), array("", "MYFUNC(x AS y, bla)", "tst"), array("mytable", "field1", ""), array("mytable", "field2", "ad"), array("", "mytable.field3 + 10", "")), $columns);
-    }    
-    
-    public function testSplitColumns_Assoc()
-    {
-		$columns = $this->qs->splitColumns("abc AS qqq, xyz, MYFUNC(x AS y, bla) AS tst, mytable.`field1`, adb.mytable.`field2` AS ad, `mytable`.field3 + 10", false, true);
-    	$this->assertEquals(array("qqq"=>"abc", "xyz"=>"xyz", "tst"=>"MYFUNC(x AS y, bla)", 'field1'=>"mytable.`field1`", 'ad'=>"adb.mytable.`field2`", '`mytable`.field3 + 10'=>"`mytable`.field3 + 10"), array_map('trim', $columns));
+    	$columns = $this->qs->splitColumns("INSERT INTO `test` (`id`, description, `values`) VALUES (NULL, 'abc', 10)");
+    	$this->assertEquals(array('`id`', 'description', '`values`'), array_map('trim', $columns));
     }
 
+    public function testSplitColumns_InsertSelect()
+    {
+    	$columns = $this->qs->splitColumns("INSERT INTO `test` (`id`, description, `values`) SELECT product_id, title, 22 AS values FROM `abc`");
+    	$this->assertEquals(array('`id`', 'description', '`values`'), array_map('trim', $columns));
+    }
+
+    public function testSplitColumns_InsertSet()
+    {
+    	$columns = $this->qs->splitColumns("INSERT INTO `test` SET id=1, description='test', `values`=22");
+    	$this->assertEquals(array('id=1', "description='test'", '`values`=22'), array_map('trim', $columns));
+    }
+    
     // -------
    
     public function testSplitTables_Simple()

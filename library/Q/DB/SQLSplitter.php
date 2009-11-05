@@ -120,12 +120,11 @@ interface DB_SQLSplitter
 	/**
 	 * Return the columns of a (partual) query.
 	 * 
-	 * @param string  $statement       Query statement or 'column, column, ...'
-	 * @param boolean $splitFieldname  Split fieldname in array(table, field, alias)
-	 * @param boolean $assoc           Remove '[AS] alias' (for SELECT) or 'to=' (for INSERT/UPDATE) and return as associated array
+	 * @param string  $statement  Query statement or 'column, column, ...'
+	 * @param int     $flags      DB::SPLIT_% option
 	 * @return array
 	 */
-	public static function splitColumns($statement, $splitFieldname=false, $assoc=false);
+	public static function splitColumns($statement, $flags=0);
 	
 
 	/**
