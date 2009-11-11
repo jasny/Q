@@ -33,57 +33,93 @@ require_once 'Q/Config.php';
  */
 abstract class DB implements Multiton
 {
-	/* Fetch methods */
+	/** Fetch as ordered array */
 	const FETCH_ORDERED = 3;
+	/** Fetch as associative array */
 	const FETCH_ASSOC = 2;
+	/** Fetch as array with both ordered and associative keys */
 	const FETCH_FULLARRAY = 4;
+	/** Fetch grouping values per table */
 	const FETCH_PERTABLE = 32;
+	/** Fetch single value */
 	const FETCH_VALUE = 33;
+	/** Fetch as active record */
 	const FETCH_RECORD = 34;
-	const FETCH_ROLES = 35;
+	/** Fetch as document */
+	const FETCH_DOCUMENT = 35;
+	/** Fetch as associative array with roles as keys */ 
+	const FETCH_ROLES = 36;
+	/** Fetch as stdClass object */
 	const FETCH_OBJECT = 5;
+	/** Option; Don't fetch children with tree result */
 	const FETCH_NON_RECURSIVE = 0x100;
-	const FETCH_CURRENT = 0x200;
 	
-	/* Field name format */
-	const FIELDNAME_COL = 0x0;
-	const FIELDNAME_FULL = 0x1;
-	const FIELDNAME_DB = 0x2;
-	const FIELDNAME_ORG = 0x3;
-	const FIELDNAME_IDENTIFIER = 0x100;
-	const FIELDNAME_WITH_ALIAS = 0x200;
-	const FIELDNAME_LIST = 0x400;
+	/** Get name as known in result/table */
+	const FIELDNAME_NAME = 1;
+	/** Get column name */
+	const FIELDNAME_COLUMN = 2;
+	/** Get table and column name */
+	const FIELDNAME_FULL = 3;
+	/** Get table and column as in database */
+	const FIELDNAME_DB = 4;
+	/** Option; Add alias */
+	const WITH_ALIAS = 0x10;
+	/** Option; Return fieldlist as string */
+	const FIELDLIST = 0x20;
 	
-	/* Edit statement options */
-	const ADD_REPLACE = 0x1;
-	const ADD_PREPEND = 0x2;
-	const ADD_APPEND = 0x4;
-	const ADD_HAVING = 0x100;
-	const QUOTE_LOOSE = 0;
-	const QUOTE_NONE = 0x1000;
-	const QUOTE_STRICT = 0x2000;
+	/** Replace part */
+	const REPLACE = 0x1;
+	/** Prepend to part */
+	const PREPEND = 0x2;
+	/** Append to part */
+	const APPEND = 0x4;
+	/** Use having instead of where */
+	const HAVING = 0x40;
+	/** Don't overwrite values if record already exists */
+	const NO_OVERWRITE = 0x80;
+	
+	/** Don't quote identifiers at all */
+	const QUOTE_NONE = 0x100;
+	/** Quote identifiers inside expressions */
+	const QUOTE_LOOSE = 0x200;
+	/** Quote string as field/table name */
+	const QUOTE_STRICT = 0x400;
+	
+	/** Glue with OR (exp OR exp OR exp) */
+	const GLUE_AND = 0;
+	/** Glue with AND (exp AND exp AND exp) */
+	const GLUE_OR = 0x1000;
 	
 	/** Split fieldname in array(table, field, alias) */
-	const SPLIT_IDENTIFIER = 0x1;
+	const SPLIT_IDENTIFIER = 1;
 	/** Remove '[AS] alias' (for SELECT) or 'to=' (for INSERT/UPDATE) and return as associated array */
-	const SPLIT_ASSOC = 0x2;
+	const SPLIT_ASSOC = 2;
+	
+	/** Strip operator from fieldname */
+	const STRIP_OPERATOR = 0x2000;
+	/** Get field from different table if specified */
+	const FOLLOW = 0x4000;
 	
 	/** Sort ascending */
 	const ASC = 1;
 	/** Sort descending */
 	const DESC = 2;
 	
-	/* Get value as record */
+	/** Get value as record */
 	const ORM = 1;
-	/* Get value to used in store query */
+	/** Get value to used in store query */
 	const FOR_SAVE = 2;
 	
-	/** Special keys for add/replace part */
+	/** The key of the part of a split statement that holds the command */
     const COMMAND_PART = 0;
-	
+	/** The key of the part of a split statement that holds the extra options */
+    const OPTIONS_PART = 100;
+    
     /** Recalculate, don't get from cache */
     const RECALC = 1;
     
+    /** Get/count all rows, don't limit */
+    const ALL_ROWS = 1;
     
 	/**
 	 * Drivers with classname
@@ -586,7 +622,7 @@ abstract class DB implements Multiton
 		            if (isset($props['is_primary'])) unset($props['is_primary']);
 		        }
 		    }
-		     
+		    
 		    $properties['#table'] += $inherit['#table'];
 		}
 		

@@ -533,9 +533,9 @@ class DB_MySQL extends DB
             $criteria = (array)$criteria;
 	    	if (count($pk) != count($criteria)) throw new Exception("Unable to select record for $table: " . count($criteria) . " values specified, while primary key from table consists of " . count($pk) . " fields (" . implode(', ', $pk) . ").");
 	    	
-	    	$criteria = array_combine((array)$pk->getName(DB::FIELDNAME_DB | DB::FIELDNAME_IDENTIFIER), $criteria);
+	    	$criteria = array_combine((array)$pk->getName(DB::FIELDNAME_TABLE | DB::QUOTE), $criteria);
 	    } else {
-	    	foreach ($criteria as $field=>&$value) {
+	    	foreach (array_keys($criteria) as $i=>$field) {
 				if ($field[0] === '#') $keys[$i] = (string)$table->$field;					
 	        }
 	        

@@ -88,13 +88,13 @@ class DB_Field extends \ArrayObject implements DB_FieldAccess
 	}
 	
 	/**
-	 * Cast field to fieldname.
+	 * Cast field to field name.
 	 * 
 	 * @return string
 	 */
 	public function __toString()
 	{
-		return isset($this['table']) ? $this['table'] . '.' . $this['name'] : $this['name'];
+		return $this->parent instanceof DB_Table ? "{$this->parent}.{$this['name']}" : $this['name'];
 	}
 	
 	/**
@@ -158,26 +158,24 @@ class DB_Field extends \ArrayObject implements DB_FieldAccess
 
     
 	/**
-	 * Return the name of a field
+	 * Return the name of a field.
 	 *
-	 * @param int $format  A FIELDNAME_% constant
+	 * @param int $format  A DB::FIELDNAME_% constant and DB::WITH_ALIAS and DB::QUOTE_% options as binary set 
 	 * @return string
 	 */
 	public function getName($format=DB::FIELDNAME_FULL)
 	{
-		if (!isset($this->connection)) $format & ~DB::FIELDNAME_IDENTIFIER;
+		$quote = isset($this->connection) && ($format & QUOTE_LOOSE || $format & QUOTE_STRICT);
 		
 		switch ($format) {
-			case DB::FIELDNAME_COL:
-				return $format & DB::FIELDNAME_IDENTIFIER ? $this->connection->quoteIdentifier($this['name']) : $this['name'];
+			case DB::FIELDNAME_NAME:
+				return $quote ? $this->connection->quoteIdentifier($this['name'], $format) : $this['name'];
+			case DB::FIELDNAME_COLUMN:
+				return $quote ? $this->connection->makeIdentifier(null, $this['name_db'], $format & DB::WITH_ALIAS  && ($this['name'] != $this['name_db']) ? $this['name'] : null, $format) : $this['name_db'];
 			case DB::FIELDNAME_FULL:
-				return $format & DB::FIELDNAME_IDENTIFIER ? $this->connection->makeIdentifier($this['table'], $this['name']) : (isset($this['table']) ? $this['table'] . '.' . $this['name'] : $this['name']);
-			case DB::FIELDNAME_ORG:
-				if (!isset($this['name_db'])) return null;
-				return $format & DB::FIELDNAME_IDENTIFIER ? $this->connection->makeIdentifier($this['table'], $this['name_db'], $format & DB::FIELDNAME_WITH_ALIAS ? $this['name'] : null) : $this['table_db'] . '.' . $this['name_db'];
+				return $quote ? $this->connection->makeIdentifier($this['table'], $this['name'], $format) : (isset($this['table']) ? $this['table'] . '.' . $this['name'] : $this['name']);
 			case DB::FIELDNAME_DB:       
-				if (!isset($this['name_db'])) return null;
-				return $format & DB::FIELDNAME_IDENTIFIER ? $this->connection->makeIdentifier($this['table'], $this['name_db'], $format & DB::FIELDNAME_WITH_ALIAS ? $this['name'] : null) : $this['table'] . '.' . $this['name_db'];
+				return $quote ? $this->connection->makeIdentifier($this['table_db'], $this['name_db'], $format & DB::WITH_ALIAS  && ($this['name'] != $this['name_db']) ? $this['name'] : null) : $this['table_db'] . '.' . $this['name_db'];
 		}
 	}
 

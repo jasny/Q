@@ -27,14 +27,13 @@ interface DB_SQLSplitter
 	public static function quoteIdentifier($identifier, $flags=DB::QUOTE_LOOSE);
 	
 	/**
-	 * Check if a identifier is valid as field name or table name.
+	 * Check if a identifier is valid as field name or table name
 	 *
 	 * @param string  $name
-	 * @param boolean $withtable  TRUE: group.name, FALSE: name, NULL: both
-	 * @param boolean $withalias  Allow an alias (AS alias)
+	 * @param boolean $flags   Optional DB::FIELDNAME_% and DB::WITH_ALIAS
 	 * @return boolean
 	 */
-	public static function validIdentifier($name, $withgroup=null, $withalias=false);
+	public static function validIdentifier($name, $flags=0);
 
 	/**
 	 * Split a column name in table, column and alias OR table name in db, table and alias.

@@ -80,23 +80,10 @@ class DB_SQLStatement implements DB_Statement
 	 * @var string
 	 */
 	protected $cachedParts;
-		
-	/**
-	 * The column names of the statement.
-	 * @var array
-	 */
-	protected $cachedColumns;
-
-	/**
-	 * The values of an INSERT statement.
-	 * @var array
-	 */
-	protected $cachedValues;
 	
 	/**
 	 * The query statements to count the number of records
-	 *
-	 * @var array
+	 * @var string
 	 */
 	protected $countStatement;
 
@@ -300,16 +287,16 @@ class DB_SQLStatement implements DB_Statement
 				if (!empty($parts[$key])) $parts[$key] = trim($parts[$key]);
 				
 				if ($key === 'columns' || $key === 'set' || $key === 'group by' || $key === 'order by') {
-					$parts[$key] = join(', ', array_merge(isset($partsAdd[DB::ADD_PREPEND]) ? $partsAdd[DB::ADD_PREPEND] : array(), !empty($parts[$key]) ? array($parts[$key]) : array(), isset($partsAdd[DB::ADD_APPEND]) ? $partsAdd[DB::ADD_APPEND] : array()));
+					$parts[$key] = join(', ', array_merge(isset($partsAdd[DB::PREPEND]) ? $partsAdd[DB::PREPEND] : array(), !empty($parts[$key]) ? array($parts[$key]) : array(), isset($partsAdd[DB::APPEND]) ? $partsAdd[DB::APPEND] : array()));
 				} elseif ($key === 'values') {
-					$parts[$key] = (isset($partsAdd[DB::ADD_PREPEND]) ? ' (' . join('), (', $partsAdd[DB::ADD_PREPEND]) . ')' : '') . (isset($partsAdd[DB::ADD_PREPEND]) && !empty($parts[$key]) ? ', ' : '') . $parts[$key] . (isset($partsAdd[DB::ADD_APPEND]) && !empty($parts[$key]) ? ', ' : '') .  (isset($partsAdd[DB::ADD_APPEND]) ? ' (' . join('), (', $partsAdd[DB::ADD_APPEND]) . ')' : '');
+					$parts[$key] = (isset($partsAdd[DB::PREPEND]) ? ' (' . join('), (', $partsAdd[DB::PREPEND]) . ')' : '') . (isset($partsAdd[DB::PREPEND]) && !empty($parts[$key]) ? ', ' : '') . $parts[$key] . (isset($partsAdd[DB::APPEND]) && !empty($parts[$key]) ? ', ' : '') .  (isset($partsAdd[DB::APPEND]) ? ' (' . join('), (', $partsAdd[DB::APPEND]) . ')' : '');
 				} elseif ($key === 'from' || $key === 'into' || $key === 'tables') {
-					$parts[$key] = trim((isset($partsAdd[DB::ADD_PREPEND]) ? join(' ', $partsAdd[DB::ADD_PREPEND]) . ' ' : '') . (!empty($parts[$key]) ? '(' . $parts[$key] . ')' : '') . (isset($partsAdd[DB::ADD_APPEND]) ? ' ' . join(' ', $partsAdd[DB::ADD_APPEND]) : ''), ',');
+					$parts[$key] = trim((isset($partsAdd[DB::PREPEND]) ? join(' ', $partsAdd[DB::PREPEND]) . ' ' : '') . (!empty($parts[$key]) ? '(' . $parts[$key] . ')' : '') . (isset($partsAdd[DB::APPEND]) ? ' ' . join(' ', $partsAdd[DB::APPEND]) : ''), ',');
 				} elseif ($key === 'where' || $key === 'having') {
-					$items = array_merge(isset($partsAdd[DB::ADD_PREPEND]) ? $partsAdd[DB::ADD_PREPEND] : array(), !empty($parts[$key]) ? array($parts[$key]) : array(), isset($partsAdd[DB::ADD_APPEND]) ? $partsAdd[DB::ADD_APPEND] : array());
+					$items = array_merge(isset($partsAdd[DB::PREPEND]) ? $partsAdd[DB::PREPEND] : array(), !empty($parts[$key]) ? array($parts[$key]) : array(), isset($partsAdd[DB::APPEND]) ? $partsAdd[DB::APPEND] : array());
 					if (!empty($items)) $parts[$key] = '(' . join(') AND (', $items) . ')';
 				} else {
-					$parts[$key] = (isset($partsAdd[DB::ADD_PREPEND]) ? join(' ', $partsAdd[DB::ADD_PREPEND]) . ' ' : '') . (!empty($parts[$key]) ? $parts[$key] : '') . (isset($partsAdd[DB::ADD_APPEND]) ? ' ' . join(' ', $partsAdd[DB::ADD_APPEND]) : '');
+					$parts[$key] = (isset($partsAdd[DB::PREPEND]) ? join(' ', $partsAdd[DB::PREPEND]) . ' ' : '') . (!empty($parts[$key]) ? $parts[$key] : '') . (isset($partsAdd[DB::APPEND]) ? ' ' . join(' ', $partsAdd[DB::APPEND]) : '');
 				}
 			}
 		}
@@ -365,8 +352,6 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	public function getColumns($flags=0, $subset=0)
 	{
-		if (array_key_exists($subset, $this->cachedColumns)) return $this->cachedColumns[$subset];
-		
 		if ($subset == 0) {
 			$parts = $this->getParts();
 		} else {
@@ -378,8 +363,7 @@ class DB_SQLStatement implements DB_Statement
 		
 		if (!isset($parts['columns']) && !isset($parts['set'])) throw new Exception("It's not possible to extract columns of a " . $this->getQueryType() . " query.");
 
-		$this->cachedColumns[$subset] = $this->sqlSplitter->splitColumns(isset($parts['columns']) ? $parts['columns'] : $parts['set'], $flags);
-		return $this->cachedColumns[$subset];
+		return $this->sqlSplitter->splitColumns(isset($parts['columns']) ? $parts['columns'] : "SET {$parts['set']}", $flags);
 	}
 
 	/**
@@ -408,50 +392,28 @@ class DB_SQLStatement implements DB_Statement
 	//------------- Add/Set part ------------------------
 	
 	/**
-	 * Add a statement to any part of the query.
+	 * Add an expression to any part of the query.
 	 * (fluent interface)
 	 * 
-	 * Use DB_SQLStatement::ADD_PREPEND in $flags to prepend a statement (append is default)
+	 * Use DB_SQLStatement::PREPEND in $flags to prepend a statement (append is default)
 	 *
 	 * @param mixed  $key        The key identifying the part
-	 * @param string $statement
-	 * @param int    $flags      Addition options as binairy set.
+	 * @param string $expression
+	 * @param int    $flags      DB::REPLACE, DB::PREPEND or DB::APPEND + Addition options as binairy set.
 	 * @param int    $subset     Specify to which subquery the change applies (0=main query)
 	 * @return DB_SQLStatement
 	 */
-	public function addToPart($key, $statement, $flags=0, $subset=0)
+	public function part($key, $expression, $flags=DB::REPLACE, $subset=0)
 	{
 		$key = strtolower($key);
 		
-		if ($flags & DB::ADD_REPLACE) $this->partsReplace[$subset][$key] = $statement;
-		  else $this->partsAdd[$subset][$key][$flags & DB::ADD_PREPEND ? DB::ADD_PREPEND : DB::ADD_APPEND][] = $statement;
+		if ($flags & DB::REPLACE) $this->partsReplace[$subset][$key] = $expression;
+		  else $this->partsAdd[$subset][$key][$flags & DB::PREPEND ? DB::PREPEND : DB::APPEND][] = $expression;
 		
 		$this->clearCachedStatement();
-		if ($key == 'columns' || $key == 'set') $this->cachedColumns = null;
-		if ($key == 'values') $this->cachedValues = null;
-		
 		return $this;
 	}
-
-	/**
-	 * Replace any part of the query.
-	 * (fluent interface)
-	 *
-	 * @param mixed  $key        The key identifying the part
-	 * @param string $statement
-	 * @param int    $flags      Addition options as binairy set.
-	 * @param int    $subset     Specify to which subquery the change applies (0=main query)
-	 * @return DB_SQLStatement
-	 */
-	public function replacePart($key, $statement, $flags=0, $subset=0)
-	{
-		$this->addToPart($key, $statement, $flags | DB::ADD_REPLACE, $subset);
-		return $this;
-	}
-
 	
-   	//------------- Add/Set specific part ------------------------
-
    	/**
    	 * Add column to query statement.
    	 * 
@@ -468,12 +430,12 @@ class DB_SQLStatement implements DB_Statement
    		$key = $type == 'UPDATE' || ($type == 'INSERT' && $this->hasPart('set', $subset)) ? 'set' : 'columns';
    		
    		if ($key == 'set' && is_array($column)) {
-   			// TODO: addColumn as associated array should be interpreted as key=>value
+   			array_map(function ($col, &$value) use($flags) {$this->getColumnDBName($col, null, null, $flags) . '=' . $this->sqlSplitter->quote($value);});
    		} else {
    			$column = $this->getColumnDBName($column, null, null, $flags);
    		}
    		
-		$this->addToPart($key, is_array($column) ? join(', ', $column) : $column, $flags, $subset);
+		$this->part($key, is_array($column) ? join(', ', $column) : $column, $flags, $subset);
 		return $this;
    	}
 
@@ -495,15 +457,15 @@ class DB_SQLStatement implements DB_Statement
    			default:		$key = 'from';
    		}
    		
-   		if (!isset($join) && ~$flags & DB::ADD_REPLACE) $join = ',';
+   		if (!isset($join) && ~$flags & DB::REPLACE) $join = ',';
    		if (is_array($on)) $on = $this->getColumnDbName($on[0], null, null, $flags) . ' = ' . $this->getColumnDbName($on[1], $table, null, $flags);
    		  else $on = $this->sqlSplitter->quoteIdentifier($on, DB::QUOTE_LOOSE);
    		  
-   		if ($flags & DB::ADD_PREPEND && ~$flags & DB::ADD_REPLACE) {
-   			$this->addToPart($key, $this->sqlSplitter->quoteIdentifier($table, $flags) . ' ' . $join, $flags, $subset);
-   			if (!empty($on)) $this->addToPart($key, "ON $on", $flags & ~DB::ADD_PREPEND, $subset);
+   		if ($flags & DB::PREPEND && ~$flags & DB::REPLACE) {
+   			$this->part($key, $this->sqlSplitter->quoteIdentifier($table, $flags) . ' ' . $join, $flags, $subset);
+   			if (!empty($on)) $this->part($key, "ON $on", $flags & ~DB::PREPEND, $subset);
    		} else {
-			$this->addToPart($key, $join . ' '. $this->sqlSplitter->quoteIdentifier($table, $flags) . (!empty($on) ? " ON $on" : ""), $flags, $subset);
+			$this->part($key, $join . ' '. $this->sqlSplitter->quoteIdentifier($table, $flags) . (!empty($on) ? " ON $on" : ""), $flags, $subset);
    		}
 
 		return $this;
@@ -523,7 +485,7 @@ class DB_SQLStatement implements DB_Statement
    			foreach ($values as $i=>$value) $values[$i] = $this->sqlSplitter->quote($value, 'DEFAULT');
    			$values = join(', ', $values);
    		}
-   		$this->addToPart('values', $values, $flags, $subset);
+   		$this->part('values', $values, $flags, $subset);
 		return $this;
    	}
    	   	
@@ -531,7 +493,7 @@ class DB_SQLStatement implements DB_Statement
 	 * Add criteria as where or having statement as $column=$value.
 	 * If $value == null and $compare == '=', $compare becomes 'IS NULL'.
 	 * 
-	 * @param mixed  $column    Column name, column number or expression with placeholders, can also be an array of columns ($column[0]=$value OR $column[1]=$value)
+	 * @param mixed  $column    Column name, column number or expression with placeholders, can also be an array of columns ($column[0]=$value OR $column[1]=$value) or array(column=>value, ...)
 	 * @param mixed  $value     Value or array of values ($column=$value[0] OR $column=$value[1])
 	 * @param string $compare   Comparision operator: =, !=, >, <, =>, <=, LIKE, LIKE%, %LIKE%, REVERSE LIKE (value LIKE column), IN, NOT IN, ALL and BETWEEN
 	 * @param int    $flags     Addition options (language specific) as binairy set
@@ -540,12 +502,29 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	public function addCriteria($column, $value, $compare="=", $flags=0, $subset=0)
 	{
-		$parts = $this->sqlSplitter->buildWhere($this->getColumnDbName($column), $value, $compare);
-		if (isset($parts['having']) && $flags & DB::ADD_HAVING) throw new Exception("Criteria doing an '$compare' comparision can only be used as WHERE not as HAVING expression.");
+		if (is_array($column) && is_string(key($column))) {
+			$parts = null;
+			
+			foreach ($column as $col=>&$value) {
+				$p = $this->sqlSplitter->buildWhere($this->getColumnDBName($col, null, null, $flags), $value, $compare);
+				if (isset($p['where'])) $parts['where'][] = $p['where'];
+				if (isset($p['having'])) $parts['having'][] = $p['having'];
+			}
+			
+			if (isset($parts['where'])) $parts['where'] = join($flags & DB::GLUE_OR ? ' OR ' : ' AND ', $parts['where']);
+			if (isset($parts['having'])) {
+				if (count($parts['having']) > 1 && $flags & DB::GLUE_OR) throw new Exception("Criteria doing an '$compare' comparision can't by glued with OR, only with AND.");
+				$parts['having'] = join(' AND ', $parts['having']);
+			}
+		} else {
+			$parts = $this->sqlSplitter->buildWhere($this->getColumnDBName($column, null, null, $flags), $value, $compare);
+		}
+		
+		if (isset($parts['having']) && $flags & DB::HAVING) throw new Exception("Criteria doing an '$compare' comparision can only be used as WHERE not as HAVING expression.");
 		
 		if ($subset === 0 && $this->getQueryType() === 'INSERT' && $this->hasPart('query', 0)) $subset = 1;
-		if (isset($parts['where'])) $this->where($parts['where'], $flags, $subset);
-		if (isset($parts['having'])) $this->having($parts['having'], $flags, $subset);
+		if (isset($parts['where'])) $this->where($parts['where'], $flags & ~0x700 | DB::QUOTE_NONE, $subset);
+		if (isset($parts['having'])) $this->having($parts['having'], $flags & ~0x700 | DB::QUOTE_NONE, $subset);
 		
 		return $this;
 	}
@@ -558,67 +537,67 @@ class DB_SQLStatement implements DB_Statement
 	 * @param int    $subset     Specify to which subquery the change applies (0=main query)
 	 * @return DB_SQLStatement
 	 */
-	public function where($statement, $flags=0, $subset=0)
+	public function where($expression, $flags=0, $subset=0)
 	{
- 		$this->addToPart($flags & DB::ADD_HAVING ? 'having' : 'where', $this->sqlSplitter->quoteIdentifier($statement), $flags, $subset);
+ 		$this->part($flags & DB::HAVING ? 'having' : 'where', $this->sqlSplitter->quoteIdentifier($expression), $flags, $subset);
 		return $this;
 	}
 
 	/**
 	 * Add HAVING expression to query statement.
 	 *
-	 * @param string $statement  HAVING expression
-	 * @param int    $flags      Addition options as binairy set
-	 * @param int    $subset     Specify to which subquery the change applies (0=main query)
+	 * @param string $expression  HAVING expression
+	 * @param int    $flags       Addition options as binairy set
+	 * @param int    $subset      Specify to which subquery the change applies (0=main query)
 	 * @return DB_SQLStatement
 	 */
-	public function having($statement, $flags=0, $subset=0)
+	public function having($expression, $flags=0, $subset=0)
 	{
- 		$this->where($statement, $flags | DB::ADD_HAVING, $subset);
+ 		$this->where($expression, $flags | DB::HAVING, $subset);
 		return $this;
 	}
 	
 	/**
 	 * Add GROUP BY expression to query statement.
 	 *
-	 * @param string $statement  GROUP BY statement (string) or array with columns
-	 * @param int    $flags      Addition options as binairy set
-	 * @param int    $subset     Specify to which subquery the change applies (0=main query)
+	 * @param string $expression  GROUP BY expression (string) or array with columns
+	 * @param int    $flags       Addition options as binairy set
+	 * @param int    $subset      Specify to which subquery the change applies (0=main query)
 	 * @return DB_SQLStatement
 	 */
-	public function groupBy($statement, $flags=0, $subset=0)
+	public function groupBy($expression, $flags=0, $subset=0)
 	{
-		$statement = $this->getColumnDbName($statement);
-		if (is_array($statement)) $statement = join(', ', $statement);
+		$expression = $this->getColumnDbName($expression);
+		if (is_array($expression)) $expression = join(', ', $expression);
 		
- 		$this->addToPart('group by', $statement, $flags, $subset);
+ 		$this->part('group by', $expression, $flags, $subset);
 		return $this;
 	}
 
 	/**
-	 * Add ORDER BY statement to query statement.
-	 * NOTE: In contrary of addStatement(), the statement is prepended by default (use DB_Statment_SQL::ADD_APPEND to append)
+	 * Add ORDER BY expression to query statement.
+	 * NOTE: In contrary of addStatement(), the statement is prepended by default (use DB_Statment_SQL::APPEND to append)
 	 *
-	 * @param mixed $statement  ORDER BY statement (string) or array with columns
-	 * @param int   $flags      Addition options as binairy set
-	 * @param int   $subset     Specify to which subquery the change applies (0=main query)
+	 * @param mixed $expression  ORDER BY expression (string) or array with columns
+	 * @param int   $flags       Addition options as binairy set
+	 * @param int   $subset      Specify to which subquery the change applies (0=main query)
 	 * @return DB_SQLStatement
 	 */
-	public function orderBy($statement, $flags=0, $subset=0)
+	public function orderBy($expression, $flags=0, $subset=0)
 	{
 		if ($flags & (DB::ASC | DB::DESC)) {
-			if (is_scalar($statement)) {
-				$statement .= $flags & DB::DESC ? ' DESC' : ' ASC';
+			if (is_scalar($expression)) {
+				$expression .= $flags & DB::DESC ? ' DESC' : ' ASC';
 			} else {
-				foreach ($statement as &$col) $col .= $flags & DB::DESC ? ' DESC' : ' ASC';
+				foreach ($expression as &$col) $col .= $flags & DB::DESC ? ' DESC' : ' ASC';
 			}
 		}
 		
-		$statement = $this->getColumnDbName($statement);
-		if (!is_scalar($statement)) $statement = join(', ', $statement);
+		$expression = $this->getColumnDbName($expression);
+		if (!is_scalar($expression)) $expression = join(', ', $expression);
 		
- 		if (!($flags & DB::ADD_APPEND)) $flags |= DB::ADD_PREPEND;
-		$this->addToPart('order by', $statement, $flags, $subset);
+ 		if (!($flags & DB::APPEND)) $flags |= DB::PREPEND;
+		$this->part('order by', $expression, $flags, $subset);
 		return $this;
 	}
 
@@ -627,13 +606,13 @@ class DB_SQLStatement implements DB_Statement
 	 *
 	 * @param int|string $rowcount  Number of rows of full limit statement
 	 * @param int        $offset    Start at row
-	 * @param int        $flags   Addition options as binairy set
+	 * @param int        $flags     Addition options as binairy set
 	 * @param int        $subset    Specify to which subquery the change applies (0=main query)
 	 * @return DB_SQLStatement
 	 */
 	public function limit($rowcount, $offset=null, $flags=0, $subset=0)
 	{
-		$this->replacePart('limit', $rowcount . (isset($offset) ? " OFFSET $offset" : ""), $flags, $subset);
+		$this->part('limit', $rowcount . (isset($offset) ? " OFFSET $offset" : ""), $flags | DB::REPLACE, $subset);
 		return $this;
 	}
 
@@ -648,7 +627,7 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	public function page($page, $rowcount, $flags=0, $subset=0)
 	{
-		$this->setLimit($rowcount, $rowcount * ($page-1), $flags, $subset);
+		$this->setLimit($rowcount, $rowcount * ($page-1), $flags | DB::REPLACE, $subset);
 		return $this;
 	}
 
@@ -1055,29 +1034,51 @@ class DB_SQLStatement implements DB_Statement
 	
 	
 	/**
-     * Get a set of fields (DB_Field) based on the columns of the query statement.
+     * Get a set of fields based on the columns of the query statement.
      *
-     * @return array
+     * @return DB_FieldSet
      */
    	public function getFields()
    	{
    		return $this->executeEmpty()->getFields();
    	}
 
+	/**
+     * Get a field based on the columns of the query statement.
+     *
+     * @param int|string $index  Field index or name
+     * @param int        $flags  Optional DB::FOLLOW and DB::STRIP_OPERATOR
+     * @return DB_Field
+     */
+   	public function getField($index, $flags=0)
+   	{
+   		if ($flags & DB::STRIP_OPERATOR) $this->sqlSplitter->stripOperator($index);
+   		
+   		$field = $this->executeEmpty()->getField($index);
+   		
+   		if (!isset($field) && ($flags & DB::FOLLOW)) {
+   			list($table, $column) = $this->sqlSplitter->splitIdentifier($index);
+   			$table = isset($table) && isset($this->connection) ? $this->getTable($table, $flags) : $this->getBaseTable();
+   			
+   			$field = $table ? $table->getField($index, $flags & ~DB::STRIP_OPERATOR) : new DB_Field($index);
+   		}
+   		
+   		return $field;
+   	}
+   	
    	/**
      * Return the number of rows that the resultset would contain if the statement was executed.
      * For better readability use: $result->countRows(DB::ALL_ROWS).
      * 
-     * @param boolean $all  Don't use limit
+     * @param int $flags  Optional DB::ALL_ROWS
      * @return int
      */
-   	public function countRows($all=false)
+   	public function countRows($flags=0)
    	{
    	    $all = (boolean)$all;
    		if (!isset($this->countStatement[$all])) {
    			$parts = $this->getParts();
-   			$this->countStatement[$all] = $this->connection->parse($this->sqlSplitter->buildCountStatement(count($parts) == 1 ? reset($parts) : $this->getStatement(), $all), false);
-   			if (!isset($this->countStatement[$all])) throw new DB_Exception("Unable to count rows for " . $this->getQueryType() . " query:\n" . $this->getStatement());
+   			$this->countStatement[$flags & DB::ALL_ROWS] = $this->connection->parse($this->sqlSplitter->buildCountStatement(count($parts) == 1 ? reset($parts) : $this->getStatement(), $flags), false);
    		}
    		
    		return $this->connection->query($this->countStatement[$all])->fetchValue();

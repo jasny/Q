@@ -348,7 +348,7 @@ class DB_MySQL_Result extends DB_Result
 		if (!isset($row)) return null;
 		
 		$this->native->field_seek(0);
-		while (($field = $this->native->fetch_field())) list(, $values[$field->table][$field->name]) = each($row);
+		while ($field = $this->native->fetch_field()) list(, $values[$field->table][$field->name]) = each($row);
 		
 		return $values;
 	}
@@ -391,7 +391,7 @@ class DB_MySQL_Result extends DB_Result
 				
 		$i = 0;
 		$this->native->data_seek(0);
-		while (($row = $this->native->fetch_row())) $this->indexes[$column][$row[$column]][] = $i++;
+		while ($row = $this->native->fetch_row()) $this->indexes[$column][$row[$column]][] = $i++;
 		
 		$this->native->data_seek(0);
 	}
