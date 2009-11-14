@@ -64,7 +64,7 @@ class DB_Field extends \ArrayObject implements DB_FieldAccess
         $class = DB::$fieldtypes[$fieldtype];
         
         if (!load_class($class)) throw new Exception("Could not load class '{$class}', defined for '{$fieldtype}'.");
-	    return new $class($parent, $properties, $value);
+	    return new $class($parent, &$properties, $value);
 	}
 	
 	/**
@@ -84,7 +84,7 @@ class DB_Field extends \ArrayObject implements DB_FieldAccess
 		    $this->originalValue = $this->value;
 		}
 		
-		parent::__construct($properties);
+		parent::__construct(&$properties);
 	}
 	
 	/**

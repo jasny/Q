@@ -67,12 +67,13 @@ abstract class DB implements Multiton
 	/** Option; Return fieldlist as string */
 	const FIELDLIST = 0x20;
 	
-	/** Replace part */
-	const REPLACE = 0x1;
 	/** Prepend to part */
-	const PREPEND = 0x2;
+	const PREPEND = 1;
 	/** Append to part */
-	const APPEND = 0x4;
+	const APPEND = 2;
+	/** Replace part */
+	const REPLACE = 4;
+	
 	/** Use having instead of where */
 	const HAVING = 0x40;
 	/** Don't overwrite values if record already exists */
@@ -84,21 +85,21 @@ abstract class DB implements Multiton
 	const QUOTE_LOOSE = 0x200;
 	/** Quote string as field/table name */
 	const QUOTE_STRICT = 0x400;
+
+	/** Unquote values */
+	const UNQUOTE = 0x800;
+	/** Cast values */
+	const CAST = 0x1000;
 	
 	/** Glue with OR (exp OR exp OR exp) */
 	const GLUE_AND = 0;
 	/** Glue with AND (exp AND exp AND exp) */
-	const GLUE_OR = 0x1000;
+	const GLUE_OR = 0x2000;
 	
 	/** Split fieldname in array(table, field, alias) */
 	const SPLIT_IDENTIFIER = 1;
 	/** Remove '[AS] alias' (for SELECT) or 'to=' (for INSERT/UPDATE) and return as associated array */
 	const SPLIT_ASSOC = 2;
-	
-	/** Strip operator from fieldname */
-	const STRIP_OPERATOR = 0x2000;
-	/** Get field from different table if specified */
-	const FOLLOW = 0x4000;
 	
 	/** Sort ascending */
 	const ASC = 1;
@@ -110,16 +111,12 @@ abstract class DB implements Multiton
 	/** Get value to used in store query */
 	const FOR_SAVE = 2;
 	
-	/** The key of the part of a split statement that holds the command */
-    const COMMAND_PART = 0;
-	/** The key of the part of a split statement that holds the extra options */
-    const OPTIONS_PART = 100;
-    
     /** Recalculate, don't get from cache */
     const RECALC = 1;
     
     /** Get/count all rows, don't limit */
     const ALL_ROWS = 1;
+    
     
 	/**
 	 * Drivers with classname

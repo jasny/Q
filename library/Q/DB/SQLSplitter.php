@@ -117,31 +117,51 @@ interface DB_SQLSplitter
 
 	
 	/**
-	 * Return the columns of a (partual) query.
+	 * Return the columns of a (partual) query statement.
 	 * 
-	 * @param string  $statement  Query statement or 'column, column, ...'
-	 * @param int     $flags      DB::SPLIT_% option
+	 * @param string $statement  Query statement or 'column, column, ...'
+	 * @param int    $flags      DB::SPLIT_% option
 	 * @return array
 	 */
 	public static function splitColumns($statement, $flags=0);
 	
-
 	/**
-	 * Extract subqueries from sql query and split each subquery in different parts.
-	 *
-	 * @param   string $statement  Query statement
-	 * @return  array
-	 */
-	public static function extractSplit($statement);
-
-	/**
-	 * Join parts and inject extracted subsets back into main sql query.
-	 *
-	 * @param  array $sets   array(main parts, parts subquery1 [, parts subquery2, ...])
+	 * Return the columns of a (partual) query statement.
+	 * 
+	 * @param string $statement  SQL query or FROM part
+	 * @param int    $flags      DB::SPLIT_% option
 	 * @return array
 	 */
-	public static function joinInject($parts);
+	public static function splitTables($statement, $flags=0);
 
+    /**
+     * Extract and split criteria on AND and OR.
+     * Returns array(array(left, operator, right), ...)
+     * 
+     * @param $sql    Statement or criteria string
+     * @param $flags  Optional DB::SPLIT_IDENTIFIER and DB::HAVING
+     * @return array
+     */
+    public static function splitCriteria($sql, $flags=0);
+
+	/**
+	 * Extract the ON expressions from a statement.
+	 *
+	 * @param string $sql    Statement or FROM part
+	 * @param int    $flags  Optional DB::SPLIT_IDENTIFIER
+	 * @return array
+	 */
+    public static function splitJoinOn($sql, $flags=0);
+
+	/**
+	 * Split limit in array(limit, offset)
+	 *
+	 * @param string $sql    SQL query or limit part
+	 * @param int    $flags
+	 * @return array
+	 */
+	public static function splitLimit($sql, $flags=0);
+	    
 
 	/**
 	 * Build a WHERE statement.
