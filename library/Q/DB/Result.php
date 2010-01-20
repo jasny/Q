@@ -33,7 +33,7 @@ abstract class DB_Result
 	 * Default fetch mode
 	 * @var int
 	 */
-	protected $fetchMode=self::FETCH_ASSOC;
+	protected $fetchMode=self::FETCH_RECORD;
 	
 	
 	/**
@@ -568,9 +568,9 @@ abstract class DB_Result
 	/**
 	 * Returns all values from a single column.
 	 * 
-	 * @param mixed $column  Field name(string) or index(int)
-	 * @param mixed $key_col Field to use as associated key
-	 * @param int   $opt     Additional options as binary list
+	 * @param mixed $column   Field name(string) or index(int)
+	 * @param mixed $key_col  Field to use as associated key
+	 * @param int   $opt      Additional options as binary list
 	 * @return array
 	 */
 	public function fetchColumn($column=0, $key_col=null, $opt=0)
@@ -583,19 +583,6 @@ abstract class DB_Result
 	    
 		$this->resetPointer();
 		return $values;
-	}
-
-	/**
-	 * Alias of Q\DB_Result::fetchColumn().
-	 * 
-	 * @param mixed $column  Field name(string) or index(int)
-	 * @param mixed $key_col Field to use as associated key
-	 * @param int   $opt     Additional options as binary list
-	 * @return array
-	 */
-	final public function fetchCol($column, $key_col, $opt)
-	{
-		return $this->fetchColumn($column, $key_col, $opt);
 	}
 	
 	/**
@@ -626,19 +613,4 @@ abstract class DB_Result
 		$this->resetPointer();
 		return $rows;
 	}
-	
-	/**
-	 * Don't call this unless you are a field and a mapping property changed.
-	 * 
-	 * @param Q\DB_Field  $field
-	 * @param string      $prop   Property name
-	 * @param string      $value  Property value
-	 * 
-	 * @todo Not yet implemented Q\DB_Result::remapField()
-	 */
-	public function remapField($fieldname, $prop, $value)
-	{
-	    
-	}
 }
-

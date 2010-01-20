@@ -85,16 +85,23 @@ abstract class DB implements Multiton
 	const QUOTE_LOOSE = 0x200;
 	/** Quote string as field/table name */
 	const QUOTE_STRICT = 0x400;
-
+	/** Don't map identifiers */
+	const DONT_MAP = 0x8000;
+	
+	/** Quote value as value when adding a column in a '[UPDATE|INSERT] SET ...' query */
+	const SET_VALUE = 0;
+	/** Quote value as expression when adding a column in a '[UPDATE|INSERT] SET ...' query */
+	const SET_EXPRESSION = 0x800;
+	
 	/** Unquote values */
-	const UNQUOTE = 0x800;
+	const UNQUOTE = 0x1000;
 	/** Cast values */
-	const CAST = 0x1000;
+	const CAST = 0x2000;
 	
 	/** Glue with OR (exp OR exp OR exp) */
 	const GLUE_AND = 0;
 	/** Glue with AND (exp AND exp AND exp) */
-	const GLUE_OR = 0x2000;
+	const GLUE_OR = 0x4000;
 	
 	/** Split fieldname in array(table, field, alias) */
 	const SPLIT_IDENTIFIER = 1;
@@ -282,12 +289,6 @@ abstract class DB implements Multiton
 	 */
 	protected $tables=array();
 	
-	/**
-	 * Fetch mode.
-	 * @var int
-	 */
-	protected $fetchMode=self::FETCH_ASSOC;
-	
 	
 	/**
 	 * Log queries and other actions.
@@ -361,7 +362,7 @@ abstract class DB implements Multiton
 	static public final function i()
 	{
         if (isset(self::$instances['i'])) return self::$instances['i'];
-        return self::getInterface('i');
+        return self::getInstance('i');
 	}
 
 	/**
@@ -375,17 +376,17 @@ abstract class DB implements Multiton
 	static public function __callstatic($name, $args)
 	{
         if (isset(self::$instances[$name])) return self::$instances[$name];
-        return self::getInterface($name);
+        return self::getInstance($name);
 	}	
 	
 	/**
-     * Get specific named interface.
-     * Returns a Mock object if interface doesn't exist.
+     * Get specific named instance.
+     * Returns a Mock object if instance doesn't exist.
      * 
      * @param string $name
      * @return object|Mock
      */
-    public static function getInterface($name)
+    public static function getInstance($name)
     {
 		if (!isset(self::$instances[$name])) {
 		    if (!class_exists('Q\Config') || Config::i() instanceof Mock || !($dsn = Config::i()->get('db' . ($name != 'i' ? ".{$name}" : '')))) {
@@ -950,134 +951,6 @@ abstract class DB implements Multiton
 	 * @return int
 	 */
 	abstract public function affectedRows();
-	
-	
-	/**
-	 * Query statement and return the result based on the set fetch type.
-	 * 
-	 * @param mixed $statement  String or query object
-	 * @param array $args       Parsed on placeholder
-	 * @return array
-	 */
-	public function fetchAll($statement, $args=null)
-	{
-		$ret = $this->query($statement, $args);
-		return $ret instanceof DB_Result ? $ret->fetchAll($this->fetchMode) : $ret;
-	}
-
-	/**
-	 * Query statement and return the result as ordered array.
-	 * 
-	 * @param mixed $statement  String or query object
-	 * @param array $args       Parsed on placeholder
-	 * @return array
-	 */
-	public function fetchOrdered($statement, $args=null)
-	{
-		$ret = $this->query($statement, $args);
-		return $ret instanceof DB_Result ? $ret->fetchAll(self::FETCH_ORDERED) : $ret;
-	}
-	
-	/**
-	 * Query statement and return the result as associated array.
-	 * 
-	 * @param mixed $statement  String or query object
-	 * @param array $args       Parsed on placeholder
-	 * @return array
-	 */
-	public function fetchAssoc($statement, $args=null)
-	{
-		$ret = $this->query($statement, $args);
-		return $ret instanceof DB_Result ? $ret->fetchAll(self::FETCH_ASSOC) : $ret;
-	}
-	
-	/**
-	 * Query statement and return the first column.
-	 * 
-	 * @param mixed $statement  String or query object
-	 * @param array $args       Parsed on placeholder
-	 * @return array
-	 */
-	public function fetchColumn($statement, $args=null)
-	{
-		$ret = $this->query($statement, $args);
-		return $ret instanceof DB_Result ? $ret->fetchColumn() : $ret;
-	}
-	
-	/**
-	 * Alias of Q\DB::fetchColum().
-	 * 
-	 * @param mixed $statement  String or query object
-	 * @param array $args       Parsed on placeholder
-	 * @return array
-	 */
-	final public function fetchCol($statement, $args=null)
-	{
-		return $this->fetchColumn($statement, $args);
-	}
-	
-	/**
-	 * Query statement and return the first column as key and the second as value.
-	 * 
-	 * @param mixed $statement  String or query object
-	 * @param array $args       Parsed on placeholder
-	 * @return array
-	 */
-	public function fetchPairs($statement, $args=null)
-	{
-		$ret = $this->query($statement, $args);
-		return $ret instanceof DB_Result ? $ret->fetchColumn(1, 0) : $ret;
-	}
-
-	/**
-	 * Query statement and return the first row based on the set fetch type.
-	 * 
-	 * @param mixed $statement  String or query object
-	 * @param array $args       Parsed on placeholder
-	 * @return array
-	 * 
-	 * @throws DB_LimitException if query results in > 1 record
-	 */
-	public function fetchRow($statement, $args=null)
-	{
-		$ret = $this->query($statement, $args);
-		if (!($ret instanceof DB_Result)) return $ret;
-		
-		if ($ret->countRows() > 1) throw new DB_LimitException("Query returned " . $ret->countRows() . " rows, while only 1 row was expected");
-		return $ret->fetch($this->fetchMode);
-	}
-
-	/**
-	 * Query statement and return a single value.
-	 * 
-	 * @param mixed $statement  String or query object
-	 * @param array $args       Parsed on placeholder
-	 * @return array
-	 * 
-	 * @throws DB_LimitException if query results in > 1 record
-	 */
-	public function fetchValue($statement, $args=null)
-	{
-		$ret = $this->query($statement, $args);
-		if (!($ret instanceof DB_Result)) return $ret;
-		
-		if ($ret->countRows() > 1) throw new DB_LimitException("Query returned " . $ret->countRows() . " rows, while only 1 row was expected");
-		return $ret->fetchValue();
-	}
-
-	/**
- 	 * Alias of Q/DB::fetchValue().
-	 * 
-	 * @param mixed $statement  String or query object
-	 * @param array $args       Parsed on placeholder
-	 * @return array
-	 * 
-	 * @throws DB_LimitException if query results in > 1 record
-	 */
-	final public function fetchOne($statement, $args=null)
-	{
-		return $this->fetchValue($statement, $args);
-	}
 }
 
 if (defined('Q_DB_ONLOAD')) include Q_DB_ONLOAD;

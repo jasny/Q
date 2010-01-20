@@ -316,7 +316,7 @@ abstract class Auth implements Multiton
 	 * 
 	 * @return object
 	 */
-	public function info()
+	public function getInfo()
 	{
 	    if (!isset($this->info)) $this->start();
 	    return !empty($this->info) ? (object)($this->info) : null;
@@ -327,14 +327,14 @@ abstract class Auth implements Multiton
 	 *
 	 * @return Auth_User
 	 */
-	public function user()
+	public function getUser()
 	{
 	    if ($this->user !== false) return $this->user;
 	    
-        if (isset($this->info()->uid)) {
-        	$this->user = $this->fetchUser($this->info()->uid);
-        } elseif (isset($this->info()->username)) {
-    	    $this->user = $this->fetchUserByName($this->info()->username);
+        if (isset($this->getInfo()->uid)) {
+        	$this->user = $this->fetchUser($this->getInfo()->uid);
+        } elseif (isset($this->getInfo()->username)) {
+    	    $this->user = $this->fetchUserByName($this->getInfo()->username);
         } else {
             $this->user = null;
         }
@@ -393,13 +393,13 @@ abstract class Auth implements Multiton
 	 */
 	public function checksum($salt=null)
 	{
-	    if (!isset($this->info) && !$this->info()) return null;
+	    if (!isset($this->info) && !$this->getInfo()) return null;
 	    
 	    if (is_string($this->store)) $this->store = extract_dsn($this->store);
 	    if (!($this->checksumCrypt instanceof Crypt)) $this->checksumCrypt = Crypt::with($this->checksumCrypt);
 	    if (empty($this->checksumCrypt->secret) && !$this->checksumPassword) throw new Exception("To create a checksum, either the password needs to be included or a secret key needs to be used.");
 	    
-	    return $this->checksumCrypt->encrypt((isset($this->info['uid']) ? $this->info['uid'] : $this->info['username']) . ($this->checksumPassword ? $this->user()->getPassword() : null) . ($this->checksumClientIp ? HTTP::getClientRoute() : null) . ($this->store['driver'] == 'session' ? session_id() : null), $salt);
+	    return $this->checksumCrypt->encrypt((isset($this->info['uid']) ? $this->info['uid'] : $this->info['username']) . ($this->checksumPassword ? $this->getUser()->getPassword() : null) . ($this->checksumClientIp ? HTTP::getClientRoute() : null) . ($this->store['driver'] == 'session' ? session_id() : null), $salt);
 	}
 	
 	
@@ -560,8 +560,8 @@ abstract class Auth implements Multiton
         if ($this->canStoreInfo() && (!isset($this->info['checksum']) || $this->checksum($this->info['checksum']) !== $this->info['checksum'])) $result = self::INVALID_CHECKSUM;
 
         if ($this->validateOnStart) {
-            if (!$this->user()) $result = self::UNKNOWN_USER;
-              elseif (!$this->user()->isActive()) $result = self::INACTIVE_USER;
+            if (!$this->getUser()) $result = self::UNKNOWN_USER;
+              elseif (!$this->getUser()->isActive()) $result = self::INACTIVE_USER;
               elseif ($this->user->getExpires() < time()) $result = self::PASSWORD_EXPIRED;
         }
         
@@ -702,7 +702,7 @@ abstract class Auth implements Multiton
         if (!isset($role)) return;
         
     	$roles = is_array($role) ? $role : func_get_args();
-    	$this->user()->authz($roles);
+    	$this->getUser()->authz($roles);
     }
     
     /**
@@ -720,7 +720,7 @@ abstract class Auth implements Multiton
         if (!isset($role)) return;
         
     	$roles = is_array($role) ? $role : func_get_args();
-    	$this->user()->authzAny($roles);
+    	$this->getUser()->authzAny($roles);
     }    
     
     
@@ -737,7 +737,7 @@ abstract class Auth implements Multiton
         if (!($this->log instanceof Logger)) $this->log = Log::to($this->log);
         
         $msg = ucfirst($event) . ($code == self::OK ? ' success' : ' failed: ' . $this->getMessage($code));
-        $this->log->write(array('username'=>$this->user()->username, 'host'=>HTTP::clientRoute(), 'message'=>$msg), $event);  
+        $this->log->write(array('username'=>$this->getUser()->username, 'host'=>HTTP::clientRoute(), 'message'=>$msg), $event);  
     }
     
     /**

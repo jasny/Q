@@ -1,7 +1,6 @@
 <?php
 use Q\DB, Q\DB_SQLStatement, Q\DB_MySQL_SQLSplitter;
 
-require_once 'TestHelper.php';
 require_once 'PHPUnit/Framework/TestCase.php';
 
 require_once 'Q/DB/MySQL/SQLSplitter.php';
@@ -1066,18 +1065,6 @@ class DB_MySQL_SQLSplitterTest extends PHPUnit_Framework_TestCase
     	$this->assertEquals(array("INSERT INTO relatie_active #sub1", "SELECT * FROM relatie WHERE id IN (#sub2) AND status = 1", "SELECT relatie_id FROM relatie_groep"), array_map(array(__CLASS__, 'cleanQuery'), $set));
     }
     
-    public function testExtractSplit_Select()
-    {
-		$part_sets = $this->qs->extractSplit("SELECT id, description FROM `test`");
-    	$this->assertEquals(array(array(0=>'SELECT', 'columns'=>'id, description', 'from'=>'`test`', 'where'=>'', 'group by'=>'', 'having'=>'', 'order by'=>'', 'limit'=>'', 100=>'')), array_map(create_function('$parts', 'return array_map("trim", $parts);'), $part_sets));
-    }
-    
-    public function testExtractSplit_SelectSubValues()
-    {
-    	$part_sets = $this->qs->extractSplit("SELECT id, description, VALUES(SELECT id, desc FROM subt WHERE status='1' CASCADE ON PARENT id = relatie_id) AS subs FROM `test` INNER JOIN (SELECT * FROM abc WHERE i = 1 GROUP BY x) AS abc WHERE abc.x IN (1,2,3,6,7) AND qq!='(SELECT)' ORDER BY abx.dd");
-    	$this->assertEquals(array(array(0=>'SELECT', 'columns'=>"id, description, VALUES(#sub1) AS subs", 'from'=>"`test` INNER JOIN (#sub2) AS abc", 'where'=>"abc.x IN (1,2,3,6,7) AND qq!='(SELECT)'", 'group by'=>'', 'having'=>'', 'order by'=>'abx.dd', 'limit'=>'', 100=>''), array(0=>"SELECT", 'columns'=> "id, desc", 'from'=>"subt", 'where'=>"status='1'", 'group by'=>'', 'having'=>'', 'order by'=>'', 'limit'=>'', 100=>"CASCADE ON PARENT id = relatie_id"), array(0=>"SELECT", 'columns'=>"*", 'from'=>"abc", 'where'=>"i = 1", 'group by'=>"x", 'having'=>'', 'order by'=>'', 'limit'=>'', 100=>'')), array_map(create_function('$parts', 'return array_map("trim", $parts);'), $part_sets));
-    }
-
     public function testExtractTree()
     {
 		$set = $this->qs->ExtractTree("SELECT * FROM relatie WHERE status = 1");

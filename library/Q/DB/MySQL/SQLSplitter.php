@@ -73,7 +73,7 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 	 * @param int    $flags       DB::QUOTE_%
 	 * @return string
 	 */
-	public static function quoteIdentifier($identifier, $flags=DB::QUOTE_LOOSE)
+	public static function quoteIdentifier($identifier, $flags=0)
 	{
 		// Strict
 		if ($flags & DB::QUOTE_STRICT) {
@@ -87,7 +87,7 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 		// Loose
 		if ($flags & DB::QUOTE_LOOSE || ($flags & 0x700) == 0) { 
 			$quoted = preg_replace_callback('/' . self::REGEX_QUOTED . '|\b(?:NULL|TRUE|FALSE|DEFAULT|DIV|AND|OR|XOR|IN|IS|BETWEEN|R?LIKE|REGEXP|SOUNDS\s+LIKE|MATCH|AS|CASE|WHEN|ASC|DESC|BINARY)\b|\bCOLLATE\s+\w++|\bUSING\s+\w++|(\d*[a-z_][^\s`\(\)\.&~|^<=>+\-\/*%!]*\b)(?!\s*\()/i', function($match) {return !empty($match[1]) ? "`{$match[1]}`" : $match[0];}, $identifier);
-			if (preg_match('/CAST\s*\(/i', $quoted)) $quoted = self::quoteIdentifier_castCleanup($quoted);
+			if (preg_match('/\bCAST\s*\(/i', $quoted)) $quoted = self::quoteIdentifier_castCleanup($quoted);
 			return $quoted;
 		}
 
@@ -149,9 +149,31 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 	 * @param int    $flags  DB::QUOTE_%
 	 * @return boolean
 	 */
-	public static function makeIdentifier($group, $name, $alias=null, $flags=DB::QUOTE_LOOSE)
+	public static function makeIdentifier($group, $name, $alias=null, $flags=0)
 	{
 		return (!empty($group) && ($flags & DB::QUOTE_STRICT || self::validIdentifier($name, DB::FIELDNAME_NAME | DB::WITH_ALIAS)) ? self::quoteIdentifier($group, $flags & DB::QUOTE_NONE ? DB::QUOTE_NONE : DB::QUOTE_STRICT) . '.' : '') . self::quoteIdentifier($name, $flags) . (!empty($alias) ? ' AS ' . self::quoteIdentifier($alias, $flags & DB::QUOTE_NONE ? DB::QUOTE_NONE : DB::QUOTE_STRICT) : '');
+	}
+	
+	/**
+	 * Applies the callback to the inditifiers in the expression.
+	 * 
+	 * @param callback $callback       Function arguments should be identical to DB_SQLSplitter::makeIdentifier().
+	 * @param string   $expression
+	 * @param string   $default_group  Default table / db
+	 * @param int      $flags          DB::QUOTE_%
+	 * @return string
+	 */
+	public static function mapIdentifiers($callback, $expression, $flags=0)
+	{
+		if ($flags & DB::DONT_MAP) return $this->quoteIdentifier($expression, $flags);
+		if ($flags & DB::QUOTE_STRICT) return call_user_func($callback, null, $expression, null, $flags);
+		
+		$fn = function($match) use($flags, $default_group) {return !empty($match[2]) ? call_user_func($callback, $match[2], $match[1], isset($match[3]) ? $match[3] : null, $flags) : $match[0];};
+		
+		$expression = preg_replace_callback('/(?:(' . self::REGEX_IDENTIFIER . ')\.)*' . self::REGEX_QUOTED . '|\b(?:NULL|TRUE|FALSE|DEFAULT|DIV|AND|OR|XOR|IN|IS|BETWEEN|R?LIKE|REGEXP|SOUNDS\s+LIKE|MATCH|AS|CASE|WHEN|ASC|DESC|BINARY)\b|\bCOLLATE\s+\w++|\bUSING\s+\w++|(\d*[a-z_][^\s`\(\)\.&~|^<=>+\-\/*%!]*\b)(?!\s*\()(?:(?:\s*\bAS\b)?\s*(`(?:[^`]*)`|(?:\d*[a-z_]\w*)))?/i', $fn, $expression);
+		if (preg_match('/\bCAST\s*\(/i', $expression)) $expression = self::quoteIdentifier_castCleanup($expression);
+		
+		return $expression;
 	}
 	
 	/**
@@ -309,8 +331,8 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 		if (is_array($sql)) $parts =& $sql;
 		  else $parts = self::split($sql);;
 		 
-		if (!empty($add[$i])) {
-			foreach ($add[$i] as $key=>&$partsAdd) {
+		if (!empty($add)) {
+			foreach ($add as $key=>&$partsAdd) {
 				if (!empty($parts[$key])) $parts[$key] = trim($parts[$key]);
 				
 				if ($key === 'columns' || $key === 'set' || $key === 'group by' || $key === 'order by') {
@@ -981,27 +1003,27 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 	 * Create a statement to insert/update rows.
 	 * 
 	 * @param string  $table
-	 * @param array   $primairy_key  Array with fields of primary key
+	 * @param array   $primary_key  Array with fields of primary key
 	 * @param array   $columns       Array with columns or array(column=>value, ...)
 	 * @param array   $rows          As array(array(value, value, ...), array(value, value, ...), ...)
 	 * @param boolean $flags         DB::NO_OVERWRITE to omit 'ON DUPLICATE KEY UPDATE' and other options as binary set
 	 * @return string
 	 */
-	public static function buildStoreStatement($table, $primairy_key=null, $columns=null, $rows=null, $flags=0)
+	public static function buildStoreStatement($table, $primary_key=null, $columns=null, $rows=null, $flags=0)
 	{
-		if (empty($columms)) {
+		if (empty($columns)) {
 			// nothing
 		} elseif (is_int(key($columns))) {
 			foreach ($columns as &$column) {
 				$col_quoted = self::makeIdentifier($table, $column, null, $flags);
 				$sql_columns[] = $col_quoted;
-				$sql_update[] = in_array($column, (array)$primairy_key) ? "$col_quoted=IFNULL($col_quoted, VALUES($col_quoted))" : "$col_quoted=VALUES($col_quoted)";
+				$sql_update[] = in_array($column, (array)$primary_key) ? "$col_quoted=IFNULL($col_quoted, VALUES($col_quoted))" : "$col_quoted=VALUES($col_quoted)";
 			}
 		} else {
 			foreach ($columns as $column=>&$value) {
 				$col_quoted = self::makeIdentifier($table, $column, null, $flags);
 				$sql_set[] = $col_quoted;
-				$sql_update[] = in_array($column, (array)$primairy_key) ? "$col_quoted=IFNULL($col_quoted, VALUES($col_quoted))" : "$col_quoted=VALUES($col_quoted)";
+				$sql_update[] = in_array($column, (array)$primary_key) ? "$col_quoted=IFNULL($col_quoted, VALUES($col_quoted))" : "$col_quoted=VALUES($col_quoted)";
 			}
 		}
 
@@ -1022,9 +1044,10 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 	 * @param string       $table
 	 * @param array        $columns   Assasioted array as (column=>value, ...)
 	 * @param string|array $criteria  WHERE expression or array(column=>value, ...)
+	 * @param int          $flags     Options as bitset
 	 * @return string
 	 */
-	public static function buildUpdateStatement($table=null, $columns=null, $criteria=null)
+	public static function buildUpdateStatement($table=null, $columns=null, $criteria=null, $flags=0)
 	{
 		$sql_set = array();
 		foreach ($columns as $column=>&$value) {
@@ -1032,11 +1055,11 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 		}
 
 		if (!is_scalar($criteria)) {
-			array_walk($criteria, function(&$value, $key) use($table) {$value = DB_MySQL_SQLSplitter::buildWhere(DB_MySQL_SQLSplitter::makeIdentifier($table, $key), $value);});
-			$criteria = join(' AND ', $criteria);
+			array_walk($criteria, function(&$value, $key) use($table) {$value = DB_MySQL_SQLSplitter::buildWhere(DB_MySQL_SQLSplitter::makeIdentifier($table, $key, null, $flags), $value);});
+			$criteria = join($flags & DB::GLUE_OR ? ' OR ' : ' AND ', $criteria);
 		}
 		
-		return "UPDATE" . (isset($table) ? ' ' . self::quoteIdentifier($table) : null) . (!empty($sql_set) ? " SET " . join(', ', $sql_set) : null) . (isset($criteria) ? " WHERE $criteria" : null);
+		return "UPDATE" . (isset($table) ? ' ' . self::quoteIdentifier($table, $flags) : null) . (!empty($sql_set) ? " SET " . join(', ', $sql_set) : null) . (isset($criteria) ? " WHERE $criteria" : null);
 	}
 	
 	/**
@@ -1044,16 +1067,17 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 	 * 
 	 * @param string       $table     Tablename
 	 * @param string|array $criteria  WHERE expression or array(column=>value, ...)
+	 * @param int          $flags
 	 * @return string
 	 */
-	public static function buildDeleteStatement($table=null, $criteria=array())
+	public static function buildDeleteStatement($table=null, $criteria=null, $flags=0)
 	{
 		if (!is_scalar($criteria)) {
 			foreach($criteria as $key=>&$value) $value = self::buildWhere(self::makeIdentifier($table, $key, null, $flags), $value);
 			$criteria = join($flags & DB::GLUE_OR ? ' OR ' : ' AND ', $criteria);
 		}
-			    
-		return "DELETE" . (isset($table) ? self::quoteIdentifier($table) . ".* FROM " . self::quoteIdentifier($table) : '') . " $where";
+		
+		return "DELETE" . (isset($table) ? self::quoteIdentifier($table) . ".* FROM " . self::quoteIdentifier($table, $flags) : '') . " $criteria";
 	}
 
 	/**

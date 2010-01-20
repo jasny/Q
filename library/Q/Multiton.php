@@ -9,13 +9,13 @@ namespace Q;
 interface Multiton
 {
     /**
-     * Get specific named interface.
-     * Returns a Mock object if interface doesn't exist.
+     * Get specific named instance.
+     * Returns a Mock object if instance doesn't exist.
      * 
      * @param string $name
      * @return object|Mock
      */
-    public static function getInterface($name);
+    public static function getInstance($name);
     
 	/**
 	 * Magic method to retun specific instance.
