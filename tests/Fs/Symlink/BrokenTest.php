@@ -1,7 +1,7 @@
 <?php
 use Q\Fs, Q\Fs_Node, Q\Fs_Symlink_Broken, Q\Fs_Exception, Q\ExecException;
 
-require_once 'TestHelper.php';
+require_once __DIR__ . '/../../init.php';
 require_once 'Fs/NodeTest.php';
 require_once 'Q/Fs/Symlink/Broken.php';
 

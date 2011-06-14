@@ -27,6 +27,8 @@ class Fs_SocketTest extends Fs_NodeTest
 		if (!$this->socket) $this->markTestSkipped("Could not create socket: $errstr ($errno)");
         
         $this->Fs_Node = new Fs_Socket($this->file);
+
+		parent::setUp();
     }
 
     /**
@@ -36,8 +38,9 @@ class Fs_SocketTest extends Fs_NodeTest
     {
     	fclose($this->socket);
         $this->cleanup($this->file);
-        $this->Fs_Node = null;
-    }
+
+		parent::tearDown();
+	}
 
     
     /**

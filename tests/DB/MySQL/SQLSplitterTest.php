@@ -1,6 +1,7 @@
 <?php
 use Q\DB, Q\DB_SQLStatement, Q\DB_MySQL_SQLSplitter;
 
+set_include_path('../library' . PATH_SEPARATOR . get_include_path());
 require_once 'PHPUnit/Framework/TestCase.php';
 
 require_once 'Q/DB/MySQL/SQLSplitter.php';
@@ -1190,14 +1191,14 @@ class DB_MySQL_SQLSplitterTest extends PHPUnit_Framework_TestCase
     public function testSelectStatement_Where_Prepend()
     {
 		$s = $this->statement("SELECT id, description FROM `test` WHERE id > 10 GROUP BY type_id HAVING SUM(qty) > 10");
-    	$s->where("status = 1", DB::PREPEND);
+    	$s->where("status = 1", null, null, DB::PREPEND);
     	$this->assertEquals("SELECT id, description FROM `test` WHERE (`status` = 1) AND (id > 10) GROUP BY type_id HAVING SUM(qty) > 10", self::cleanQuery($s));
     }
         
     public function testSelectStatement_Where_Replace()
     {
 		$s = $this->statement("SELECT id, description FROM `test` WHERE id > 10 GROUP BY type_id HAVING SUM(qty) > 10");
-    	$s->where("status = 1", DB::REPLACE);
+    	$s->where("status = 1", null, null, DB::REPLACE);
     	$s->where("xyz = 1");
     	$this->assertEquals("SELECT id, description FROM `test` WHERE (`status` = 1) AND (`xyz` = 1) GROUP BY type_id HAVING SUM(qty) > 10", self::cleanQuery($s));
     }
@@ -1205,7 +1206,7 @@ class DB_MySQL_SQLSplitterTest extends PHPUnit_Framework_TestCase
     public function testSelectStatement_Having()
     {
     	$s = $this->statement("SELECT id, description FROM `test` WHERE id > 10 GROUP BY type_id HAVING SUM(qty) > 10");
-    	$s->where("status = 1", DB::HAVING);
+    	$s->where("status = 1", null, null, DB::HAVING);
     	$this->assertEquals("SELECT id, description FROM `test` WHERE id > 10 GROUP BY type_id HAVING (SUM(qty) > 10) AND (`status` = 1)", self::cleanQuery($s));
     }
 
@@ -1244,66 +1245,66 @@ class DB_MySQL_SQLSplitterTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals("SELECT id, description FROM `test` WHERE id > 10 GROUP BY type_id HAVING SUM(qty) > 10 ORDER BY xyz, `parent_id`", self::cleanQuery($s));
     }   
     
-    public function testSelectStatement_AddCriteria_Equals()
+    public function testSelectStatement_WhereCriteria_Equals()
     {
     	$s = $this->statement("SELECT id, description FROM `test`");
-    	$s->addCriteria("status", 1);
+    	$s->where("status", 1);
 		$this->assertEquals("SELECT id, description FROM `test` WHERE (`status` = 1)", self::cleanQuery($s));
     }   
     
-    public function testSelectStatement_AddCriteria_GreatEq()
+    public function testSelectStatement_WhereCriteria_GreatEq()
     {
 		$s = $this->statement("SELECT id, description FROM `test`");
-		$s->addCriteria('id', 1, '>=');
+		$s->where('id', 1, '>=');
 		$this->assertEquals("SELECT id, description FROM `test` WHERE (`id` >= 1)", self::cleanQuery($s));
     }   
     
-    public function testSelectStatement_AddCriteria_Or()
+    public function testSelectStatement_WhereCriteria_Or()
     {
 		$s = $this->statement("SELECT id, description FROM `test`");
-    	$s->addCriteria(array('xyz', 'abc'), 10);
+    	$s->where(array('xyz', 'abc'), 10);
 		$this->assertEquals("SELECT id, description FROM `test` WHERE (`xyz` = 10 OR `abc` = 10)", self::cleanQuery($s));
     }   
     
-    public function testSelectStatement_AddCriteria_In()
+    public function testSelectStatement_WhereCriteria_In()
     {
 		$s = $this->statement("SELECT id, description FROM `test`");
-		$s->addCriteria('xyz', array('a', 'b', 'c'));
+		$s->where('xyz', array('a', 'b', 'c'));
 		$this->assertEquals("SELECT id, description FROM `test` WHERE (`xyz` IN (\"a\", \"b\", \"c\"))", self::cleanQuery($s));
     }   
     
-    public function testSelectStatement_AddCriteria_Between()
+    public function testSelectStatement_WhereCriteria_Between()
     {
 		$s = $this->statement("SELECT id, description FROM `test`");
-		$s->addCriteria('xyz', array(10, 12), 'BETWEEN');
+		$s->where('xyz', array(10, 12), 'BETWEEN');
 		$this->assertEquals("SELECT id, description FROM `test` WHERE (`xyz` BETWEEN 10 AND 12)", self::cleanQuery($s));
     }   
     
-    public function testSelectStatement_AddCriteria_BetweenXAndNull()
+    public function testSelectStatement_WhereCriteria_BetweenXAndNull()
     {
 		$s = $this->statement("SELECT id, description FROM `test`");
-		$s->addCriteria('xyz', array(10, null), 'BETWEEN');
+		$s->where('xyz', array(10, null), 'BETWEEN');
 		$this->assertEquals("SELECT id, description FROM `test` WHERE (`xyz` >= 10)", self::cleanQuery($s));
     }   
     
-    public function testSelectStatement_AddCriteria_BetweenNullAndX()
+    public function testSelectStatement_WhereCriteria_BetweenNullAndX()
     {
 		$s = $this->statement("SELECT id, description FROM `test`");
-		$s->addCriteria('xyz', array(null, 12), 'BETWEEN');
+		$s->where('xyz', array(null, 12), 'BETWEEN');
 		$this->assertEquals("SELECT id, description FROM `test` WHERE (`xyz` <= 12)", self::cleanQuery($s));
     }   
     
-    public function testSelectStatement_AddCriteria_LikeWildcard()
+    public function testSelectStatement_WhereCriteria_LikeWildcard()
     {
 		$s = $this->statement("SELECT id, description FROM `test`");
-		$s->addCriteria('description', 'bea', 'LIKE%');
+		$s->where('description', 'bea', 'LIKE%');
 		$this->assertEquals("SELECT id, description FROM `test` WHERE (`description` LIKE \"bea%\")", self::cleanQuery($s));
     }   
     
-    public function testSelectStatement_AddCriteria_WildcardLikeWildcard()
+    public function testSelectStatement_WhereCriteria_WildcardLikeWildcard()
     {
 		$s = $this->statement("SELECT id, description FROM `test`");
-		$s->addCriteria('description', array('bean', 'arnold'), '%LIKE%');
+		$s->where('description', array('bean', 'arnold'), '%LIKE%');
 		$this->assertEquals("SELECT id, description FROM `test` WHERE (`description` LIKE \"%bean%\" OR `description` LIKE \"%arnold%\")", self::cleanQuery($s));
     } 
 
@@ -1360,17 +1361,17 @@ class DB_MySQL_SQLSplitterTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals("INSERT INTO `test` SELECT DEFAULT, description, type_id, `xyz` FROM abc", self::cleanQuery($s));    	
     }    
     
-    public function testInsertSelectStatement_AddCriteria()
+    public function testInsertSelectStatement_WhereCriteria()
     {
     	$s = $this->statement("INSERT INTO `test` SELECT DEFAULT, description, type_id FROM abc");
-    	$s->addCriteria("status", 1);
+    	$s->where("status", 1);
 		$this->assertEquals("INSERT INTO `test` SELECT DEFAULT, description, type_id FROM abc WHERE (`status` = 1)", self::cleanQuery($s));
     }    
     
-    public function testInsertSelectStatement_AddCriteria_Like()
+    public function testInsertSelectStatement_WhereCriteria_Like()
     {
 		$s = $this->statement("INSERT INTO `test` SELECT DEFAULT, description, type_id FROM abc WHERE status = 1");
-    	$s->addCriteria('description', 'qqq', 'LIKE%');
+    	$s->where('description', 'qqq', 'LIKE%');
 		$this->assertEquals("INSERT INTO `test` SELECT DEFAULT, description, type_id FROM abc WHERE (status = 1) AND (`description` LIKE \"qqq%\")", self::cleanQuery($s));
     }
     
@@ -1450,43 +1451,43 @@ class DB_MySQL_SQLSplitterTest extends PHPUnit_Framework_TestCase
     public function testUpdateStatement_Where_Prepend()
     {
     	$s = $this->statement("UPDATE `test` SET description='abc', type_id=10 WHERE id > 10");
-    	$s->where("status = 1", DB::PREPEND);
+    	$s->where("status = 1", null, null, DB::PREPEND);
     	$this->assertEquals("UPDATE `test` SET description='abc', type_id=10 WHERE (`status` = 1) AND (id > 10)", self::cleanQuery($s));
     }
     
     public function testUpdateStatement_Where_Replace()
     {
     	$s = $this->statement("UPDATE `test` SET description='abc', type_id=10 WHERE id > 10");
-    	$s->where("status = 1", DB::REPLACE);
+    	$s->where("status = 1", null, null, DB::REPLACE);
     	$s->where("xyz = 1");
     	$this->assertEquals("UPDATE `test` SET description='abc', type_id=10 WHERE (`status` = 1) AND (`xyz` = 1)", self::cleanQuery($s));
     }
 
-    public function testUpdateStatement_AddCriteria()
+    public function testUpdateStatement_WhereCriteria()
     {
     	$s = $this->statement("UPDATE `test` SET description='abc', type_id=10");
-    	$s->addCriteria("status", 1);
+    	$s->where("status", 1);
 		$this->assertEquals("UPDATE `test` SET description='abc', type_id=10 WHERE (`status` = 1)", self::cleanQuery($s));
     }
 
-    public function testUpdateStatement_AddCriteria_Or()
+    public function testUpdateStatement_WhereCriteria_Or()
     {
 		$s = $this->statement("UPDATE `test` SET description='abc', type_id=10");
-    	$s->addCriteria(array('xyz', 'abc'), 10);
+    	$s->where(array('xyz', 'abc'), 10);
 		$this->assertEquals("UPDATE `test` SET description='abc', type_id=10 WHERE (`xyz` = 10 OR `abc` = 10)", self::cleanQuery($s));
     }
 
-    public function testUpdateStatement_AddCriteria_Between()
+    public function testUpdateStatement_WhereCriteria_Between()
     {
 		$s = $this->statement("UPDATE `test` SET description='abc', type_id=10");
-		$s->addCriteria('xyz', array(10, 12), 'BETWEEN');
+		$s->where('xyz', array(10, 12), 'BETWEEN');
 		$this->assertEquals("UPDATE `test` SET description='abc', type_id=10 WHERE (`xyz` BETWEEN 10 AND 12)", self::cleanQuery($s));
     }
 
-    public function testUpdateStatement_AddCriteria_LikeWildcard()
+    public function testUpdateStatement_WhereCriteria_LikeWildcard()
     {
 		$s = $this->statement("UPDATE `test` SET description='abc', type_id=10");
-		$s->addCriteria('description', 'bea', 'LIKE%');
+		$s->where('description', 'bea', 'LIKE%');
 		$this->assertEquals("UPDATE `test` SET description='abc', type_id=10 WHERE (`description` LIKE \"bea%\")", self::cleanQuery($s));
     }
     
@@ -1566,43 +1567,43 @@ class DB_MySQL_SQLSplitterTest extends PHPUnit_Framework_TestCase
     public function testDeleteStatement_Where_Prepend()
     {
     	$s = $this->statement("DELETE FROM `test` WHERE id > 10");
-    	$s->where("status = 1", DB::PREPEND);
+    	$s->where("status = 1", null, null, DB::PREPEND);
     	$this->assertEquals("DELETE FROM `test` WHERE (`status` = 1) AND (id > 10)", self::cleanQuery($s));
     }
     
     public function testDeleteStatement_Where_Replace()
     {
     	$s = $this->statement("DELETE FROM `test` WHERE id > 10");
-    	$s->where("status = 1", DB::REPLACE);
+    	$s->where("status = 1", null, null, DB::REPLACE);
     	$s->where("xyz = 1");
     	$this->assertEquals("DELETE FROM `test` WHERE (`status` = 1) AND (`xyz` = 1)", self::cleanQuery($s));
     }
 
-    public function testDeleteStatement_AddCriteria()
+    public function testDeleteStatement_WhereCriteria()
     {
     	$s = $this->statement("DELETE FROM `test`");
-    	$s->addCriteria("status", 1);
+    	$s->where("status", 1);
 		$this->assertEquals("DELETE FROM `test` WHERE (`status` = 1)", self::cleanQuery($s));
     }
 
-    public function testDeleteStatement_AddCriteria_Or()
+    public function testDeleteStatement_WhereCriteria_Or()
     {
 		$s = $this->statement("DELETE FROM `test`");
-		$s->addCriteria(array('xyz', 'abc'), 10);
+		$s->where(array('xyz', 'abc'), 10);
 		$this->assertEquals("DELETE FROM `test` WHERE (`xyz` = 10 OR `abc` = 10)", self::cleanQuery($s));
     }
 
-    public function testDeleteStatement_AddCriteria_Between()
+    public function testDeleteStatement_WhereCriteria_Between()
     {
 		$s = $this->statement("DELETE FROM `test`");
-		$s->addCriteria('xyz', array(10, 12), 'BETWEEN');
+		$s->where('xyz', array(10, 12), 'BETWEEN');
 		$this->assertEquals("DELETE FROM `test` WHERE (`xyz` BETWEEN 10 AND 12)", self::cleanQuery($s));
     }
 
-    public function testDeleteStatement_AddCriteria_LikeWildcard()
+    public function testDeleteStatement_WhereCriteria_LikeWildcard()
     {
 		$s = $this->statement("DELETE FROM `test`");
-		$s->addCriteria('description', 'bea', 'LIKE%');
+		$s->where('description', 'bea', 'LIKE%');
 		$this->assertEquals("DELETE FROM `test` WHERE (`description` LIKE \"bea%\")", self::cleanQuery($s));
     }
     

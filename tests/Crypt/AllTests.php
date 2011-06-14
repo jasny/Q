@@ -1,4 +1,6 @@
 <?php
+set_include_path(get_include_path() . PATH_SEPARATOR . dirname(__DIR__) . PATH_SEPARATOR . dirname(__DIR__) . '/../library');
+
 require_once 'PHPUnit/Framework/TestSuite.php';
 require_once 'Crypt/CreationTest.php';
 require_once 'Crypt/CRC32Test.php';

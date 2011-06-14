@@ -1,7 +1,6 @@
 <?php
 use Q\Crypt_OpenSSL;
 
-require_once 'TestHelper.php';
 require_once 'Q/Crypt/OpenSSL.php';
 require_once 'PHPUnit/Framework/TestCase.php';
 

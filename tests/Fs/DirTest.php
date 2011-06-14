@@ -1,6 +1,7 @@
 <?php
 use Q\Fs, Q\Fs_Node, Q\Fs_Dir, Q\Fs_Exception, Q\ExecException;
 
+require_once __DIR__ . '/../init.php';
 require_once 'Fs/NodeTest.php';
 require_once 'Q/Fs/Dir.php';
 
@@ -27,10 +28,9 @@ class Fs_DirTest extends Fs_NodeTest
      */
     protected function tearDown()
     {
-        parent::tearDown();
         $this->cleanup($this->file);
-        $this->Fs_Node = null;
-    }
+		parent::tearDown();
+	}
 
 
     /**

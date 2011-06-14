@@ -18,12 +18,6 @@ class DB_Field extends \ArrayObject implements DB_FieldAccess
 	
 
 	/**
-	 * Database connection.
-	 * @var DB
-	 */
-	protected $connection;
-
-	/**
 	 * Parent record or table.
 	 * @var DB_Table|DB_Result|DB_Record
 	 */
@@ -160,22 +154,20 @@ class DB_Field extends \ArrayObject implements DB_FieldAccess
 	/**
 	 * Return the name of a field.
 	 *
-	 * @param int $format  A DB::FIELDNAME_% constant and DB::WITH_ALIAS and DB::QUOTE_% options as binary set 
+	 * @param int $flags  A DB::FIELDNAME_% constant and DB::WITH_ALIAS and DB::QUOTE_% options as binary set 
 	 * @return string
 	 */
-	public function getName($format=DB::FIELDNAME_FULL)
+	public function getName($flags=DB::FIELDNAME_FULL)
 	{
-		$quote = isset($this->connection) && ($format & QUOTE_LOOSE || $format & QUOTE_STRICT);
-		
-		switch ($format) {
+		switch ($flags & 0xf) {
 			case DB::FIELDNAME_NAME:
-				return $quote ? $this->connection->quoteIdentifier($this['name'], $format) : $this['name'];
-			case DB::FIELDNAME_COLUMN:
-				return $quote ? $this->connection->makeIdentifier(null, $this['name_db'], $format & DB::WITH_ALIAS  && ($this['name'] != $this['name_db']) ? $this['name'] : null, $format) : $this['name_db'];
+				return $flags & QUOTE_LOOSE || $flags & QUOTE_STRICT ? $this->parent->getConnection()->quoteIdentifier($this['name'], $flags) : $this['name'];
 			case DB::FIELDNAME_FULL:
-				return $quote ? $this->connection->makeIdentifier($this['table'], $this['name'], $format) : (isset($this['table']) ? $this['table'] . '.' . $this['name'] : $this['name']);
+				return $flags & QUOTE_LOOSE || $flags & QUOTE_STRICT ? $this->parent->getConnection()->makeIdentifier($this['table'], $this['name'], $flags) : (isset($this['table']) ? $this['table'] . '.' . $this['name'] : $this['name']);
+			case DB::FIELDNAME_COLUMN:
+				return $this->parent->getConnection()->makeIdentifier($this['table'], $this['name_db'], $flags & DB::WITH_ALIAS && ($this['name'] != $this['name_db']) ? $this['name'] : null, $flags);
 			case DB::FIELDNAME_DB:       
-				return $quote ? $this->connection->makeIdentifier($this['table_db'], $this['name_db'], $format & DB::WITH_ALIAS  && ($this['name'] != $this['name_db']) ? $this['name'] : null) : $this['table_db'] . '.' . $this['name_db'];
+				return $this->parent->getConnection()->makeIdentifier($this['table_db'], $this['name_db'], $flags & DB::WITH_ALIAS && ($this['name'] != $this['name_db']) ? $this['name'] : null);
 		}
 	}
 

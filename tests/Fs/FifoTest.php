@@ -1,6 +1,7 @@
 <?php
 use Q\Fs, Q\Fs_Node, Q\Fs_Fifo, Q\Fs_Exception, Q\ExecException;
 
+require_once __DIR__ . '/../init.php';
 require_once 'Fs/NodeTest.php';
 require_once 'Q/Fs/Fifo.php';
 
@@ -18,6 +19,8 @@ class Fs_FifoTest extends Fs_NodeTest
         
         if (!posix_mkfifo($this->file, 0777)) $this->markTestSkipped("Could not create fifo file '{$this->file}'.");
         $this->Fs_Node = new Fs_Fifo($this->file);
+
+		parent::setUp();
     }
 
     /**
@@ -26,7 +29,7 @@ class Fs_FifoTest extends Fs_NodeTest
     protected function tearDown()
     {
         $this->cleanup($this->file);
-        $this->Fs_Node = null;
+		parent::tearDown();
     }
 
     

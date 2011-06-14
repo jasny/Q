@@ -9,7 +9,7 @@ require_once 'Q/DB/Statement.php';
  * 
  * @package DB
  */
-class DB_SQLStatement implements DB_Statement
+class DB_SQLStatement
 {
 	/**
 	 * Database connection
@@ -43,8 +43,8 @@ class DB_SQLStatement implements DB_Statement
 	public $sqlSplitter;
 	
 	/**
-	 * The type of the query (for each subset)
-	 * @var array
+	 * The type of the query
+	 * @var string
 	 */
 	protected $queryType;
 
@@ -66,6 +66,12 @@ class DB_SQLStatement implements DB_Statement
 	 * @var array
 	 */
 	protected $partsAdd;
+
+	/**
+	 * Extracted subqueries
+	 * @var DB_SQLStatement
+	 */
+	protected $subqueries;
 	
 	
 	/**
@@ -165,72 +171,25 @@ class DB_SQLStatement implements DB_Statement
      * @param int $subset
      * @return string
      */
-	public function getQueryType()
+	public function getType()
 	{
-		if (isset($this->queryType) && array_key_exists($subset, $this->queryType)) return $this->queryType[$subset];
-		
-		if ($subset > 0) {
-		    $sets = $this->getSQLSplitter()->extractSubsets($this->statement);
-		    if (!isset($sets[$subset])) throw new Exception("Unable to get query type of subset $subset: Statement doesn't have $subset subqueries.");
-		    $statement = $sets[$subset];
-		} else {
-		    $statement = $this->statement;
-		}
-		
-		$this->queryType[$subset] = $this->getSQLSplitter()->getQueryType($statement);
-		return $this->queryType[$subset];
+		if (!isset($this->queryType)) $this->queryType = $this->getSQLSplitter()->getQueryType($this->statement);
+		return $this->queryType;
 	}
 
 	/**
-	 * Quote column add table and resolving symantic mapping.
+	 * Resolving symantic mapping.
 	 *
-	 * @param string|DB_Table $table
-	 * @param string|DB_Field $column  Field name or index
-	 * @param string          $alias
-	 * @param int             $flags   Bitset of DB::FIELDNAME_% and DB::QUOTE_% options
+	 * @param string $expression
+	 * @param int    $flags       Bitset of DB::FIELDNAME_% and DB::QUOTE_% options
 	 * @return string
 	 */
-	public function makeColumn($column, $table=null, $alias=null, $flags=0)
+	public function resolveMapping($identifier, $flags=DB::FIELDNAME_COLUMN)
 	{
-		if (~$flags & 0x700) $flags |= DB::QUOTE_LOOSE;
-		
-   		if ($column instanceof DB_Field || (is_string($column) && $column[0] !== '#')) { 
-   			$field = $column;
-   		} elseif (is_int($column) || strncmp($column, '#col:', 5) == 0) {
-   			if (!is_int($column)) $column = substr($column, 5);
-   			$field = isset($table) ? $this->getTable($table)->getField($column) : $this->getField($column)->getName($flags);
-   		} else {
-			$field = $this->lookupField($column);
-   		}
-		
-		return $this->getSQLSplitter()->makeIdentifier($table, $field, $alias, $flags);
+		if ($flags & 0xf == 0) $flags |= DB::FIELDNAME_COLUMN;
+		return $this->lookupField($identifier)->getName($flags);
 	}
 
-	/**
-	 * Resolve symantic mapping for field.
-	 *
-	 * @param string|DB_Table $table
-	 * @param string|DB_Field $column  Field name or index
-	 * @param string          $alias
-	 * @param int             $flags   Bitset of DB::FIELDNAME_% and DB::QUOTE_% options
-	 * @return string
-	 */
-	public function makeTable($table, $db=null, $alias=null, $flags=0)
-	{
-		if (~$flags & 0x700) $flags |= DB::QUOTE_LOOSE;
-		
-   		if ($column instanceof DB_Field || (is_string($column) && $column[0] !== '#')) { 
-   			$field = $column;
-   		} elseif (is_int($column) || strncmp($column, '#col:', 5) == 0) {
-   			if (!is_int($column)) $column = substr($column, 5);
-   			$field = isset($table) ? $this->getTable($table)->getField($column) : $this->getField($column)->getName($flags);
-   		} else {
-			$field = $this->getTable($table)->getField($column);
-   		}
-		
-		return $this->getSQLSplitter()->makeIdentifier($table, $field, $alias, $flags);
-	}
-	
 	/**
 	 * Guess the base table if it has not been explicitly set.
 	 * 
@@ -274,14 +233,23 @@ class DB_SQLStatement implements DB_Statement
 	}
 
 	/**
-	 * Get a subquery.
+	 * Get a subquery (from base statement).
 	 * 
-	 * @param $subset
+	 * @param int $subset  Number of subquery (start with 1)
 	 * @return DB_SQLStatement
 	 */
-	public function getSubquery($subset)
+	public function getSubquery($subset=1)
 	{
-		return new static($this->getSQLSplitter()->join($this->getParts($subset)), $this);
+		if (!isset($this->subqueries)) { 
+			$statements = $this->getSQLSplitter()->extractSubsets($this->statement);
+			$this->baseParts = $this->getSQLSplitter()->split($statements[0]);
+			unset($statements[0]);
+			
+			foreach ($statements as $i=>$statement) $this->subqueries[$i] = new static($statement, $this);
+		}
+			
+		if (!isset($this->subqueries[$subset])) throw new Exception("Unable to get subquery #$subset: Query only has " . count($this->subqueries) . (count($this->subqueries) == 1 ? " subquery." : " subqueries."));
+		return $this->subqueries[$subset];
 	}
 	
 	/**
@@ -297,14 +265,6 @@ class DB_SQLStatement implements DB_Statement
 	}
 
 	/**
-	 * Extract and split base statement.
-	 */
-   	protected function splitBaseStatement()
-   	{
-   		$this->baseParts = array_map(array($this->getSQLSplitter(), 'split'),  $this->getSQLSplitter()->extract($this->statement));
-   	}
-   	
-	/**
 	 * Apply the added and replacement parts to the parts of the base query.
 	 * 
 	 * @param int $subset  Get the parts of a subquery (0=main query)
@@ -312,26 +272,19 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	public function getParts()
 	{
-		if (isset($this->cachedParts[$subset])) return $this->cachedParts[$subset];
-		
-		if (!isset($this->baseParts)) $this->splitBaseStatement();
-		if (!isset($this->baseParts[$subset])) throw new Exception("Unable to use subset $subset: " . (count($this->baseParts) == 1 ? "Statement does not have any subqueries" : "Statement only has " . (count($this->baseParts)-1) . (count($this->baseParts) == 2 ? " subquery" : " subqueries")));
-		
-		if (empty($this->partsAdd) && empty($this->partsReplace)) return $this->baseParts[$subset];
-
-		// Only subsets with a higher number can be a subquery of requested subset, so work from high to low
-		for ($i=count($this->baseParts); $i >= 0; $i--) {
-			$parts =& $this->baseParts[$i];
-			
-			if (!empty($this->partsReplace[$i])) $parts = array_merge($parts, $this->partsReplace[$i]);
-			if (!empty($this->partsAdd[$i])) $parts = $this->getSQLSplitter()->addParts($parts, $this->partsAdd[$i]);
+		if (!isset($this->cachedParts)) {
+			if (!isset($this->baseParts)) $this->baseParts = $this->getSQLSplitter()->split($this->statement);
+			if (empty($this->partsAdd) && empty($this->partsReplace)) return $this->baseParts;
+	
+			$parts = $this->baseParts;
+			if (!empty($this->partsReplace)) $parts = array_merge($parts, $this->partsReplace);
+			if (!empty($this->partsAdd)) $parts = $this->getSQLSplitter()->addParts($parts, $this->partsAdd);
 			if (key($parts) == 'select' && empty($parts['columns'])) $parts['columns'] = '*';
 			
-			$this->cachedParts[$i] =& $parts;
-			$this->getSQLSplitter()->injectSubsets(&$this->cachedParts);
-		}
+			$this->cachedParts =& $parts;
+		}		
 		
-		return $this->cachedParts[$subset];
+		return empty($this->subqueries) ? $this->cachedParts : $this->getSQLSplitter()->injectSubsets(array($this->cachedParts) + $this->subqueries);
 	}
 
 	/**
@@ -343,23 +296,24 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	public function hasPart($key)
 	{
-		if (!isset($this->baseParts)) $this->splitBaseStatement();
-		return array_key_exists($key, $this->baseParts[$subset]) || !empty($this->partsReplace[$subset][$key]) || !empty($this->partsAdd[$subset][$key]);
+		if (!isset($this->baseParts)) $this->baseParts = $this->getSQLSplitter()->split($this->statement);
+		return array_key_exists($key, $this->baseParts) || !empty($this->partsReplace[$key]) || !empty($this->partsAdd[$key]);
 	}
 	
 	/**
      * Return a specific part of the statement.
      *
-	 * @param mixed $key     The key identifying the part
-	 * @param int   $subset  Get the part of a subquery (0=main query)
+	 * @param mixed $key  The key identifying the part
      * @return string
+     * 
+     * @throws Exception if part doesn't exist.
      */
 	public function getPart($key)
 	{
-		$this->getParts($subset);
-		if (!array_key_exists($key, $this->cachedParts[$subset]))
+		$parts = $this->getParts();
+		if (!array_key_exists($key, $parts)) throw new Exception("Unable to get $key part for " . $this->getType() . " statement.");
 		
-		return $this->cachedParts[$subset][$key];
+		return $parts[$key];
 	}
 	
 	/**
@@ -367,26 +321,24 @@ class DB_SQLStatement implements DB_Statement
 	 * 
 	 * {@internal Using cache is slightly inconvenient, however we don't want to split this each time when we need to lookup a fieldname}}
 	 *
-	 * @param string|int $subset  Get the tables of a subquery (0=main query)
-	 * @param int        $flags   DB::SPLIT_% options
+	 * @param int $flags  DB::SPLIT_% options
 	 * @return DB_Table
 	 */
 	public function getTablenames($flags=0)
 	{
-		if (!isset($this->cachedTablenames[$subset])) $this->cachedTablenames[$subset] = $this->getSQLSplitter()->splitTables($this->getParts($subset), $flags);
-		return $this->cachedTablenames[$subset];
+		if (!isset($this->cachedTablenames)) $this->cachedTablenames = $this->getSQLSplitter()->splitTables($this->getParts(), $flags);
+		return $this->cachedTablenames;
 	}
 	
 	/**
 	 * Get the columns used in the statement.
 	 * 
-	 * @param int $flags   DB::SPLIT_% and DB::UNQUOTE options
-	 * @param int $subset  Get the columns of a subquery (0=main query)
+	 * @param int $flags  DB::SPLIT_% and DB::UNQUOTE options
 	 * @return array
 	 */
 	public function getColumns($flags=0)
 	{
-		return $this->getSQLSplitter()->splitColumns($this->getParts($subset), $flags);
+		return $this->getSQLSplitter()->splitColumns($this->getParts(), $flags);
 	}
 
 	/**
@@ -429,16 +381,15 @@ class DB_SQLStatement implements DB_Statement
 	public function setPart($key, $expression, $flags=DB::REPLACE)
 	{
 		$key = strtolower($key);
-		if (!($flags & DB::DONT_MAP && $flags & 0x700 == DB::QUOTE_NONE) && $this->getSQLSplitter()->holdsIdentifiers($key)) $expression = $this->getSQLSplitter()->mapIdentifiers(array($this, 'makeColumn'), $expression, $flags);
 		
 		$this->clearCachedStatement();
 		
-		if ($flags & DB::REPLACE) $this->partsReplace[$subset][$key] = $expression;
-		  else $this->partsAdd[$subset][$key][$flags & DB::PREPEND ? DB::PREPEND : DB::APPEND][] = $expression;
+		if ($flags & DB::REPLACE) $this->partsReplace[$key] = $expression;
+		  else $this->partsAdd[$key][$flags & DB::PREPEND ? DB::PREPEND : DB::APPEND][] = $expression;
 		
 		if ($key == 'from' || $key == 'into' || $key == 'tables') {
 			if (!$this->basetable) $this->guessBasetable($expression);
-			unset($this->cachedTablenames[$subset]);
+			unset($this->cachedTablenames);
 		}
 		
 		return $this;
@@ -459,25 +410,25 @@ class DB_SQLStatement implements DB_Statement
    	 */
    	public function addColumn($column, $flags=0)
    	{
-   		$type = $this->getQueryType($subset);
-   		$key = $type == 'UPDATE' || ($type == 'INSERT' && $this->hasPart('set', $subset)) ? 'set' : 'columns';
+   		$type = $this->getType();
+   		$key = $type == 'UPDATE' || ($type == 'INSERT' && $this->hasPart('set')) ? 'set' : 'columns';
    		
    		if (is_array($column)) {
    			$splitter = $this->getSQLSplitter();
    			
    			if ($key == 'set') {
    				array_walk($column, $flags & DB::SET_EXPRESSION ?
-   				  function(&$val, $key) use($flags, $splitter) {$val = $splitter->mapIdentifiers(array($this, 'makeColumn'), $key, $flags) . '=' . $splitter->mapIdentifiers(array($this, 'makeColumn'), $val, $flags);} :
-   				  function(&$val, $key) use($flags, $splitter) {$val = $splitter->mapIdentifiers(array($this, 'makeColumn'), $key, $flags) . '=' . $splitter->quote($val);}
+   				  function(&$val, $key) use($flags, $splitter) {$val = $splitter->quoteIdentifier($key, $flags & ~DB::QUOTE_OPTIONS | DB::QUOTE_STRICT, array($this, 'resolveMapping')) . '=' . $splitter->mapIdentifiers($val, $flags, array($this, 'resolveMapping'));} :
+   				  function(&$val, $key) use($flags, $splitter) {$val = $splitter->quoteIdentifier($key, $flags & ~DB::QUOTE_OPTIONS | DB::QUOTE_STRICT, array($this, 'resolveMapping')) . '=' . $splitter->quote($val);}
    				);
    			} else {
-   				array_walk($column, function(&$val) use($flags, $splitter) {$val = $splitter->mapIdentifiers(array($this, 'makeColumn'), $val, $flags);});
+   				array_walk($column, function(&$val) use($flags, $splitter) {$val = $splitter->quoteIdentifier($val, $flags, array($this, 'resolveMapping'));});
    			}
    			
    			$column = join(', ', $column);
    		}
    		
-		$this->setPart($key, $column, ($flags & ~0x700) | DB::DONT_MAP | DB::QUOTE_NONE, $subset);
+		$this->setPart($key, $column, $flags);
 		return $this;
    	}
 
@@ -493,21 +444,22 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	public function addTable($table, $join=null, $on=null, $flags=0)
    	{
-   		switch ($this->getQueryType($subset)) {
+   		switch ($this->getType()) {
    			case 'INSERT':	$key = 'into'; break;
    			case 'UPDATE':	$key = 'tables'; break;
    			default:		$key = 'from';
    		}
    		
    		if (!isset($join) && ~$flags & DB::REPLACE) $join = ',';
-   		if (is_array($on)) $on = $this->makeColumn($on[0], null, null, $flags) . ' = ' . $this->makeColumn($on[1], $table, null, $flags);
-   		  else $on = $this->getSQLSplitter()->mapIdentifiers(array($this, 'makeColumn'), $on, DB::QUOTE_LOOSE);
+
+   		if (is_array($on)) $on = $this->getSQLSplitter()->quoteIdentifier($on[0], $flags & ~DB::QUOTE_OPTIONS | DB::QUOTE_STRICT, array($this, 'mapIdentifier')) . ' = ' . $this->quoteIdentifier($on[1], $flags & ~DB::QUOTE_OPTIONS | DB::QUOTE_STRICT, array($this, 'mapIdentifier'));
+   		  elseif (isset($on) && $on !== false) $on = $this->getSQLSplitter()->quoteIdentifier($on, $flags & ~DB::QUOTE_OPTIONS | DB::QUOTE_LOOSE, array($this, 'mapIdentifier'));
    		  
    		if ($flags & DB::PREPEND && ~$flags & DB::REPLACE) {
-   			$this->setPart($key, $this->getSQLSplitter()->quoteIdentifier($table, $flags) . ' ' . $join, $flags, $subset);
-   			if (!empty($on)) $this->setPart($key, "ON $on", $flags & ~DB::PREPEND, $subset);
+   			$this->setPart($key, $this->getSQLSplitter()->quoteIdentifier($table, $flags) . ' ' . $join, $flags);
+   			if (!empty($on)) $this->setPart($key, "ON $on", $flags & ~DB::PREPEND);
    		} else {
-			$this->setPart($key, $join . ' '. $this->getSQLSplitter()->quoteIdentifier($table, $flags) . (!empty($on) ? " ON $on" : ""), $flags, $subset);
+			$this->setPart($key, $join . ' '. $this->getSQLSplitter()->quoteIdentifier($table, $flags) . (!empty($on) ? " ON $on" : ""), $flags);
    		}
 
 		return $this;
@@ -524,31 +476,38 @@ class DB_SQLStatement implements DB_Statement
    	public function addValues($values, $flags=0)
    	{
    		if (is_array($values)) {
-   			foreach ($values as $i=>$value) $values[$i] = $this->getSQLSplitter()->quote($value, 'DEFAULT');
+   			$splitter = $this->getSQLSplitter();
+   			foreach ($values as &$value) $value = $splitter->quote($value, 'DEFAULT');
    			$values = join(', ', $values);
    		}
-   		$this->setPart('values', $values, $flags, $subset);
+   		
+   		$this->setPart('values', $values, $flags);
 		return $this;
    	}
    	   	
 	/**
-	 * Add criteria as where or having statement as $column=$value.
-	 * If $value == null and $compare == '=', $compare becomes 'IS NULL'.
+	 * Add criteria as WHERE expression to query statement.
+	 * If $column is an array with (column=>value) and value is null, that part is ignored. 
 	 * 
-	 * @param mixed  $column    Column name, column number or expression with placeholders, can also be an array of columns ($column[0]=$value OR $column[1]=$value) or array(column=>value, ...)
-	 * @param mixed  $value     Value or array of values ($column=$value[0] OR $column=$value[1])
-	 * @param string $compare   Comparision operator: =, !=, >, <, =>, <=, LIKE, LIKE%, %LIKE%, REVERSE LIKE (value LIKE column), IN, NOT IN, ALL and BETWEEN
+	 * @param mixed  $column    Expression, column name, column number or expression with placeholders, can also be an array of columns ($column[0]=$value OR $column[1]=$value) or array(column=>value, ...)
+	 * @param mixed  $value     Value or array of values ($column=$value[0] OR $column=$value[1]) or NULL if $column is a where expression
+	 * @param string $compare   Comparision operator, oa: =, !=, >, <, =>, <=, IS NULL, IS NOT NULL, LIKE, LIKE%, %LIKE%, REVERSE LIKE (value LIKE column), IN, NOT IN, ALL and BETWEEN
 	 * @param int    $flags     DB::REPLACE, DB::PREPEND or DB::APPEND + DB::QUOTE_% + other options as bitset.
 	 * @param int    $subset    Specify to which subquery the change applies (0=main query)
 	 * @return DB_SQLStatement
 	 */
-	public function addCriteria($column, $value, $compare="=", $flags=0)
+	public function where($column, $value=null, $compare="=", $flags=0)
 	{
-		if (is_array($column) && is_string(key($column))) {
+		$compare = preg_replace('/^\s+|\s{2,}|\s+$/', '', $compare);
+		
+		if (!is_scalar($column) && is_string(key($column))) {
 			$parts = null;
 			
 			foreach ($column as $col=>&$value) {
-				$p = $this->getSQLSplitter()->buildWhere($this->getColumnDBName($col, null, null, $flags), $value, $compare);
+				if (!isset($value) && $compare != 'IS NULL' && $compare != 'IS NOT NULL') continue;
+				
+				$col = $this->getSQLSplitter()->quoteIdentifier($col, $flags, array($this, 'resolveMapping'));
+				$p = $this->getSQLSplitter()->buildWhere($col, $value, $compare);
 				if (isset($p['where'])) $parts['where'][] = $p['where'];
 				if (isset($p['having'])) $parts['having'][] = $p['having'];
 			}
@@ -558,61 +517,67 @@ class DB_SQLStatement implements DB_Statement
 				if (count($parts['having']) > 1 && $flags & DB::GLUE_OR) throw new Exception("Criteria doing an '$compare' comparision can't by glued with OR, only with AND.");
 				$parts['having'] = join(' AND ', $parts['having']);
 			}
+		} elseif (isset($value)) {
+			if (is_scalar($column)) {
+				$column = $this->getSQLSplitter()->quoteIdentifier($column, $flags, array($this, 'resolveMapping'));
+			} else {
+				foreach ($column as &$col) $col = $this->getSQLSplitter()->quoteIdentifier($col, $flags, array($this, 'resolveMapping'));
+			}
+			$parts = $this->getSQLSplitter()->buildWhere($column, $value, $compare);
 		} else {
-			$parts = $this->getSQLSplitter()->buildWhere($this->getColumnDBName($column, null, null, $flags), $value, $compare);
+			if (is_scalar($column)) {
+				$parts['where'] = $this->getSQLSplitter()->quoteIdentifier($column, $flags, array($this, 'resolveMapping'));
+			} else {
+				foreach ($column as &$col) $col = $this->getSQLSplitter()->quoteIdentifier($col, $flags, array($this, 'resolveMapping'));
+				$parts['where'] = join($flags & DB::GLUE_OR ? ' OR ' : ' AND ', $column);
+			}
 		}
 		
-		if (isset($parts['having']) && $flags & DB::HAVING) throw new Exception("Criteria doing an '$compare' comparision can only be used as WHERE not as HAVING expression.");
+		if (isset($parts['having']) && $flags & DB::HAVING) throw new Exception("Criteria doing an '$compare' comparision can only be used as WHERE, not as HAVING expression.");
 		
-		if ($subset === 0 && $this->getQueryType() === 'INSERT' && $this->hasPart('query', 0)) $subset = 1;
-		if (isset($parts['where'])) $this->where($parts['where'], $flags & ~0x700 | DB::QUOTE_NONE, $subset);
-		if (isset($parts['having'])) $this->having($parts['having'], $flags & ~0x700 | DB::QUOTE_NONE, $subset);
+		if (isset($parts['where'])) $this->setPart($flags & DB::HAVING ? 'having' : 'where', $parts['where'], $flags);
+		if (isset($parts['having'])) $this->setPart('having', $parts['having'], $flags);
 		
 		return $this;
 	}
 	
 	/**
-	 * Add WHERE expression to query statement.
+	 * Add criteria as WHERE expression to query statement.
+	 * If $column is an array with (column=>value) and value is null, that part is ignored. 
 	 *
-	 * @param string $statement  WHERE expression
-	 * @param int    $flags      DB::REPLACE, DB::PREPEND or DB::APPEND + DB::QUOTE_% + other options as bitset.
-	 * @param int    $subset     Specify to which subquery the change applies (0=main query)
+	 * {@internal Calls where() method with DB::HAVING flag}}
+	 * 
+	 * @param mixed  $column    Expression, column name, column number or expression with placeholders, can also be an array of columns ($column[0]=$value OR $column[1]=$value) or array(column=>value, ...)
+	 * @param mixed  $value     Value or array of values ($column=$value[0] OR $column=$value[1]) or NULL if $column is a where expression
+	 * @param string $compare   Comparision operator, oa: =, !=, >, <, =>, <=, IS NULL, IS NOT NULL, LIKE, LIKE%, %LIKE%, REVERSE LIKE (value LIKE column), IN, NOT IN, ALL and BETWEEN
+	 * @param int    $flags     DB::REPLACE, DB::PREPEND or DB::APPEND + DB::QUOTE_% + other options as bitset.
+	 * @param int    $subset    Specify to which subquery the change applies (0=main query)
 	 * @return DB_SQLStatement
 	 */
-	public function where($expression, $flags=0)
+	public final function having($column, $value=null, $compare="=", $flags=0)
 	{
- 		$this->setPart($flags & DB::HAVING ? 'having' : 'where', $expression, $flags, $subset);
-		return $this;
-	}
-
-	/**
-	 * Add HAVING expression to query statement.
-	 *
-	 * @param string $expression  HAVING expression
-	 * @param int    $flags       DB::REPLACE, DB::PREPEND or DB::APPEND + DB::QUOTE_% + other options as bitset.
-	 * @param int    $subset      Specify to which subquery the change applies (0=main query)
-	 * @return DB_SQLStatement
-	 */
-	public function having($expression, $flags=0)
-	{
- 		$this->where($expression, $flags | DB::HAVING, $subset);
+ 		$this->where($column, $value, $compare, $flags | DB::HAVING);
 		return $this;
 	}
 	
 	/**
 	 * Add GROUP BY expression to query statement.
 	 *
-	 * @param string $expression  GROUP BY expression (string) or array with columns
-	 * @param int    $flags       DB::REPLACE, DB::PREPEND or DB::APPEND + DB::QUOTE_% + other options as bitset.
-	 * @param int    $subset      Specify to which subquery the change applies (0=main query)
+	 * @param string|array $column  GROUP BY expression (string) or array with columns
+	 * @param int          $flags       DB::REPLACE, DB::PREPEND or DB::APPEND + DB::QUOTE_% + other options as bitset.
+	 * @param int          $subset      Specify to which subquery the change applies (0=main query)
 	 * @return DB_SQLStatement
 	 */
-	public function groupBy($expression, $flags=0)
+	public function groupBy($column, $flags=0)
 	{
-		$expression = $this->getColumnDbName($expression);
-		if (is_array($expression)) $expression = join(', ', $expression);
+		if (is_scalar($column)) {
+			$column = $this->getSQLSplitter()->quoteIdentifier($column, $flags, array($this, 'resolveMapping'));
+		} else {
+			foreach ($column as &$col) $col = $this->getSQLSplitter()->quoteIdentifier($col, $flags, array($this, 'resolveMapping'));
+			$column = join(', ', $column);
+		}
 		
- 		$this->setPart('group by', $expression, $flags, $subset);
+ 		$this->setPart('group by', $column, $flags);
 		return $this;
 	}
 
@@ -620,25 +585,28 @@ class DB_SQLStatement implements DB_Statement
 	 * Add ORDER BY expression to query statement.
 	 * NOTE: In contrary of addStatement(), the statement is prepended by default (use DB_Statment_SQL::APPEND to append)
 	 *
-	 * @param mixed $expression  ORDER BY expression (string) or array with columns
+	 * @param mixed $column  ORDER BY expression (string) or array with columns
 	 * @param int   $flags       DB::REPLACE, DB::PREPEND or DB::APPEND + DB::QUOTE_% + other options as bitset.
 	 * @param int   $subset      Specify to which subquery the change applies (0=main query)
 	 * @return DB_SQLStatement
 	 */
-	public function orderBy($expression, $flags=0)
+	public function orderBy($column, $flags=0)
 	{
-		if ($flags & (DB::ASC | DB::DESC)) {
-			if (is_scalar($expression)) {
-				$expression .= $flags & DB::DESC ? ' DESC' : ' ASC';
-			} else {
-				foreach ($expression as &$col) $col .= $flags & DB::DESC ? ' DESC' : ' ASC';
+		if (is_scalar($column)) {
+			if ($flags & DB::DESC) $column .= ' DESC';
+			  elseif ($flags & DB::ASC) $column .= ' ASC';
+		} else {
+			if ($flags & DB::DESC) {
+				foreach ($column as &$col) $col .= ' DESC';
+			} elseif ($flags & DB::ASC) {
+				foreach ($column as &$col) $col .= ' ASC';
 			}
+			
+			$column = join(', ', $column);
 		}
-		
-		if (!is_scalar($expression)) $expression = join(', ', $expression);
-		
+				
  		if (!($flags & DB::APPEND)) $flags |= DB::PREPEND;
-		$this->setPart('order by', $expression, $flags, $subset);
+		$this->setPart('order by', $column, $flags);
 		return $this;
 	}
 
@@ -653,7 +621,7 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	public function limit($rowcount, $offset=null, $flags=0)
 	{
-		$this->setPart('limit', $rowcount . (isset($offset) ? " OFFSET $offset" : ""), $flags | DB::REPLACE, $subset);
+		$this->setPart('limit', $rowcount . (isset($offset) ? " OFFSET $offset" : ""), $flags | DB::REPLACE);
 		return $this;
 	}
 
@@ -668,169 +636,29 @@ class DB_SQLStatement implements DB_Statement
 	 */
 	public function page($page, $rowcount, $flags=0)
 	{
-		$this->setLimit($rowcount, $rowcount * ($page-1), $flags | DB::REPLACE, $subset);
-		return $this;
-	}
-
-	
-	//------------- Build statement - Add table ----------------
-	
-	/**
-	 * Adds a table and optional columns to the query.
-	 * 
-     * @param array|string $table   Table name
-     * @param array|string $cols    The columns to select from this table.
-     * @param string       $join    join type: INNER JOIN, LEFT JOIN, etc
-     * @param array|string $on      "querytable.column = tablename.column"
-	 * @param int          $flags   DB::REPLACE, DB::PREPEND or DB::APPEND + DB::QUOTE_% + other options as bitset.
-	 * @param int          $subset  Specify to which subquery the change applies (0=main query)
-	 * @return DB_SQLStatement
-	 */
-	protected function addTableAndColumns($table, $join=null, $on=null, $cols=null, $flags=0)
-	{
-		$table = $this->getSQLSplitter()->makeIdentifier($table, null, $flags);
-		$this->addTable($table, $join, $on, $flags, $subset);
-		if (isset($cols)) $this->addColumn($this->getColumnDBName($cols, $table, null, $flags), $flags, $subset);
-		
+		$this->setLimit($rowcount, $rowcount * ($page-1), $flags | DB::REPLACE);
 		return $this;
 	}
 	
-	/**
-	 * Adds a table and optional columns to the query.
-	 * 
-     * @param array|string $table   Table name
-     * @param array|string $cols    The columns to select from this table.
-	 * @param int          $flags   DB::REPLACE, DB::PREPEND or DB::APPEND + DB::QUOTE_% + other options as bitset.
-	 * @param int          $subset  Specify to which subquery the change applies (0=main query)
-	 * @return DB_SQLStatement
-	 */
-	public function from($table, $cols=null, $flags=0)
-	{
-		if ($subset == 0 && $this->getQueryType() == 'INSERT') $subset = 1;
-		return $this->addTableAndColumns($table, null, null, $cols, $flags, $subset);
-	}
-
-	/**
-	 * Adds a table to the query.
-	 * 
-     * @param array|string $table   Table name
-     * @param array|string $cols    The columns to select from this table.
-	 * @param int          $flags   DB::REPLACE, DB::PREPEND or DB::APPEND + DB::QUOTE_% + other options as bitset.
-	 * @return DB_SQLStatement
-	 */
-	public function into($table, $flags=0)
-	{
-		return $this->addTableAndColumns($table, null, null, null, $flags, 0);
-	}
-	
-	/**
-	 * Alias of Q\DB::joinInner()
-	 * 
-     * @param array|string $table   Table name
-     * @param array|string $on      "querytable.column = tablename.column"
-     * @param array|string $cols    The columns to select from this table.
-	 * @param int          $flags   DB::REPLACE, DB::PREPEND or DB::APPEND + DB::QUOTE_% + other options as bitset.
-	 * @param int          $subset  Specify to which subquery the change applies (0=main query)
-	 * @return DB_SQLStatement
-	 */
-	final public function join($table, $on, $cols=null, $flags=0)
-	{
-		return $this->joinInner($table, $on, $cols, $flags, $subset);
-	}
-	
-	/**
-	 * Adds an INNER JOIN table and columns to the query.
-	 * 
-     * @param array|string $table   Table name
-     * @param string       $on      "querytable.column = tablename.column"
-     * @param array|string $cols    The columns to select from this table.
-	 * @param int          $flags   DB::REPLACE, DB::PREPEND or DB::APPEND + DB::QUOTE_% + other options as bitset.
-	 * @param int          $subset  Specify to which subquery the change applies (0=main query)
-	 * @return DB_SQLStatement
-	 */
-	public function joinInner($table, $on, $cols=null, $flags=0)
-	{
-		return $this->addTableAndColumns($table, 'INNER JOIN', $on, $cols, $flags, $subset);
-	}	
-
-	/**
-	 * Adds an LEFT JOIN table and columns to the query.
-	 * 
-     * @param array|string $table   Table name
-     * @param string       $on      "querytable.column = tablename.column"
-     * @param array|string $cols    The columns to select from this table.
-	 * @param int          $flags   DB::REPLACE, DB::PREPEND or DB::APPEND + DB::QUOTE_% + other options as bitset.
-	 * @param int          $subset  Specify to which subquery the change applies (0=main query)
-	 * @return DB_SQLStatement
-	 */
-	public function joinLeft($table, $on, $cols=null, $flags=0)
-	{
-		return $this->addTableAndColumns($table, 'LEFT JOIN', $on, $cols, $flags, $subset);
-	}	
-
-	/**
-	 * Adds an RIGHT JOIN table and columns to the query.
-	 * 
-     * @param array|string $table   Table name
-     * @param string       $on      "querytable.column = tablename.column"
-     * @param array|string $cols    The columns to select from this table.
-	 * @param int          $flags   DB::REPLACE, DB::PREPEND or DB::APPEND + DB::QUOTE_% + other options as bitset.
-	 * @param int          $subset  Specify to which subquery the change applies (0=main query)
-	 * @return DB_SQLStatement
-	 */
-	public function joinRight($table, $on, $cols=null, $flags=0)
-	{
-		return $this->addTableAndColumns($table, 'RIGHT JOIN', $on, $cols, $flags, $subset);
-	}
-	
-	/**
-	 * Adds an FULL JOIN table and columns to the query.
-	 * 
-     * @param array|string $table   Table name
-     * @param string       $on      "querytable.column = tablename.column"
-     * @param array|string $cols    The columns to select from this table.
-	 * @param int          $flags   DB::REPLACE, DB::PREPEND or DB::APPEND + DB::QUOTE_% + other options as bitset.
-	 * @param int          $subset  Specify to which subquery the change applies (0=main query)
-	 * @return DB_SQLStatement
-	 */
-	public function joinFull($table, $on, $cols=null, $flags=0)
-	{
-		return $this->addTableAndColumns($table, 'FULL JOIN', $on, $cols, $flags, $subset);
-	}
-	
-	/**
-	 * Adds an CROSS JOIN table and columns to the query.
-	 * 
-     * @param array|string $table   Table name
-     * @param string       $on      "querytable.column = tablename.column"
-     * @param array|string $cols    The columns to select from this table.
-	 * @param int          $flags   DB::REPLACE, DB::PREPEND or DB::APPEND + DB::QUOTE_% + other options as bitset.
-	 * @param int          $subset  Specify to which subquery the change applies (0=main query)
-	 * @return DB_SQLStatement
-	 */
-	public function joinCross($table, $on, $cols=null, $flags=0)
-	{
-		return $this->addTableAndColumns($table, 'CROSS JOIN', $on, $cols, $flags, $subset);
-	}
-	
-	/**
-	 * Adds an NATURAL JOIN table and columns to the query.
-	 * 
-     * @param array|string $table   Table name
-     * @param string       $on      "querytable.column = tablename.column"
-     * @param array|string $cols    The columns to select from this table.
-	 * @param int          $flags   DB::REPLACE, DB::PREPEND or DB::APPEND + DB::QUOTE_% + other options as bitset.
-	 * @param int          $subset  Specify to which subquery the change applies (0=main query)
-	 * @return DB_SQLStatement
-	 */
-	public function joinNatural($table, $on, $cols=null, $flags=0)
-	{
-		return $this->addTableAndColumns($table, 'NATURAL JOIN', $on, $cols, $flags, $subset);
-	}
-
 	
    	//------------- Finalize changes ------------------------
    	
+	/**
+	 * Check if statement has been modified.
+	 * 
+	 * @return boolean
+	 */
+	public function hasChanged()
+	{
+		if (!empty($this->partsAdd) || !empty($this->partsReplace)) return true;
+		
+		foreach ((array)$this->subqueries as $subquery) {
+			if ($subquery->hasChanged()) return true;
+		}
+		
+		return false;
+	}
+	
 	/**
      * Remove all the changes.
      * 
@@ -859,6 +687,17 @@ class DB_SQLStatement implements DB_Statement
 	}
 
 	/**
+	 * Build a new statement with a different query type, based on this query
+	 * 
+	 * @param string $type  SELECT, INSERT, REPLACE, UPDATE or DELETE
+	 * @return DB_SQLStatement
+	 */
+	public function convertTo($type)
+	{
+		return new static($this->getSQLSplitter()->convertStatement($this, $type), $this);
+	}
+	
+	/**
 	 * Clear cached statement.
 	 * This doesn't clear cached columns and values.
 	 */
@@ -884,7 +723,7 @@ class DB_SQLStatement implements DB_Statement
 		
 		return $this;
 	}
-	
+
 	
 	//------------- Get metadata ------------------------
 	
@@ -903,7 +742,7 @@ class DB_SQLStatement implements DB_Statement
 	    	return $this->basetable;
 		}
 
-		$tables = $this->getTablenames($subset, DB::SPLIT_ASSOC);
+		$tables = $this->getTablenames(DB::SPLIT_ASSOC);
 		if (!isset($tables[$index])) throw new Exception("Table '$index' is not used in the statement");
 		
 		return $tables[$index] == $this->basetable ? $this->basetable : $this->connection()->table($tables[$index]);
@@ -912,47 +751,32 @@ class DB_SQLStatement implements DB_Statement
    	/**
    	 * Get a field from one of the tables used in the statement.
    	 * 
-   	 * @param string $name    Field name
-	 * @param int    $subset  Get the tables of a subquery (0=main query)
+   	 * @param string $name  Field name
 	 * @return DB_Field
+	 * 
+	 * @throws DB_UnkownFieldException if field can't be found or is found in multiple tables.
    	 */
    	public function lookupField($name)
    	{
-   		if (!$this->getSQLSplitter()->validIdentifier($name)) throw new Exception("Did not find field '$name' in any of the tables used in the statement");;
-   		
    		list($table, $column) = $this->getSQLSplitter()->splitIdentifier($name);
-   		if (isset($table) || $this->getTable()->hasField($column)) return $this->getTable($table)->getField($column);
-
-   		$field = null;
-   		$found_alias = null;
+   		if (isset($table)) return $this->getTable($table)->getField($column); 
    		
-   		foreach ($this->getTablenames($subset, DB::SPLIT_ASSOC) as $alias=>$table) {
-   			$ti = $this->connection()->table($table);
-   			if ($ti->hasField($column)) {
-   				if (isset($field)) throw new Exception("Found field '$column' in table '$found_alias' as well as in '$alias': Specify the table name");
-   				$field = $ti->getField($column);
-   				$found_alias = $alias;
-   			} 
+   		foreach ($this->getTablenames(DB::SPLIT_ASSOC) as $alias=>$table) {
+   			$tg = $this->connection()->table($table);
+   			if ($tg->hasField($column)) {
+   				$found = $tg->getField($column);
+   				$found_tables[] = $table;
+   			}
    		}
    		
-   		if (!isset($field)) throw new Exception("Did not find field '$column' in any of the tables used in the statement");
-   		return $field;
+   		if (!isset($found)) throw new DB_UnkownFieldException("Did not find field '$column' in any of the tables used in the statement.");
+   		if (count($found_tables) > 1) throw new DB_UnkownFieldException("Found field '$column' in multiple tables: " . join(',', $found_tables) . ". Please specify the table by using TABLE.COLUMN.");
+   		
+   		return $found;
    	}
    		
 	
 	//------------- Excecute ------------------------
-
-	/**
-	 * Alias of Q\DB_Statement::execute()
-	 * 
-	 * @param array $args
-	 * @return DB_Result
-	 */
-	final public function query($args=null)
-	{
-		if (func_num_args() > 1) $args = func_get_args();
-		return $this->execute($args);
-	}
 
 	/**
 	 * Execute the query statement.
@@ -960,7 +784,7 @@ class DB_SQLStatement implements DB_Statement
 	 * @param array $args  Arguments to be parsed into the query on placeholders.
 	 * @return DB_Result
 	 */
-	public function execute($args=null)
+	public function exec($args=null)
 	{
 		if (func_num_args() > 1) $args = func_get_args();
 		return $this->getConnection()->query($this, $args);
@@ -975,22 +799,13 @@ class DB_SQLStatement implements DB_Statement
    	{
    	    if (isset($this->emptyResult)) return $this->emptyResult;
    	    
-   		$qt = $this->getQueryType();
-   		if ($qt !== 'SELECT' && ($qt !== 'INSERT' || !$this->hasPart('query'))) throw new DB_Exception("Unable to get a result for a " . $this->getQueryType() . " query:\n" . $this->getStatement());
+   		if ($this->getType() !== 'SELECT') throw new Exception("Unable to get a result for a " . $this->getType() . " statement. " . $this->getStatement());
 
    		$parts = $this->getParts();
+   		$parts['where'] = 'FALSE';
+   		$parts['having'] = '';
    		
-   		if ($qt === 'INSERT') {
-   			$matches = null;
-   			if (sizeof($parts) > 1 && preg_match('/^\#sub(\d+)$/', trim($parts['query']), $matches)) $parts[0] = $parts[(int)$matches[1]];
-   			 else $parts[0] = $this->getSQLSplitter()->split($parts['query']);
-   		}
-   		
-   		$parts[0]['where'] = 'FALSE';
-   		$parts[0]['having'] = '';
-   		
-   		$class = get_class($this);
-   		$this->emptyResult = $this->getConnection()->query(new $class($this, $this->getConnection()->parse($this->getSQLSplitter()->joinInject($parts), null)));
+   		$this->emptyResult = $this->getConnection()->query($this->getSQLSplitter()->parse($this->getSQLSplitter()->join($parts), false));
    		return $this->emptyResult;
    	}
 	
@@ -1018,17 +833,16 @@ class DB_SQLStatement implements DB_Statement
    	
    	/**
      * Return the number of rows that the resultset would contain if the statement was executed.
-     * For better readability use: $result->countRows(DB::ALL_ROWS).
      * 
      * @param int $flags  Optional DB::ALL_ROWS
      * @return int
      */
    	public function countRows($flags=0)
    	{
-   	    $all = (boolean)$all;
+   	    $all = $flags & DB::ALL_ROWS;
    		if (!isset($this->countStatement[$all])) {
    			$parts = $this->getParts();
-   			$this->countStatement[$flags & DB::ALL_ROWS] = $this->getConnection()->parse($this->getSQLSplitter()->buildCountStatement(count($parts) == 1 ? reset($parts) : $this->getStatement(), $flags), false);
+   			$this->countStatement[$all] = $this->getConnection()->parse($this->getSQLSplitter()->buildCountStatement(count($parts) == 1 ? reset($parts) : $this->getStatement(), $flags), false);
    		}
    		
    		return $this->getConnection()->query($this->countStatement[$all])->fetchValue();

@@ -1,7 +1,7 @@
 <?php
 use Q\Fs, Q\Fs_Node;
 
-require_once 'TestHelper.php';
+require_once __DIR__ . '/../init.php';
 require_once 'PHPUnit/Framework/TestCase.php';
 
 /**
@@ -19,8 +19,37 @@ abstract class Fs_NodeTest extends PHPUnit_Framework_TestCase
      * @var Fs_Node
      */
     protected $Fs_Node;
-    
+
+	/**
+	 * Cached document root
+	 * @var string
+	 */
+	protected $documentRoot;
+
 	
+    /**
+     * Prepares the environment before running a test.
+     */
+    protected function setUp()
+    {
+		parent::setUp();
+
+		if (isset($_SERVER['DOCUMENT_ROOT'])) $this->documentRoot = $_SERVER['DOCUMENT_ROOT'];
+    }
+
+    /**
+     * Cleans up the environment after running a test.
+     */
+    protected function tearDown()
+    {
+        $this->Fs_Node = null;
+		
+		unset($_SERVER['DOCUMENT_ROOT']);
+		if (isset($this->documentRoot)) $_SERVER['DOCUMENT_ROOT'] = $this->documentRoot;
+		
+		parent::tearDown();
+    }
+
     /**
      * Remove tmp files (recursively)
      * 
@@ -56,6 +85,14 @@ abstract class Fs_NodeTest extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * Tests Fs_Node->protocol()
+     */
+    public function testProtocol()
+    {
+        $this->assertNull($this->Fs_Node->protocol());
+    }
+
+	/**
      * Tests Fs_Node->basename()
      */
     public function testBasename()
@@ -101,7 +138,39 @@ abstract class Fs_NodeTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($dir, $this->Fs_Node->dirname());
     }
 	
-    
+	/**
+	 * Tests Fs_Node->relativeTo()
+	 */
+	public function testRelativeTo()
+	{
+		$this->assertEquals(basename($this->file), $this->Fs_Node->relativeTo(dirname($this->file) . '/test'));
+		$this->assertEquals(substr($this->file, 1), $this->Fs_Node->relativeTo('/test'));
+	}
+
+	/**
+	 * Tests Fs_Node->withRootAs()
+	 */
+    public function testWithRootAs()
+	{
+		$this->assertEquals('/' . basename($this->file), $this->Fs_Node->withRootAs(dirname($this->file)));
+		$this->assertEquals('/' . basename(dirname($this->file)) . '/' . basename($this->file), $this->Fs_Node->withRootAs(dirname(dirname($this->file))));
+		$this->assertEquals($this->file, $this->Fs_Node->withRootAs('/'));
+	}
+
+	/**
+	 * Tests Fs_Node->url()
+	 */
+    public function testUrl()
+	{
+		$_SERVER['DOCUMENT_ROOT'] = dirname($this->file);
+		$this->assertEquals('/' . basename($this->file), $this->Fs_Node->url());
+
+		$_SERVER['DOCUMENT_ROOT'] = '/' . md5(microtime());
+		$this->setExpectedException("Exception", "File '{$this->file}' is not in directory '{$_SERVER['DOCUMENT_ROOT']}'.");
+		$this->Fs_Node->url();
+	}
+
+
     /**
      * Tests Fs_Node->stat()
      */
@@ -612,4 +681,72 @@ abstract class Fs_NodeTest extends PHPUnit_Framework_TestCase
     	$this->setExpectedException('Q\Fs_Exception', "Unable to get '{$this->file}/test': '{$this->file}' is not a directory, but a " . Fs::typeOfNode($this->Fs_Node, Fs::DESCRIPTION));
         $this->Fs_Node->fifo('test');
 	}
+
+
+	// Fs test case that need root privileges
+
+    /**
+     * Tests Fs_Node::chown()
+     */
+    public function testChown()
+    {
+        if (!function_exists('posix_getuid')) $this->markTestSkipped("Posix functions not available; I don't know if I'm root.");
+    	if (posix_getuid() !== 0) $this->markTestSkipped("Can only chown as root.");
+
+    	$sysusr = posix_getpwuid(3);
+    	if (!$sysusr) $this->markTestSkipped("The system has no user with uid 3, which is used in the test.");
+
+        clearstatcache(false, $this->file);
+        $this->Fs_Node->chown($sysusr['name']);
+        $this->assertEquals(3, fileowner($this->file));
+
+        clearstatcache(false, $this->file);
+        $this->Fs_Node->chown(0);
+        $this->assertEquals(0, fileowner($this->file));
+    }
+
+    /**
+     * Tests Fs_Node::chgrp()
+     */
+    public function testChgrp()
+    {
+        if (!function_exists('posix_getuid')) $this->markTestSkipped("Posix functions not available; I don't know if I'm root.");
+    	if (posix_getuid() !== 0) $this->markTestSkipped("Can only chown as root.");
+
+    	$sysgrp = posix_getgrgid(2);
+    	if (!$sysgrp) $this->markTestSkipped("The system has no group with gid 2, which is used in the test.");
+
+        clearstatcache(false, $this->file);
+        $this->Fs_Node->chgrp($sysgrp['name']);
+        $this->assertEquals(2, filegroup($this->file));
+
+        clearstatcache(false, $this->file);
+        $this->Fs_Node->chown(0);
+        $this->assertEquals(0, filegroup($this->file));
+	}
+
+    /**
+     * Tests Fs_Node::chown() with user:group
+     */
+    public function testChown_Chgrp()
+    {
+        if (!function_exists('posix_getuid')) $this->markTestSkipped("Posix functions not available: I don't know if I'm root.");
+    	if (posix_getuid() !== 0) $this->markTestSkipped("Can only chown as root.");
+
+    	$sysusr = posix_getpwuid(3);
+    	if (!$sysusr) $this->markTestSkipped("The system has no user with uid 3, which is used in the test.");
+
+    	$sysgrp = posix_getgrgid(2);
+    	if (!$sysgrp) $this->markTestSkipped("The system has no group with gid 2, which is used in the test.");
+
+        clearstatcache(false, $this->file);
+        $this->Fs_Node->chown(array($sysusr['name'], $sysgrp['name']));
+        $this->assertEquals(3, fileowner($this->file));
+        $this->assertEquals(2, filegroup($this->file));
+
+        clearstatcache(false, $this->file);
+        $this->Fs_Node->chown(array(0, 0));
+        $this->assertEquals(0, fileowner($this->file));
+        $this->assertEquals(0, filegroup($this->file));
+    }
 }

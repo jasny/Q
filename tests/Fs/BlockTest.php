@@ -1,6 +1,7 @@
 <?php
 use Q\Fs, Q\Fs_Node, Q\Fs_Block, Q\Fs_Exception, Q\ExecException;
 
+require_once __DIR__ . '/../init.php';
 require_once 'Fs/NodeTest.php';
 require_once 'Q/Fs/Block.php';
 
@@ -16,17 +17,9 @@ class Fs_BlockTest extends Fs_NodeTest
     {
         $this->file = "/dev/loop0";
         $this->Fs_Node = new Fs_Block($this->file);
-    }
 
-    /**
-     * Cleans up the environment after running a test.
-     */
-    protected function tearDown()
-    {
-        $this->Fs_Node = null;
+		parent::setUp();
     }
-
-    
 
     /**
      * Tests Fs_Node->getContents() with maxlen = 100
@@ -122,6 +115,24 @@ class Fs_BlockTest extends Fs_NodeTest
      * Tests Fs_Node::chmod() with invalid string
      */
     public function testChmod_invalidString()
+    {}
+
+    /**
+     * Tests Fs_Node::chown()
+     */
+    public function testChown()
+    {}
+
+    /**
+     * Tests Fs_Node::chgrp()
+     */
+    public function testChgrp()
+    {}
+
+    /**
+     * Tests Fs_Node::chown() with user:group
+     */
+    public function testChown_Chgrp()
     {}
 
     /**

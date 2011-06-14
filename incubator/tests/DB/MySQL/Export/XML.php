@@ -1,4 +1,7 @@
 <?php
+
+class N
+{
 	//--------
 
 	/**
@@ -63,3 +66,4 @@
     	$this->assertEquals($expect, self::cleanXML($xml));
     }
 
+}

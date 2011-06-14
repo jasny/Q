@@ -1,6 +1,7 @@
 <?php
 use Q\Fs, Q\Fs_Node, Q\Fs_Char, Q\Fs_Exception, Q\ExecException;
 
+require_once __DIR__ . '/../init.php';
 require_once 'Fs/NodeTest.php';
 require_once 'Q/Fs/Char.php';
 
@@ -16,16 +17,10 @@ class Fs_CharTest extends Fs_NodeTest
     {
         $this->file = "/dev/zero";
         $this->Fs_Node = new Fs_Char($this->file);
+
+		parent::setUp();
     }
 
-    /**
-     * Cleans up the environment after running a test.
-     */
-    protected function tearDown()
-    {
-        $this->Fs_Node = null;
-    }
-    
     
     /**
      * Tests Fs_Node->getContents()
@@ -128,6 +123,24 @@ class Fs_CharTest extends Fs_NodeTest
      * Tests Fs_Node::chmod() with invalid string
      */
     public function testChmod_invalidString()
+    {}
+
+    /**
+     * Tests Fs_Node::chown()
+     */
+    public function testChown()
+    {}
+
+    /**
+     * Tests Fs_Node::chgrp()
+     */
+    public function testChgrp()
+    {}
+
+    /**
+     * Tests Fs_Node::chown() with user:group
+     */
+    public function testChown_Chgrp()
     {}
 
     /**

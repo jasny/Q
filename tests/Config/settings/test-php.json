@@ -1,6 +1,6 @@
 {
   "grp1" : {
-    "q" : "<?= !empty($good) ? "abc" : "Not good"?>",
+    "q" : "<?= !empty($good) ? 'abc' : 'Not good'?>",
     "b" : <?=20 + 7?>
   },
   

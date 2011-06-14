@@ -1,6 +1,7 @@
 <?php
 use Q\Fs, Q\Fs_Node, Q\Fs_File, Q\Fs_Exception, Q\ExecException;
 
+require_once __DIR__ . '/../init.php';
 require_once 'Fs/NodeTest.php';
 require_once 'Q/Fs/File.php';
 
@@ -17,6 +18,8 @@ class Fs_FileTest extends Fs_NodeTest
         $this->file = sys_get_temp_dir() . '/q-fs_filetest-' . md5(uniqid());
         if (!file_put_contents($this->file, 'Test case for Fs_File')) $this->markTestSkipped("Could not write to '{$this->file}'.");
         $this->Fs_Node = new Fs_File($this->file);
+
+		parent::setUp();
     }
 
     /**
@@ -25,7 +28,7 @@ class Fs_FileTest extends Fs_NodeTest
     protected function tearDown()
     {
         $this->cleanup($this->file);
-        $this->Fs_Node = null;
+		parent::tearDown();
     }
 
     
@@ -59,8 +62,19 @@ class Fs_FileTest extends Fs_NodeTest
     	$this->setExpectedException('Q\Fs_Exception', "File '{$this->file}.x' is not a regular file, but a symlink to a directory");
     	new Fs_File("{$this->file}.x");
     }
-    
-    
+
+
+	/**
+	 * Tests Fs_Node->relativeTo()
+	 */
+	public function testRelativeTo_Subdirs()
+	{
+		$this->Fs_Node = new Fs_File("{$this->file}.x/foo");
+		$this->assertEquals('../' . basename($this->file) . '.x/foo', $this->Fs_Node->relativeTo("{$this->file}.y/bar"));
+		$this->assertEquals('../../' . basename($this->file) . '.x/foo', $this->Fs_Node->relativeTo("{$this->file}.y/bar/red"));
+	}
+
+
     /**
      * Tests Fs_Node->getContents()
      */

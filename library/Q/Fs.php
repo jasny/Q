@@ -117,18 +117,46 @@ class Fs
 	 * Registered instances
 	 * @var string
 	 */
-	protected static $paths = array(
-		'root' => '/'
-	);
-	
-	
+	protected static $paths = array();
+
+
     /**
+     * Check if named path is registered.
+     *
+     * @param string $name
+     * @return boolean
+     */
+    public static function hasPath($name)
+    {
+    	$name = strtolower($name);
+
+    	switch ($name) {
+			case 'root':           return true;
+    		case 'home':           return getenv('HOME') != '';
+    		case 'cwd':            return true;
+
+			case 'basepath':
+    		case 'document_root':  return isset($_SERVER['DOCUMENT_ROOT']);
+    		case 'script':         return isset($_SERVER['SCRIPT_NAME']);
+    	}
+
+		if (load_class('Q\Config') && !(Config::i() instanceof Mock) && isset(Config::i()->fs[$name])) {
+			$paths = Config::i()->fs;
+			unset($paths['root'], $paths['home'], $paths['cwd'], $paths['document_root'], $paths['script']);
+			self::$paths += $path;
+		}
+
+    	return isset(self::$paths[$name]);
+    }
+
+	/**
      * Get named path.
      * 
      * Predefined paths:
      *   root            /
      *   home            ~ (User home)
-     *   cwd             getcwd() (Current working directory) 
+     *   cwd             getcwd() (Current working directory)
+	 *   basepath        Project basepath (defaults to document_root)
      *   document_root   $_SERVER['DOCUMENT_ROOT']
      *   script          $_SERVER['SCRIPT_NAME']
      * 
@@ -138,30 +166,30 @@ class Fs
     public static function getPath($name)
     {
     	$name = strtolower($name);
-    	if (isset(self::$paths[$name])) return self::get(self::$paths[$name]);
     	
     	switch ($name) {
-    		case 'home':           return self::get(getenv('HOME'));
-    		case 'cwd':            return self::get(getcwd());
-    		
-    		case 'document_root':  return self::get($_SERVER['DOCUMENT_ROOT']); break;
-    		case 'script':         return self::get($_SERVER['SCRIPT_NAME']); break;
-    		
-    		default:
-    			if (load_class('Q\Config') && !(Config::i() instanceof Mock) && isset(Config::i()->fs[$name])) self::$paths += Config::i()->fs;
+			case 'root':           return self::root();
+    		case 'home':           return getenv('HOME') ? self::dir(getenv('HOME')) : null;
+    		case 'cwd':            return self::dir(getcwd());
+
+    		case 'document_root':  return isset($_SERVER['DOCUMENT_ROOT']) ? self::dir($_SERVER['DOCUMENT_ROOT']) : null;
+    		case 'script':         return isset($_SERVER['SCRIPT_NAME']) ? self::file($_SERVER['SCRIPT_NAME']) : null;
     	}
-    	
-    	if (!isset(self::$paths[$name])) throw new Exception("Fs path '$name' is not registered.");
+
+		if (!$this->hasPath($name)) throw new Exception("Fs path '$name' is not registered.");
+
+		if ($name == 'basepath' && !isset(self::$paths['basepath'])) return isset($_SERVER['DOCUMENT_ROOT']) ? self::get($_SERVER['DOCUMENT_ROOT']) : null;
     	return self::get(self::$paths[$name]);
     }
-    
+
 	/**
 	 * Register Fs_Node as named path.
 	 * 
 	 * Changing predefined paths:
-     *   root   chroot()
-     *   home   setenv(HOME)
-     *   cwd    chdir() 
+     *   root      chroot()
+     *   home      setenv(HOME)
+     *   cwd       chdir()
+	 *   basepath  Project basepath (defaults to document_root)
 	 * 
 	 * @param string         $name
 	 * @param string|Fs_Node $file
@@ -192,7 +220,20 @@ class Fs
 	{
 		return self::dir('/');
 	}
-	
+
+	/**
+	 * Magic method to get a named path
+	 *
+	 * @param string $name
+	 * @param array  $arguments
+	 * @return Fs_Node
+	 */
+	public static function __callStatic($name, $arguments)
+	{
+		return self::getPath($name);
+	}
+
+
 	
 	/**
 	 * Resolves references to '/./', '/../' and extra '/' characters in the input path.

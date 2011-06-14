@@ -1,6 +1,7 @@
 <?php
 use Q\Fs, Q\Fs_Node, Q\Fs_Dir, Q\Fs_Symlink_Dir, Q\Fs_Exception, Q\ExecException;
 
+require_once __DIR__ . '/../../init.php';
 require_once 'Fs/DirTest.php';
 require_once 'Q/Fs/Symlink/Dir.php';
 

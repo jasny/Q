@@ -1,7 +1,6 @@
 <?php
 use Q\Crypt_DoubleMD;
 
-require_once 'TestHelper.php';
 require_once 'Q/Crypt/DoubleMD5.php';
 require_once 'PHPUnit/Framework/TestCase.php';
 

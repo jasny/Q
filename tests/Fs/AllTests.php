@@ -1,9 +1,9 @@
 <?php
 
+require_once __DIR__ . '/../init.php';
 require_once 'PHPUnit/Framework/TestSuite.php';
 require_once 'Fs/Test.php';
 require_once 'Fs/NodeTest.php';
-require_once 'Fs/RootPrivTest.php';
 require_once 'Fs/FileTest.php';
 require_once 'Fs/FifoTest.php';
 require_once 'Fs/DirTest.php';
@@ -16,18 +16,18 @@ require_once 'Fs/Symlink/FileTest.php';
 
 /**
  * Static test suite.
+ *
+ * @todo Write a test suite for external files (over http)
  */
-class TransformTest extends PHPUnit_Framework_TestSuite
+class Fs_AllTests extends PHPUnit_Framework_TestSuite
 {
     /**
      * Constructs the test suite handler.
      */
     public function __construct()
     {
-        $this->setName('TransformTest');
         $this->addTestSuite('Fs_Test');
         $this->addTestSuite('Fs_NodeTest');
-        $this->addTestSuite('Fs_RootPrivTest');
         $this->addTestSuite('Fs_FileTest');
         $this->addTestSuite('Fs_FifoTest');
         $this->addTestSuite('Fs_DirTest');
@@ -47,4 +47,3 @@ class TransformTest extends PHPUnit_Framework_TestSuite
         return new self();
     }
 }
-

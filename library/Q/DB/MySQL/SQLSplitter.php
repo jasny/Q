@@ -34,7 +34,7 @@ require_once 'Q/DB/SQLSplitter.php';
  * @todo It might be possible to use recursion instead of extracting subqueries, using \((SELECT\b)(?R)\). For query other that select, I should do (?:^\s++UPDATE ...|(?<!^)\s++SELECT ...) to match SELECT and not UPDATE statement in recursion.
  * @todo Implement splitValues to get values of INSERT INTO ... VALUES ... statement
  */
-class DB_MySQL_SQLSplitter implements DB_SQLSplitter
+class DB_MySQL_SQLSplitter
 {
 	const REGEX_VALUES = '(?:\w++|`[^`]*+`|"(?:[^"\\\\]++|\\\\.)*+"|\'(?:[^\'\\\\]++|\\\\.)*+\'|\s++|[^`"\'\w\s])*?';
 	const REGEX_IDENTIFIER = '(?:(?:\w++|`[^`]*+`)(?:\.(?:\w++|`[^`]*+`)){0,2})';
@@ -69,32 +69,45 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 	 * 
 	 * Will not quote expressions without DB::QUOTE_STRICT. This means it is not secure without this option. 
 	 * 
-	 * @param string $identifier
-	 * @param int    $flags       DB::QUOTE_%
+	 * @param string   $identifier
+	 * @param int      $flags       DB::QUOTE_% and DB::DONT_MAP
+	 * @param callback $map         Callback to resolve symantic mapping
 	 * @return string
+	 * 
+	 * @todo Cleanup misquoted TRIM function
 	 */
-	public static function quoteIdentifier($identifier, $flags=0)
+	public static function quoteIdentifier($identifier, $flags=0, $map=null)
 	{
 		// Strict
 		if ($flags & DB::QUOTE_STRICT) {
-			if (strpos($identifier, '.') === false && strpos($identifier, '`') === false) return "`$identifier`";
+			$identifier = trim($identifier);
+			if (preg_match('/^\w++$/', $identifier)) return "`$identifier`";
 			
-			$quoted = preg_replace('/(`?)(.+?)\1(\.|$)/', '`\2`\3', trim($identifier));
-			if (!preg_match('/^(?:`[^`]*`(\.|$))+$/', $quoted)) throw new SecurityException("Unable to quote '$identifier' safely");
+			$fn = isset($map) && ~$flags & DB::DONT_MAP ?
+			  function($match) use($map, $flags) {return !empty($match[1]) ? call_user_func($map, $match[1], $flags) : (!empty($match[2]) ? "`{$match[2]}`" : $match[0]);} :
+			  function($match) use($flags) {return !empty($match[2]) ? "`{$match[2]}`" : $match[0];};
+			$quoted = preg_replace_callback('/' . (isset($map) && ~$flags & DB::DONT_MAP ? '((?:(?:`[^`]*`|\d*[a-z_]\w*)\.)*#\w[\w:-]*+)' : '(?:#\w[\w:-]*+)') . '|`[^`]*+`|([^`\.]++)/',
+			  function($match) {!empty($match[1]) ? "`{$match[1]}`" : $match[0];}, $identifier);
+			
+			if (!preg_match('/^(?:`[^`]*`\.)*(?:`[^`]*`|#\w[\w:-]*+)$/', $quoted)) throw new SecurityException("Unable to quote '$identifier' safely");
 			return $quoted;
 		}
 		
-		// Loose
-		if ($flags & DB::QUOTE_LOOSE || ($flags & 0x700) == 0) { 
-			$quoted = preg_replace_callback('/' . self::REGEX_QUOTED . '|\b(?:NULL|TRUE|FALSE|DEFAULT|DIV|AND|OR|XOR|IN|IS|BETWEEN|R?LIKE|REGEXP|SOUNDS\s+LIKE|MATCH|AS|CASE|WHEN|ASC|DESC|BINARY)\b|\bCOLLATE\s+\w++|\bUSING\s+\w++|(\d*[a-z_][^\s`\(\)\.&~|^<=>+\-\/*%!]*\b)(?!\s*\()/i', function($match) {return !empty($match[1]) ? "`{$match[1]}`" : $match[0];}, $identifier);
-			if (preg_match('/\bCAST\s*\(/i', $quoted)) $quoted = self::quoteIdentifier_castCleanup($quoted);
-			return $quoted;
+		// None or loose
+		if ($flags & DB::QUOTE_OPTIONS == DB::QUOTE_NONE) {
+		 	if (!isset($map) || $flags & DB::DONT_MAP) return $identifier;
+			$fn = function($match) use($map, $flags) {return !empty($match[1]) ? call_user_func($map, $match[1], $flags) : $match[0];};
+		} else { 
+			$fn = isset($map) && ~$flags & DB::DONT_MAP ?
+			  function($match) use($map, $flags) {return !empty($match[1]) ? call_user_func($map, $match[1], $flags) : (!empty($match[2]) ? "`{$match[2]}`" : $match[0]);} :
+			  function($match) use($flags) {return !empty($match[2]) ? "`{$match[2]}`" : $match[0];};
 		}
 
-		// None
-		return $identifier;
+		$quoted = preg_replace_callback('/"(?:[^"\\\\]++|\\\\.)*+"|\'(?:[^\'\\\\]++|\\\\.)*+\'|\b(?:NULL|TRUE|FALSE|DEFAULT|DIV|AND|OR|XOR|IN|IS|BETWEEN|R?LIKE|REGEXP|SOUNDS\s+LIKE|MATCH|AS|CASE|WHEN|ASC|DESC|BINARY)\b|\bCOLLATE\s+\w++|\bUSING\s+\w++|TRIM\s*\((?:BOTH|LEADING|TRAILING)|' . (isset($map) && ~$flags & DB::DONT_MAP ? '((?:(?:`[^`]*`|\d*[a-z_]\w*)\.)*#\w[\w:-]*+)' : '(#\w[\w:-]*+)') . '|`[^`]*+`|(\d*[a-z_]\w*\b)(?!\s*\()/i', $fn, $identifier);
+		if (preg_match('/\bCAST\s*\(/i', $quoted)) $quoted = self::quoteIdentifier_castCleanup($quoted);
+		return $quoted;
 	}
-    
+	
 	/**
 	 * Unquote up quoted types of CAST function.
 	 * 
@@ -155,28 +168,6 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 	}
 	
 	/**
-	 * Applies the callback to the inditifiers in the expression.
-	 * 
-	 * @param callback $callback       Function arguments should be identical to DB_SQLSplitter::makeIdentifier().
-	 * @param string   $expression
-	 * @param string   $default_group  Default table / db
-	 * @param int      $flags          DB::QUOTE_%
-	 * @return string
-	 */
-	public static function mapIdentifiers($callback, $expression, $flags=0)
-	{
-		if ($flags & DB::DONT_MAP) return $this->quoteIdentifier($expression, $flags);
-		if ($flags & DB::QUOTE_STRICT) return call_user_func($callback, null, $expression, null, $flags);
-		
-		$fn = function($match) use($flags, $default_group) {return !empty($match[2]) ? call_user_func($callback, $match[2], $match[1], isset($match[3]) ? $match[3] : null, $flags) : $match[0];};
-		
-		$expression = preg_replace_callback('/(?:(' . self::REGEX_IDENTIFIER . ')\.)*' . self::REGEX_QUOTED . '|\b(?:NULL|TRUE|FALSE|DEFAULT|DIV|AND|OR|XOR|IN|IS|BETWEEN|R?LIKE|REGEXP|SOUNDS\s+LIKE|MATCH|AS|CASE|WHEN|ASC|DESC|BINARY)\b|\bCOLLATE\s+\w++|\bUSING\s+\w++|(\d*[a-z_][^\s`\(\)\.&~|^<=>+\-\/*%!]*\b)(?!\s*\()(?:(?:\s*\bAS\b)?\s*(`(?:[^`]*)`|(?:\d*[a-z_]\w*)))?/i', $fn, $expression);
-		if (preg_match('/\bCAST\s*\(/i', $expression)) $expression = self::quoteIdentifier_castCleanup($expression);
-		
-		return $expression;
-	}
-	
-	/**
 	 * Parse arguments into a statement.
 	 *
 	 * @param mixed $statement  Query string or DB::Statement object
@@ -190,7 +181,16 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 		} else {
 			if (!is_array($args)) $args = array($args);
 			  else ksort($args);
-			$fn = function($match) use(&$args) {return !empty($match[3]) && array_key_exists($match[3], $args) ? ($match[2] === ':!' ? (isset($args[":{$match[3]}"]) ? $args[":{$match[3]}"] : $args[$match[3]]) : DB_MySQL_SQLSplitter::quote(isset($args[":{$match[3]}"]) ? $args[":{$match[3]}"] : $args[$match[3]])) : (!empty($match[1]) ? ($match[1] === '?!' ? array_shift($args) : DB_MySQL_SQLSplitter::quote(array_shift($args))) : $match[0]);};
+			 
+			$fn = function($match) use(&$args) {
+				if (empty($match[3]) || !array_key_exists($match[3], $args)) {
+					if (empty($match[1])) return $match[0];
+					return $match[1] === '?!' ? array_shift($args) : DB_MySQL_SQLSplitter::quote(array_shift($args));
+				}
+
+				if ($match[2] === ':!') return isset($args[":{$match[3]}"]) ? $args[":{$match[3]}"] : $args[$match[3]];
+				return DB_MySQL_SQLSplitter::quote(isset($args[":{$match[3]}"]) ? $args[":{$match[3]}"] : $args[$match[3]]);
+			};
 		}
 		
 		$parsed = preg_replace_callback('/`[^`]*+`|"(?:[^"\\\\]++|\\\\.)*+"|\'(?:[^\'\\\\]++|\\\\.)*+\'|(\?\!?)|(:\!?)(\w++)/', $fn, $statement);
@@ -238,52 +238,6 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 	}
 
 	/**
-	 * Split a query in different parts.
-	 * If a part is not set whitin the SQL query, the part is an empty string.
-	 *
-	 * @param string $sql  SQL query statement
-	 * @return array
-	 */
-	public static function split($sql)
-	{
-		$type = self::getQueryType($sql);
-		switch ($type) {
-			case 'SELECT':	 return self::splitSelectQuery($sql);
-			case 'INSERT':
-			case 'REPLACE':	 return self::splitInsertQuery($sql);
-			case 'UPDATE':	 return self::splitUpdateQuery($sql);
-			case 'DELETE':   return self::splitDeleteQuery($sql);
-			case 'TRUNCATE': return self::splitTruncateQuery($sql);
-			case 'SET':      return self::splitSetQuery($sql);
-		}
-		
-		throw new Exception("Unable to split " . (!empty($type) ? "$type " : "") . "query. $sql");
-	}
-
-	/**
-	 * Join parts to create a query.
-	 * The parts are joined in the order in which they appear in the array.
-	 * 
-	 * CAUTION: The parts are joined blindly (no validation), so shit in shit out
-	 *
-	 * @param array $parts
-	 * @return string
-	 */
-	public static function join($parts)
-	{
-		$sql_parts = array();
-		
-		foreach ($parts as $key=>&$part) {
-			if (!empty($part) || empty($sql_parts)) {
-				if (is_array($part)) $part = join(", ", $part);
-				$sql_parts[] .= ($key === 'columns' || $key === 'query' || $key === 'tables' || $key === 'options' ? '' : strtoupper($key) . " ") . trim($part);
-			}
-		}
-
-		return join(' ', $sql_parts);
-	}
-
-	/**
 	 * Returns true if part can hold identifiers.
 	 * 
 	 * @param string $key
@@ -292,31 +246,6 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 	public static function holdsIdentifiers($key)
 	{
 		return !in_array($key, array('select', 'insert', 'replace', 'update', 'delete', 'truncate', 'values', 'limit', 'options'));
-	}
-	
-	/**
-	 * Convert a query statement to another type.
-	 *
-	 * @todo Currently only works for SELECT to DELETE and vise versa
-	 * 
-	 * @param string $sql   SQL query statement (or an array with parts)
-	 * @param string $type  New query type
-	 * @return string
-	 */
-	public static function convertStatement($sql, $type)
-	{
-		$type = strtoupper($type);
-		switch ($type) {
-			case 'SELECT':	 return self::convertSelectQuery($sql);
-			case 'INSERT':
-			case 'REPLACE':	 return self::convertInsertQuery($type, $sql);
-			case 'UPDATE':	 return self::convertUpdateQuery($sql);
-			case 'DELETE':   return self::convertDeleteQuery($sql);
-			case 'TRUNCATE': return self::convertTruncateQuery($sql);
-			case 'SET':      return self::convertSetQuery($sql);
-		}
-		
-		throw new Exception("Unable to convert to a $type query.");
 	}
 	
 	/**
@@ -352,8 +281,9 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 		
 		return $parts;
 	}
-	//------------- Extract subsets --------------------
+
 	
+	//------------- Extract subsets --------------------
 	
 	/**
 	 * Extract subqueries from sql query (on for SELECT queries) and replace them with #subX in the main query.
@@ -362,6 +292,8 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 	 * @param  string $sql
 	 * @param  array  $sets  Do not use!
 	 * @return array
+	 * 
+	 * @todo Extract subsets should only go 1 level deep
 	 */
 	public static function extractSubsets($sql, &$sets=null)
 	{
@@ -475,8 +407,54 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 
 
     
-	//------------- Split specific type --------------------
+	//------------- Split query --------------------
 	
+	/**
+	 * Split a query in different parts.
+	 * If a part is not set whitin the SQL query, the part is an empty string.
+	 *
+	 * @param string $sql  SQL query statement
+	 * @return array
+	 */
+	public static function split($sql)
+	{
+		$type = self::getQueryType($sql);
+		switch ($type) {
+			case 'SELECT':	 return self::splitSelectQuery($sql);
+			case 'INSERT':
+			case 'REPLACE':	 return self::splitInsertQuery($sql);
+			case 'UPDATE':	 return self::splitUpdateQuery($sql);
+			case 'DELETE':   return self::splitDeleteQuery($sql);
+			case 'TRUNCATE': return self::splitTruncateQuery($sql);
+			case 'SET':      return self::splitSetQuery($sql);
+		}
+		
+		throw new Exception("Unable to split " . (!empty($type) ? "$type " : "") . "query. $sql");
+	}
+
+	/**
+	 * Join parts to create a query.
+	 * The parts are joined in the order in which they appear in the array.
+	 * 
+	 * CAUTION: The parts are joined blindly (no validation), so shit in shit out
+	 *
+	 * @param array $parts
+	 * @return string
+	 */
+	public static function join($parts)
+	{
+		$sql_parts = array();
+		
+		foreach ($parts as $key=>&$part) {
+			if (!empty($part) || empty($sql_parts)) {
+				if (is_array($part)) $part = join(", ", $part);
+				$sql_parts[] .= ($key === 'columns' || $key === 'query' || $key === 'tables' || $key === 'options' ? '' : strtoupper($key) . " ") . trim($part);
+			}
+		}
+
+		return join(' ', $sql_parts);
+	}
+
 	/**
 	 * Split select query in different parts.
 	 * NOTE: Splitting a query with a subquery is considerably slower.
@@ -658,7 +636,7 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 	}
 	
 	
-	//------------- Split columns --------------------
+	//------------- Split a part --------------------
 	
 	/**
 	 * Return the columns of a (partual) query statement.
@@ -892,9 +870,7 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 		
 		// Prepare
 		$column = (array)$column;
-		
-		if (isset($value)) $value = (array)$value;
-		  elseif ($compare === '=') $compare = 'IS NULL';
+		$value = (array)$value;
 
 		if ($compare === 'ANY' || ($compare === '=' && sizeof($value)>1)) $compare = 'IN';
 		 
@@ -1080,17 +1056,6 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 		return "DELETE" . (isset($table) ? self::quoteIdentifier($table) . ".* FROM " . self::quoteIdentifier($table, $flags) : '') . " $criteria";
 	}
 
-	/**
-	 * Create query to delete all rows from a table.
-	 * 
-	 * @param string $table  Tablename
-	 * @return string
-	 */
-	public static function buildTruncateStatement($table=null)
-	{
-	    return "TRUNCATE" . (isset($table) ? ' ' . self::quoteIdentifier($table) : null);
-	}
-
 	
 	//------------- Convert statement to specific type --------------------
     
@@ -1132,7 +1097,31 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
 	}
 	
 	
-    /**
+	/**
+	 * Convert a query statement to another type.
+	 *
+	 * @param string $sql   SQL query statement
+	 * @param string $type  New query type
+	 * @return string
+	 */
+	public static function convertStatement($sql, $type)
+	{
+		$type = strtoupper($type);
+		
+		switch ($type) {
+			case 'SELECT':	 return self::convertToSelectQuery($sql);
+			case 'UPDATE':	 return self::convertToUpdateQuery($sql);
+			case 'DELETE':   return self::convertToDeleteQuery($sql);
+			
+			case 'INSERT':   return self::convertToInsertQuery($sql);
+			case 'REPLACE':  return self::convertToReplaceQuery($sql);
+			case 'SET':      return self::convertToSetQuery($sql);
+		}
+		
+		if (self::getQueryType($sql) != $type) throw new Exception("Unable to convert to a $type statement.");
+	}
+	
+	/**
      * Convert query to a select statement.
      * 
      * @param string $sql
@@ -1141,45 +1130,147 @@ class DB_MySQL_SQLSplitter implements DB_SQLSplitter
     protected static function convertToSelectQuery($sql)
     {
     	$type = self::getQueryType($sql);
+    	
 		switch ($type) {
 			case 'SELECT':
 				return $sql;
 			
-			case 'INSERT':
-			case 'REPLACE':
-				$parts = self::split($sql);
-				if (!isset($parts['query'])) throw new Exception("Unable to convert $type statement into a SELECT statement: Statement does not contain a SELECT part");
-				return $parts['query'];
-			
 			case 'UPDATE':
 				$parts = self::split($sql);
-				$cols = self::splitColumns($parts, false, true);
-				return self::join(array(0=>'SELECT', array_keys($cols)));
-				
+				$cols = array_keys(self::splitColumns($parts, false, true));
+				return self::join(array(0=>'SELECT', 'column'=>$cols, 'from'=>$parts['tables'], 'where'=>$parts['where'], 'limit'=>$parts['limit']));
+
+			case 'DELETE':
+				$parts = self::split($sql);
+				$parts[0] = 'SELECT';
+				if (empty($parts['columns'])) $parts['columns'] = '*';
+				return self::join($parts);
 		}
 		
 		throw new Exception("Unable to convert a $type statement into a SELECT statement");
     }
 
-    /**
-     * Convert query to a insert/replace statement.
+	/**
+     * Convert query to a select statement.
      * 
-     * @param string $newtype
      * @param string $sql
      * @return string
      */
-    protected static function convertToInsertQuery($newtype, $sql)
+    protected static function convertToUpdateQuery($sql)
+    {
+    	$type = self::getQueryType($sql);
+    	
+		switch ($type) {
+			case 'UPDATE':
+				return $sql;
+			
+			case 'SELECT':
+			case 'DELETE':
+				$parts = self::split($sql);
+				return self::join(array(0=>'UPDATE', 'tables'=>$parts['from'], 'set'=>null, 'where'=>$parts['where'], 'limit'=>$parts['limit']));
+
+			case 'INSERT':
+			case 'REPLACE':
+				$parts = self::split($sql);
+				if (!isset($parts['set'])) throw new Exception("Unable to convert a '$type INTO ... SELECT' statement into an UPDATE statement");
+				return self::join(array(0=>'UPDATE', 'tables'=>$parts['into'], 'set'=>$parts['set']));
+
+			case 'SET':
+				return "UPDATE  $sql";
+		}
+		
+		throw new Exception("Unable to convert a $type statement into an UPDATE statement");
+    }
+
+	/**
+     * Convert query to a select statement.
+     * 
+     * @param string $sql
+     * @return string
+     */
+    protected static function convertToDeleteQuery($sql)
+    {
+    	$type = self::getQueryType($sql);
+    	
+		switch ($type) {
+			case 'DELETE':
+				return $sql;
+			
+			case 'SELECT':
+				$parts = self::split($sql);
+				$parts[0] = 'SELECT';
+				if (!preg_match('^/s*(?:`[^`]+`|\w+)\.\*\s*)$', $parts['columns'])) $parts['columns'] = '';
+				unset($parts['group by'], $parts['having'], $parts['order by'], $parts['options']); 
+				return self::join($parts);
+				
+			case 'UPDATE':
+				$parts = self::split($sql);
+				return self::join(array(0=>'DELETE', 'from'=>$parts['tables'], 'where'=>$parts['where'], 'limit'=>$parts['limit']));
+		}
+		
+		throw new Exception("Unable to convert a $type statement into a DELETE statement");
+    }
+    
+    /**
+     * Convert query to a insert/replace statement.
+     * 
+     * @param string $sql
+     * @return string
+     */
+    protected static function convertToInsertQuery($sql)
     {
     	$type = self::getQueryType($sql);
 		switch ($type) {
-			case 'SELECT' :
-				return "$newtype INTO $sql";
-				
-			case 'INSERT':
-			case 'REPLACE':
-				return preg_replace('/^\s*' . $newtype. '\b/i', $type, $sql);
+			case 'INSERT':  return $sql;
+			case 'REPLACE': return preg_replace('/^\s*REPLACE\b/i', 'INSERT', $sql);
+			case 'UPDATE':	$parts = self::split($sql); return "INSERT INTO {$parts['tables']} {$parts['set']}";
+			case 'SET':     return "INSERT INTO  $sql";
 		}
 		
-		throw new Exception("Unable to convert a $type statement into a $newtype statement");
-    }    
+		throw new Exception("Unable to convert a $type statement into an INSERT statement");
+    }
+
+
+    /**
+     * Convert query to a insert/replace statement.
+     * 
+     * @param string $sql
+     * @return string
+     */
+    protected static function convertToReplaceQuery($sql)
+    {
+    	$type = self::getQueryType($sql);
+		switch ($type) {
+			case 'REPLACE': return $sql;
+			case 'INSERT':  return preg_replace('/^\s*INSERT\b/i', 'REPLACE', $sql);
+			case 'UPDATE':	$parts = self::split($sql); return "REPLACE INTO {$parts['tables']} {$parts['set']}";
+			case 'SET':     return "REPLACE INTO $sql";
+		}
+		
+		throw new Exception("Unable to convert a $type statement into a REPLACE statement");
+    }
+    
+    /**
+     * Convert query to a insert/replace statement.
+     * 
+     * @param string $sql
+     * @return string
+     */
+    protected static function convertToSetQuery($sql)
+    {
+    	$type = self::getQueryType($sql);
+		switch ($type) {
+			case 'SET':     return $sql;
+			
+			case 'REPLACE': 
+			case 'INSERT':  
+			case 'UPDATE':
+				$parts = self::split($sql);	
+				if (!isset($parts['set'])) throw new Exception("Unable to convert a '$type INTO ... SELECT' statement into an UPDATE statement");
+				return $parts['set'];
+		}
+		
+		throw new Exception("Unable to convert a $type statement into a SET statement");
+    }
 }
+

@@ -1,8 +1,7 @@
 <?php
 use Q\Fs;
 
-require_once 'TestHelper.php';
-require_once 'PHPUnit/Framework/TestCase.php';
+require_once __DIR__ . '/../init.php';
 
 require_once 'Q/Fs.php';
 require_once 'Q/Fs/Unknown.php';
@@ -649,4 +648,20 @@ class Fs_Test extends PHPUnit_Framework_TestCase
     	if (symlink(__FILE__, $link_file)) $this->assertEquals('file', Fs::typeOfNode($link_file, Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
     	if (symlink(__DIR__, $link_dir)) $this->assertEquals('directory', Fs::typeOfNode($link_dir, Fs::DESCRIPTION | Fs::ALWAYS_FOLLOW));
 	}
+
+    /**
+     * Remove tmp files (recursively)
+     *
+     * @param string  $path
+     */
+    protected static function cleanup($path)
+    {
+    	if (file_exists($path) || is_link($path)) unlink($path);
+    	if (file_exists("$path.x") || is_link("$path.x")) unlink("$path.x");
+
+    	if (is_dir("$path.y")) {
+    		static::cleanup("$path.y/" . basename($path));
+    		rmdir("$path.y");
+		}
+    }
 }

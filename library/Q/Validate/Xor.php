@@ -13,4 +13,12 @@ namespace Q;
  */
 class Validate_Xor extends Validate
 {
+    /**
+     * Validate a value.
+     *
+     * @param mixed $value  Value to be validated
+     * @return boolean
+     */
+    public function validate($value)
+    {}
 }

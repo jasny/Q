@@ -85,6 +85,8 @@ abstract class DB implements Multiton
 	const QUOTE_LOOSE = 0x200;
 	/** Quote string as field/table name */
 	const QUOTE_STRICT = 0x400;
+	/** Any of the quote options */
+	const QUOTE_OPTIONS = 0x700;
 	/** Don't map identifiers */
 	const DONT_MAP = 0x8000;
 	
@@ -211,6 +213,7 @@ abstract class DB implements Multiton
     	  'dec' => array('numeric'=>true),
     	  'fixed' => array('numeric'=>true),
 
+	      'string' => array('role'=>array('description'), 'auto:role:description'=>true),
 	      'children' => array('fieldtype'=>'recordset', 'multiple'=>true),
 	    ),
     	
@@ -484,16 +487,6 @@ abstract class DB implements Multiton
 		return $this->settings;
 	}	
 	
-	/**
-	 * Set the result type for Q\DB::fetchAll() and Q\DB::fetchRow()  
-	 * 
-	 * @param int $resulttype
-	 */
-	public function setFetchMode($resulttype)
-	{
-		$this->fetchMode = $resulttype;
-	}
-	
 	// -----
 
 	/**
@@ -612,14 +605,12 @@ abstract class DB implements Multiton
 		// Merge table properties
 		if (!empty($properties['#table']['inherit'])) {
 		    $inherit = $this->getMetadata($properties['#table']['inherit']);
-		    if (isset($inherit['#role:id'])) {
-		        unset($inherit['#role:id']['role'][array_search('id', $inherit['#role:id']['role'])], $inherit['#role:id']['is_primary'], $inherit['#role:id']);
-		    } else {
-		        $props = null;
-		        foreach ($inherit as &$props) {
-		            if (isset($props['is_primary'])) unset($props['is_primary']);
-		        }
-		    }
+		        
+		    $props = null;
+	        foreach ($inherit as &$props) {
+	            if (isset($props['is_primary'])) unset($props['is_primary']);
+	            $props['inherit_level'] = $props['inherit_level'] + 1;
+	        }
 		    
 		    $properties['#table'] += $inherit['#table'];
 		}
@@ -637,16 +628,17 @@ abstract class DB implements Multiton
         	    $props_cfg[$index] = array();
         	}
 		    
-		    unset($props_cfg[$index]['name'], $props_cfg[$index]['name_db'], $props_cfg[$index]['table']);
+		    unset($props_cfg[$index]['name'], $props_cfg[$index]['db_name'], $props_cfg[$index]['table'], $props_cfg[$index]['db_table']);
 		    if (isset($props_cfg[$index])) $properties[$index] = $props_cfg[$index] + $properties[$index];
 		    if (isset($inherit[$index])) $properties[$index] += $inherit[$index];
 			
 		    $props =& $properties[$index];
 		    
-		    if (isset($props['name'])) $props['name_db'] = $props['name']; 
-			if (isset($props['table'])) $props['table_db'] = $props['table'];
+		    if (isset($props['name'])) $props['db_name'] = $props['name']; 
+			if (isset($props['table'])) $props['db_table'] = $props['table'];
 		    $props['name'] = $index;
-			$props['table_def'] = $props_cfg['name'];
+			$props['table_gateway'] = $props_cfg['name'];
+			$props['inherit_level'] = 0;
 
 			$this->applyFieldDefaults($properties, $index);
 			$is_juntion = $is_juntion && !empty($props['foreign_table']);
@@ -692,7 +684,7 @@ abstract class DB implements Multiton
             self::$dtpUsedForFunction = self::$defaultTableProperties;
         }
         
-        if (empty($properties['#table']['description'])) $properties['#table']['description'] = ucfirst(trim(preg_replace("/[^\w_]*_\W*+/", " ", $properties['#table']['name'])));        
+        if (empty($properties['#table']['description'])) $properties['#table']['description'] = ucfirst(trim(preg_replace('/[^\w_]*_\W*+/', ' ', $properties['#table']['name'])));        
         if (!self::$fnApplyTableDefaults) return;
 
         $fn = self::$fnApplyTableDefaults;
@@ -810,10 +802,7 @@ abstract class DB implements Multiton
 		if ($table === null) return new DB_Table($this, array());
 	    if (isset($this->tables[$table])) return $this->tables[$table];
 	    
-	    $props = $this->getMetadata($table);
-	    if (empty($props)) throw new Exception("Table '$table' does not exist");
-
-		$this->tables[$table] = new DB_Table($this, $props);
+		$this->tables[$table] = new DB_Table($this, $table);
 		return $this->tables[$table];
 	}
 	
@@ -868,45 +857,6 @@ abstract class DB implements Multiton
 	 * @return DB_Statement
 	 */
 	abstract public function statement($statement);
-	
-	/**
-	 * Build a select query statement.
-	 * @internal If $fields is an array, $fields[0] may be a SELECT statement and the other elements are additional fields
-	 *
-	 * @param string $table     Tablename
-	 * @param mixed  $fields    Array with fieldnames or fieldlist (string); NULL means all fields.
-	 * @param mixed  $criteria  The value for the primairy key (int/string or array(value, ...)) or array(field=>value, ...)
-	 * @return DB_Statement
-	 */
-	abstract public function select($table=null, $fields=null, $criteria=null);
-	
-	/**
-	 * Build an insert or insert/update query statement.
-	 *
-	 * @param string $table   Table
-	 * @param array  $colums  Assosiated array as (fielname=>value, ...) or ordered array (fielname, ...) with 1 value for each field
-	 * @param array  $values  Ordered array (value, ...) for one row  
-	 * @param Addition arrays as additional values (rows)
-	 * @return DB_Statement
-	 */
-	abstract public function store($table=null, $columns=null, $values=null);
-	
-	/**
-	 * Build a update query statement.
-	 *
-	 * @param string $table   Table
-	 * @param array  $values  Assasioted array as (fielname=>value, ...) or ordered array (value, ...) with 1 value for each field
-	 * @return DB_Statement
-	 */
-	abstract public function update($table=null, $values=null);
-
-	/**
-	 * Build a delete query statement.
-	 *
-	 * @param string $table  Table
-	 * @return DB_Statement
-	 */
-	abstract public function delete($table=null);
 	
 	// -----	
 	

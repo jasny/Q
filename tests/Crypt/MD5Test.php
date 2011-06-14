@@ -1,7 +1,6 @@
 <?php
 use Q\Crypt_MD5;
 
-require_once 'TestHelper.php';
 require_once 'Q/Crypt/MD5.php';
 require_once 'PHPUnit/Framework/TestCase.php';
 

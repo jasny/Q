@@ -1,7 +1,6 @@
 <?php
 use Q\Crypt_MCrypt;
 
-require_once 'TestHelper.php';
 require_once 'Q/Crypt/MCrypt.php';
 require_once 'PHPUnit/Framework/TestCase.php';
 

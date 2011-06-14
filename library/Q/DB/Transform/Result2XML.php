@@ -34,14 +34,6 @@ class DB_Transform_Result2XML
 		'names'=>'fieldnames'
 	);
 
-	/**
-	 * Returns an XML representation for the result.
-	 * Native XML databases will return result XML if $cfg is not specified.
-	 * 
-	 * @param  array        $cfg   Properties on how to convert the record to XML (see DB_Result_$xmlcfg)
-	 * @return string
-	 */
-	abstract public function getXML($cfg=null);
 
 	
 // DB_MySQL_Result_Tree
@@ -111,7 +103,7 @@ class DB_Transform_Result2XML
 	 * @param  array    $cfg   Properties on how to convert the record to XML (see DB_$xmlcfg) 
 	 * @return string
 	 */
-	function getXML($cfg=null)
+	function getXML1($cfg=null)
 	{
 		$cfg = isset($cfg) ? array_merge(DB::$xmlcfg, $cfg) : DB::$xmlcfg;
 		
@@ -287,7 +279,7 @@ class DB_Transform_Result2XML
 	 * @param boolean $close  Close XML node 
 	 * @return string
 	 */
-	protected function getXML_Attributes($row, $cfg, $close=true)
+	protected function getXML_Attributes1($row, $cfg, $close=true)
 	{
 		$xml = parent::getXML_Attributes($row, $cfg, false);
 		
@@ -310,7 +302,7 @@ class DB_Transform_Result2XML
 	 * @param boolean $close  Close XML node 
 	 * @return string
 	 */
-	protected function getXML_Forest($row, $cfg, $close=true)
+	protected function getXML_Forest1($row, $cfg, $close=true)
 	{
 		$xml = parent::getXML_Forest($row, $cfg, false);
 		
@@ -333,7 +325,7 @@ class DB_Transform_Result2XML
 	 * @param boolean $close  Close XML node 
 	 * @return string
 	 */
-	protected function getXML_Standard($row, $cfg, $close=true)
+	protected function getXML_Standard1($row, $cfg, $close=true)
 	{
 		$xml = parent::getXML_Standard($row, $cfg, false);
 		
@@ -358,7 +350,7 @@ class DB_Transform_Result2XML
 	 * @param  array   $cfg   Properties on how to convert the record to XML (see DB_$xmlcfg) 
 	 * @return string
 	 */
-	function getXML($cfg=null)
+	function getXML2($cfg=null)
 	{
 		$cfg = isset($cfg) ? array_merge(DB::$xmlcfg, $cfg) : DB::$xmlcfg;
 

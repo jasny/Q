@@ -33,16 +33,27 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
 	}
 	
 	/**
-	 * Return  
+	 * Return the fullpath
 	 *
-	 * @return unknown_type
+	 * @return string
 	 */
 	public function __toString()
 	{
 		return $this->_path;
 	}
 	
-	
+
+	/**
+	 * Get the stream protocol (http, ftp, ssh2.sftp).
+	 * Returns NULL for local files
+	 *
+	 * @return string
+	 */
+	public function protocol()
+	{
+		return preg_match('~^(.*?)://~', $this->_path, $match) ? $match[1] : null;
+	}
+
 	/**
 	 * Get the file path.
 	 * 
@@ -56,7 +67,7 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
 	/**
 	 * Returns filename component of path.
 	 * 
-	 * @param  string $suffix If the filename ends in suffix  this will also be cut off
+	 * @param  string $suffix If the filename ends in suffix, this will also be cut off
 	 * @return string
 	 */
 	public function basename($suffix=null)
@@ -93,7 +104,7 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
 	{
 		return pathinfo($this->_path, PATHINFO_FILENAME);
 	}
-	
+
 	
 	/**
 	 * Interator; Returns the current file object.
@@ -351,7 +362,57 @@ abstract class Fs_Node implements \ArrayAccess, \Iterator, \Countable
  		$len = strlen($dir);
  		return strncmp($path, Fs::canonicalize($dir) . '/', $len) == 0 && ($flags & Fs::RECURSIVE || strpos($path, '/', $len+1) !== false); 
  	}
-	
+
+	/**
+	 * Return path relative to $file
+	 *
+	 * @param Fs_Node|string $file
+	 * @return string
+	 */
+	public function relativeTo($file)
+	{
+		if (!($file instanceof self)) $file = Fs::get($file, 'file');
+
+		$dparts = $file->dirname() == '/' ? array() : explode('/', trim(Fs::get($file, 'file')->dirname(), '/'));
+		$fparts = $this->dirname() == '/' ? array() : explode('/', trim($this->dirname(), '/'));
+
+		for ($i=0, $m=min(count($dparts), count($fparts)); $i<$m; $i++) {
+			if ($dparts[$i] != $fparts[$i]) break;
+			unset($dparts[$i], $fparts[$i]);
+		}
+
+		return str_repeat('../', count($dparts)) . (!empty($fparts) ? join('/', $fparts) . '/' : '') . $this->basename();
+	}
+
+	/**
+	 * Return path using $dir as root
+	 *
+	 * @param Fs_Dir|string $dir  Alternative root path
+	 * @return string
+	 */
+	public function withRootAs($dir)
+	{
+		$dir = Fs::canonicalize($dir);
+		if ($dir == '/') return $this->_path;
+
+		if (!$this->isIn($dir)) throw new Exception("File '{$this->_path}' is not in directory '$dir'.");
+		return substr($this->_path, strlen($dir));
+	}
+
+	/**
+	 * Returns the url to the file.
+	 *
+	 * @return string
+	 */
+	public function url()
+	{
+		$protocol = $this->protocol();
+		if ($protocol == 'http' || $protocol == 'https' || $protocol == 'ftp') return $this->path;
+		  elseif ($protocol != '') throw new Exception("Unable to get URL to file '{$this->_path}'. The $protocol protocol is not supported in browsers.");
+
+		return $this->withRootAs(Fs::document_root());
+	}
+
  	/**
  	 * Use file as named path
  	 * 

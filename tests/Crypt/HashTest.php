@@ -1,7 +1,6 @@
 <?php
 use Q\Crypt_Hash;
 
-require_once 'TestHelper.php';
 require_once 'Q/Crypt/Hash.php';
 require_once 'PHPUnit/Framework/TestCase.php';
 

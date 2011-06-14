@@ -6,14 +6,11 @@ require_once 'Q/DB/Record.php';
 require_once 'Q/DB/Field.php';
 
 /**
- * An object representation of a database table.
+ * Database table gateway.
  * 
  * @package DB
  * 
  * @todo Add factory method
- * @todo Do field creating in constructor (not lazy)
- * @todo Don't do semantic mapping
- * @todo Auto set view, descview and overview queries
  */
 class DB_Table extends \ArrayObject
 {
@@ -39,31 +36,13 @@ class DB_Table extends \ArrayObject
 	/**
 	 * The class constructor
 	 *
-	 * @param DB    $conn        Database connection
-	 * @param array $properties  Table properties
+	 * @param DB     $conn  Database connection
+	 * @param string $name  Table name
 	 */
-	public function __construct($conn, $properties)
+	public function __construct($conn, $name)
 	{
 		$this->_connection = $conn;
-
-		parent::__construct($properties['#table']);
-		$this->createFields($properties);
-		
-		if ($this->_connection) {
-			if (!isset($this['view'])) $this['view'] = (string)$this->_connection->selectStatement($this, '*');
-			if (!isset($this['load'])) $this['load'] = $this['view'];
-			
-			if ((!isset($this['overview']) || !isset($this['descview'])) && isset($this->_fieldindex['#role:description'])) {
-				$fields = new DB_FieldList();
-				$fields[] = $this->getPrimaryKey();
-				$fields[] = $this->_fieldindex['#role:description'];
-				if (isset($this->_fieldindex['#role:active'])) $fields[] = $this->_fieldindex['#role:active'];
-				
-				$stmt = (string)$this->_connection->selectStatement($this, $fields);
-				if (!isset($this['overview'])) $this['overview'] = $stmt;
-				if (!isset($this['descview'])) $this['descview'] = $stmt;
-			}
-		}
+		$this->recalc();
 	}
 	
 	/**
@@ -101,16 +80,12 @@ class DB_Table extends \ArrayObject
 	/**
 	 * Magic set method
 	 *
-	 * @param  string  $name
-	 * @param  mixed   $value
+	 * @param string  $name
+	 * @param mixed   $value
 	 */
 	public function __set($name, $value)
 	{
-		if (!($value instanceof DB_Field)) throw new Exception("Unable to add '$name': Value is a " . (is_object($value) ? get_class($value) : gettype($value)) . ", not a DB_Field");
-		if ($name[0] !== '#') throw new Exception("You can't overwrite add an alias: Aliases must start with '#', '$name' does not");
-		if (!array_search($this->_fields, $value, true)) throw new Exception("Unable to add field '$name': The provided field is not a field in the table");
-		
-		$this->fieldindex[$name] = $value;
+		trigger_error("It's not possible to add fields to a table gateway dynamically.", E_USER_ERROR);
 	}
 	
 	/**
@@ -135,6 +110,89 @@ class DB_Table extends \ArrayObject
 	}
 
 	
+    /**
+     * Get status information about the table.
+     *
+     * @return array
+     */
+    public function getInfo()
+    {
+        if (!$this->getConnection()) return null;
+        return $this->getConnection()->getTableInfo($this);
+    }
+	
+    /**
+     * Refresh table definition by re-requesting the metadata from the database. 
+     */
+    public function recalc()
+    {
+    	$properties = $this->getConnection()->getMetaData($this);
+    	
+        $this->exchangeArray($properties['#table']);
+        $this->createFields($properties);
+        
+		if (!isset($this['view'])) $this['view'] = (string)$this->_connection->selectStatement($this, '*');
+		if (!isset($this['load'])) $this['load'] = $this['view'];
+		
+		if ((!isset($this['overview']) || !isset($this['descview'])) && isset($this->_fieldindex['#description'])) {
+			$fields = new DB_FieldList();
+			$fields[] = $this->getPrimaryKey();
+			$fields[] = $this->_fieldindex['#description'];
+			if (isset($this->_fieldindex['#active'])) $fields[] = $this->_fieldindex['#active'];
+			
+			$stmt = (string)$this->_connection->selectStatement($this, $fields);
+			if (!isset($this['overview'])) $this['overview'] = $stmt;
+			if (!isset($this['descview'])) $this['descview'] = $stmt;
+		}
+    }
+    
+	/**
+	 * Create DB_Fields based on the supplied metadata
+	 * 
+	 * @param array $metadata
+	 */
+	protected function createFields($metadata)
+	{
+		foreach ($metadata as $name=>$properties) {
+			if ($name[0] == '#') continue;
+			
+			$field = DB_Field::create($this, $properties);
+
+			$this->_fieldindex[$name] = $field;
+			if ($properties['db_name']) $this->_fields[] = $field;
+		}
+		
+		$this->reindex();
+	}
+	
+    /**
+     * Reindex fields to apply changed semantic mapping. 
+     */
+    public function reindex()
+    {
+    	foreach (array_keys($this->_fieldindex) as $key) {
+    		if ($key[0] == '#') unset($this->_fieldindex[$key]); 
+    	}
+    	    	
+	    foreach ($this->_fieldindex as $field) {
+	    	if (empty($field['role'])) continue;
+
+	    	foreach ($field['role'] as $role) {
+    			if (isset($this->_fieldindex["#$role"])) {
+    				if (isset($field["auto:role:$role"])) continue;
+    				
+    				if (empty($this->_fieldindex["#$role"]["auto:role:$role"])) {
+    					trigger_error("Found duplicate role '$role' for table '{$this['name']}'. The role is set for field '{$this->_fieldindex["#$role"]['name']}' and '{$field['name']}'.", E_USER_NOTICE);
+    					continue;
+    				}
+    			}
+    			
+    			$this->_fieldindex["#$role"] = $field;
+    		}
+	    }
+    }
+    
+
 	/**
 	 * ArrayAccess; Set property
 	 * 
@@ -197,20 +255,69 @@ class DB_Table extends \ArrayObject
 		
 		return $this;
 	}
+
 	
 	/**
 	 * Get a table property as DB_Statement. 
 	 *
-	 * @param string $index
+	 * @param string $key    Property name
 	 * @return DB_Statement
 	 */
-	public function get($index)
+	public function stmt($key)
  	{
- 		$value = parent::offsetGet($index);
- 		if (!isset($value)) throw new Exception("Unable to create statement for property '$index'; Property is not set.");
+ 		$value = parent::offsetGet($key);
+ 		if (!isset($value)) throw new Exception("Unable to create statement for property '$key'; Property is not set.");
  		
- 		return $this->_connection->prepare($value);
+ 		return $this->getConnection()->statement($value);
  	}
+ 	
+	/**
+	 * Build a select query statement.
+	 * @internal If $fields is an array, $fields[0] may be a SELECT statement and the other elements are additional fields
+	 *
+	 * @param mixed $columns    Array with fieldnames or fieldlist (string); NULL means all fields.
+	 * @param mixed $criteria  The value for the primairy key (int/string or array(value, ...)) or array(field=>value, ...)
+	 * @return DB_Statement
+	 */
+	public function select($columns=null, $criteria=null)
+	{
+		return $this->getConnection()->statement($this->getConnection()->sqlSplitter->buildSelectStatement($this, $columns, $criteria), $this);
+	}
+	
+	/**
+	 * Build an insert or insert/update query statement.
+	 *
+	 * @param array $colums  Assosiated array as (fielname=>value, ...) or ordered array (fielname, ...) with 1 value for each field
+	 * @param array $values  Ordered array (value, ...) for one row  
+	 * @param Addition arrays as additional values (rows)
+	 * @return DB_Statement
+	 */
+	public function store($columns=null, $values=null)
+	{
+		return $this->getConnection()->statement($this->getConnection()->sqlSplitter->buildStoreStatement($this, $columns, $values), $this);
+	}
+	
+	/**
+	 * Build a update query statement.
+	 *
+	 * @param array $values  Assasioted array as (fielname=>value, ...) or ordered array (value, ...) with 1 value for each field
+	 * @return DB_Statement
+	 */
+	public function update($values=null)
+	{
+		return $this->getConnection()->statement($this->getConnection()->sqlSplitter->buildUpdateStatement($this, $values), $this);
+	}
+
+	/**
+	 * Build a delete query statement.
+	 *
+	 * @return DB_Statement
+	 */
+	public function delete()
+	{
+		return $this->getConnection()->statement($this->getConnection()->sqlSplitter->buildDeleteStatement($this), $this);
+	}
+	
  	
 	/**
 	 * Return the field(s) of the primairy key.
@@ -219,7 +326,7 @@ class DB_Table extends \ArrayObject
 	 */
 	public function getPrimaryKey()
 	{
-	    if ($this->hasField('#role:id')) return $this->getField('#role:id');
+	    if ($this->hasField('#id')) return $this->getField('#id');
 	    
 	    $pk = array();
 	    foreach ($this->fields as $field) {
@@ -228,6 +335,7 @@ class DB_Table extends \ArrayObject
 	    
 	    return empty($pk) ? null : (count($pk) == 1 ? reset($pk) : new DB_FieldList($pk));
 	}
+	
 	
 	/**
 	 * Return if the table has the field.
@@ -268,60 +376,6 @@ class DB_Table extends \ArrayObject
 	}
 
 	
-    /**
-     * Get status information about the table.
-     *
-     * @return array
-     */
-    public function getInfo()
-    {
-        if (!$this->getConnection()) return null;
-        return $this->getConnection()->getTableInfo($this->getName());
-    }
-	
-    /**
-     * Refresh table definition by re-requesting the metadata from the database. 
-     */
-    public function recalc()
-    {
-    	$properties = $this->getConnection()->getMetaData($this->getName());
-    	
-        $this->exchangeArray($properties['#table']);
-        $this->createFields($properties);
-    }
-    
-    /**
-     * Reindex fields to apply changed semantic mapping. 
-     */
-    public function reindex()
-    {
-	    foreach ($this->_fields as $field) {
-	        if ($fieldname[0] === '#') {
-	            $aliases[$fieldname] = $props['name'];
-	            continue;
-	        }
-
-	        $fieldnames[] = $fieldname;
-	        $field = isset($this->_fieldindex[$fieldname]) ? $this->_fieldindex[$fieldname] : DB_Field::create($this, &$this[$fieldname]);
-	        $i = array_push($fields, $field) - 1;
-	        $fieldindex[$fieldname] =& $fields[$i];
-	        $fieldindex[$i] =& $fields[$i];
-	    }
-	    
-	    foreach ($aliases as $alias) {
-	        if (isset($this[$alias]['name']) && isset($fieldindex[$this[$alias]['name']])) {
-	            $fieldindex[$this[$alias]['name']] =& $fieldindex[$this[$alias]['name']];
-	        }
-	    }
-	    
-	    $this->_fieldindex =& $fieldindex;
-	    $this->_fields =& $fields;
-	    $this->_fieldnames = $fieldnames;
-
-	    return $this->_fields;
-    }
-    
-
 	/**
 	 * Select a single value from a table.
 	 * 
@@ -364,7 +418,7 @@ class DB_Table extends \ArrayObject
 		if (isset($mode) && isset($this["load.$mode"])) $statement = $this["load.$mode"];
 		  else $statement = $this['load'];
 		
-		$result = $this->getConnection()->select($this, $statement, isset($id) ? $id : false)->execute();
+		$result = $this->select($statement, isset($id) ? $id : false)->execute();
 		if (!isset($id)) return $result->newRecord();
 		
 		if ($result->countRows() > 1) throw new DB_LimitException("Query returned " . $result->countRows() . " rows, while only 1 row was expected");
@@ -374,18 +428,17 @@ class DB_Table extends \ArrayObject
 	/**
 	 * Count the number of rows in a table (with the given criteria)
 	 * 
-	 * @param string $table     Table name
-	 * @param mixed  $criteria  The value for a primairy (or as array(key, ..) if multiple key fields ) or array(field=>value, ...)
+	 * @param mixed $criteria  The value for a primairy (or as array(key, ..) if multiple key fields ) or array(field=>value, ...)
 	 * @return int
 	 */
-	public function countRows( $criteria=null)
+	public function countRows($criteria=null)
 	{
-		
+		return $this->getConnection()->query($this->getConnection()->sqlSplitter->buildCountStatement($this, $criteria))->fetchValue();
 	}
 	
 	/**
-	 * Create a record for this table.
-	 * Record is loaded if $values contains primary key
+	 * Load/make a record for this table.
+	 * Record is loaded if $values contains primary key.
 	 * 
 	 * @param array  $values  Set values to record
 	 * @param string $mode    Use property 'load.$mode' (defaults back to property 'load' and 'view')
