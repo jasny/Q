@@ -1,5 +1,4 @@
 <?php
-namespace Q;
 
 require_once 'Test/Authenticate.php';
 require_once 'Test/Config.php';

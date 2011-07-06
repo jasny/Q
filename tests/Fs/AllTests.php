@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../init.php';
 require_once 'PHPUnit/Framework/TestSuite.php';
+
 require_once 'Fs/Test.php';
 require_once 'Fs/NodeTest.php';
 require_once 'Fs/FileTest.php';
