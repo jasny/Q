@@ -137,8 +137,3 @@ class Connection implements StreamingConnection
 		return preg_replace('/\:\w*@/', '@', $this->url);
 	}
 }
-
-<<<<<<< HEAD:incubator/Q/Connection.php
-=======
-?>
->>>>>>> d2e0614a15905957b34d6b2bda5e2705da749dc6:incubator/Q/Connection.php

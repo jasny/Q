@@ -69,12 +69,7 @@ class Stream_SSH extends SSH implements StreamingConnection
 	{
 		if (isset($this->stderr)) $this->errors .= stream_get_contents($this->stderr);
 		
-		if (!empty($this->errors) && ($this->faultOnStderr || $this->checkReturn && preg_match('/Exited with return code \d*$/s', $this->errors))) throw new RPC_Fault::General($this->conn->about(), "SSH command failed", 0, $this->errors);
+		if (!empty($this->errors) && ($this->faultOnStderr || $this->checkReturn && preg_match('/Exited with return code \d*$/s', $this->errors))) throw new RPC_Fault\General($this->conn->about(), "SSH command failed", 0, $this->errors);
 		return $this->errors;
 	}
 }
-
-<<<<<<< HEAD:incubator/Q/Stream/SSH.php
-=======
-?>
->>>>>>> d2e0614a15905957b34d6b2bda5e2705da749dc6:incubator/Q/Stream/SSH.php

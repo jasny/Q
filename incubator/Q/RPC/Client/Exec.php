@@ -167,8 +167,3 @@ class RPC_Client_Exec extends RPC_Client
 		return '(Exec)' . (!empty($command) ? " -> {$command}" : '');
 	}
 }
-
-<<<<<<< HEAD:incubator/Q/RPC/Client/Exec.php
-=======
-?>
->>>>>>> d2e0614a15905957b34d6b2bda5e2705da749dc6:incubator/Q/RPC/Client/Exec.php
